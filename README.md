@@ -6,20 +6,21 @@
 
 `SEMESTRE: 3º`
 
-Descrever resumidamente, em um ou dois parágrafos, o projeto que está sendo desenvolvido.
+O presente projeto tem como objetivo principal o desenvolvimento de um website dedicado a auxiliar os viajantes no planejamento de suas viagens e assim proporcionar a eles uma melhor experiência turística.
 
 ## Integrantes
 
-* Nome completo do aluno 1
-* Nome completo do aluno 2
-* Nome completo do aluno 3
-* Nome completo do aluno 4
-* Nome completo do aluno 5
-* Nome completo do aluno 6
+* Amanda Magalhães Silva
+* Anna Luiza Laudares Alves Pimenta Silva
+* Camille Parma Vitoria
+* Catharina Perdigão Carneiro
+* Cassio Viller Silva de Azevedo
+* Gustavo Torres da Rocha Castro
+* Rita Laura Gonçalves
 
 ## Orientador
 
-* Nome completo do professor 
+* Fábio Martins de Oliveira
 
 # Planejamento
 
