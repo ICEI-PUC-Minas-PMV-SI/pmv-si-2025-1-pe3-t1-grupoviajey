@@ -4,6 +4,10 @@ import os
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "viajey_secret_key")
 
+# Import and register the API blueprint
+from routes.api import api_bp
+app.register_blueprint(api_bp, url_prefix='/api')
+
 @app.route('/')
 def index():
     # Redirect to desktop version for now
@@ -37,6 +41,10 @@ def detail():
 @app.route('/itinerary')
 def itinerary():
     return send_from_directory('public', 'itinerary.html')
+    
+@app.route('/explorar')
+def explorar():
+    return send_from_directory('public', 'explorar.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
