@@ -1,53 +1,128 @@
-// Map functionality using Mapbox
+// Map functionality using Google Maps
 let map = null;
 let markers = [];
+let infoWindow = null;
 
-// Initialize the map
+// Initialize the map - This function will be called automatically by Google Maps API when loaded
 function initMap() {
-  // Check if map container exists and Mapbox is loaded
+  // Check if map container exists
   const mapContainer = document.getElementById('map');
-  if (!mapContainer || typeof mapboxgl === 'undefined') {
-    console.error('Map container not found or Mapbox not loaded');
+  if (!mapContainer) {
+    console.error('Map container not found');
     return;
   }
   
-  // Check if we have an API key (would normally be provided as environment variable)
-  // In a real app, this would be securely loaded from your backend
-  // DO NOT hardcode API keys in production code
-  let mapboxAccessToken = null;
-  
   try {
-    // Try to get API key from a meta tag set by the server
-    const metaToken = document.querySelector('meta[name="mapbox-token"]');
-    if (metaToken) {
-      mapboxAccessToken = metaToken.getAttribute('content');
-    }
-    
-    // If no token is available, use a fallback to show a placeholder
-    if (!mapboxAccessToken) {
-      showMapPlaceholder();
-      return;
-    }
-    
-    // Initialize the map
-    mapboxgl.accessToken = mapboxAccessToken;
-    map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [2.3522, 48.8566], // Default to Paris
-      zoom: 12
+    // Initialize the map with default options
+    map = new google.maps.Map(mapContainer, {
+      center: { lat: 48.8566, lng: 2.3522 }, // Default to Paris
+      zoom: 12,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+        {
+          featureType: "administrative.locality",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "geometry",
+          stylers: [{ color: "#263c3f" }],
+        },
+        {
+          featureType: "poi.park",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#6b9a76" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry",
+          stylers: [{ color: "#38414e" }],
+        },
+        {
+          featureType: "road",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#212a37" }],
+        },
+        {
+          featureType: "road",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#9ca5b3" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry",
+          stylers: [{ color: "#746855" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "geometry.stroke",
+          stylers: [{ color: "#1f2835" }],
+        },
+        {
+          featureType: "road.highway",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#f3d19c" }],
+        },
+        {
+          featureType: "transit",
+          elementType: "geometry",
+          stylers: [{ color: "#2f3948" }],
+        },
+        {
+          featureType: "transit.station",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#d59563" }],
+        },
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#17263c" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#515c6d" }],
+        },
+        {
+          featureType: "water",
+          elementType: "labels.text.stroke",
+          stylers: [{ color: "#17263c" }],
+        },
+      ],
+      mapTypeControl: false,
+      fullscreenControl: false,
+      streetViewControl: false
     });
     
-    // Add navigation controls
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Create a single InfoWindow instance to reuse for all markers
+    infoWindow = new google.maps.InfoWindow();
     
-    // Setup event listeners
-    map.on('load', () => {
-      // Load map pins if we have an itinerary
-      if (appState && appState.currentItinerary) {
-        loadMapPins();
-      }
+    // Add event listener to close infowindow when clicking on the map
+    google.maps.event.addListener(map, 'click', function() {
+      infoWindow.close();
     });
+    
+    // Load map pins if we have an itinerary
+    if (appState && appState.currentItinerary) {
+      loadMapPins();
+    }
+    
+    // Add a "Center on Destination" button
+    const centerControlDiv = document.createElement('div');
+    centerControlDiv.classList.add('map-center-control');
+    centerControlDiv.innerHTML = '<button type="button" class="btn btn-sm btn-primary shadow"><i class="fas fa-crosshairs me-1"></i> Recentrar</button>';
+    centerControlDiv.onclick = function() {
+      centerMapOnDestination();
+    };
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
     
   } catch (error) {
     console.error('Error initializing map:', error);
@@ -63,9 +138,23 @@ function showMapPlaceholder() {
       <div class="map-placeholder p-4 d-flex flex-column justify-content-center align-items-center h-100">
         <i class="fas fa-map-marked-alt fa-3x mb-3 text-muted"></i>
         <h5 class="text-center">Mapa não disponível</h5>
-        <p class="text-center text-muted">Configure a chave de API do Mapbox para visualizar o mapa.</p>
+        <p class="text-center text-muted">Configure a chave de API do Google Maps para visualizar o mapa.</p>
       </div>
     `;
+  }
+}
+
+// Center map on destination coordinates
+function centerMapOnDestination() {
+  if (!map || !appState || !appState.currentItinerary) return;
+  
+  // If we have coordinates for the destination, center the map there
+  if (appState.currentItinerary.locationCoordinates) {
+    map.setCenter({
+      lat: appState.currentItinerary.locationCoordinates.lat,
+      lng: appState.currentItinerary.locationCoordinates.lng
+    });
+    map.setZoom(12);
   }
 }
 
@@ -78,10 +167,10 @@ function loadMapPins() {
   
   // If we have coordinates for the destination, center the map there
   if (appState.currentItinerary.locationCoordinates) {
-    map.setCenter([
-      appState.currentItinerary.locationCoordinates.lng,
-      appState.currentItinerary.locationCoordinates.lat
-    ]);
+    map.setCenter({
+      lat: appState.currentItinerary.locationCoordinates.lat,
+      lng: appState.currentItinerary.locationCoordinates.lng
+    });
   }
   
   // Add markers for all points of interest
@@ -119,7 +208,7 @@ function loadMapPins() {
     // If the destination contains Tokyo, show Tokyo pins instead
     if (appState.currentItinerary.destination && 
         appState.currentItinerary.destination.toLowerCase().includes('tokyo')) {
-      map.setCenter([139.7690, 35.6804]);
+      map.setCenter({ lat: 35.6804, lng: 139.7690 });
       dummyPins[0] = {
         id: 'poi-1',
         name: 'Tokyo Skytree',
@@ -148,7 +237,7 @@ function loadMapPins() {
     
     // Add the dummy pins to the map
     dummyPins.forEach(pin => {
-      createMapPin(mapContainer, pin);
+      createMapPin(pin);
     });
     
     // Update the POI list in the UI
@@ -157,7 +246,7 @@ function loadMapPins() {
   } else {
     // Add real pins from the itinerary
     pins.forEach(pin => {
-      createMapPin(mapContainer, pin);
+      createMapPin(pin);
     });
     
     // Update the POI list in the UI
@@ -166,32 +255,57 @@ function loadMapPins() {
 }
 
 // Create a map pin/marker
-function createMapPin(container, pin) {
+function createMapPin(pin) {
   if (!map) return;
   
-  // Create a marker element
-  const el = document.createElement('div');
-  el.className = 'map-marker';
-  el.innerHTML = `<i class="${getPinIcon(pin.type)}"></i>`;
-  el.style.color = getPinColor(pin.type);
+  // Define marker icon based on type
+  const icon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: getPinColor(pin.type),
+    fillOpacity: 0.9,
+    strokeWeight: 1,
+    strokeColor: '#ffffff',
+    scale: 10
+  };
   
-  // Create a popup
-  const popup = new mapboxgl.Popup({ offset: 25 })
-    .setHTML(`
+  // Create the marker
+  const marker = new google.maps.Marker({
+    position: { lat: pin.coordinates.lat, lng: pin.coordinates.lng },
+    map: map,
+    icon: icon,
+    title: pin.name,
+    animation: google.maps.Animation.DROP
+  });
+  
+  // Create info window content
+  const content = `
+    <div class="map-pin-info">
       <h5>${pin.name}</h5>
       <p>${pin.description || ''}</p>
       <p><small>Dia ${pin.dayId || '?'}</small></p>
-    `);
+      <button class="btn btn-sm btn-primary view-details-btn">Ver detalhes</button>
+    </div>
+  `;
   
-  // Create the marker
-  const marker = new mapboxgl.Marker(el)
-    .setLngLat([pin.coordinates.lng, pin.coordinates.lat])
-    .setPopup(popup)
-    .addTo(map);
-  
-  // Add click listener to open pin details
-  el.addEventListener('click', () => {
-    showPinDetails(pin);
+  // Add click listener to show info window and register detail button
+  marker.addListener('click', () => {
+    // Close any open infowindow
+    infoWindow.close();
+    
+    // Set content and open
+    infoWindow.setContent(content);
+    infoWindow.open(map, marker);
+    
+    // Add event listener to view details button after infowindow is opened
+    setTimeout(() => {
+      const viewDetailsBtn = document.querySelector('.view-details-btn');
+      if (viewDetailsBtn) {
+        viewDetailsBtn.addEventListener('click', () => {
+          showPinDetails(pin);
+          infoWindow.close();
+        });
+      }
+    }, 100);
   });
   
   // Store the marker for later reference
@@ -228,7 +342,7 @@ function getPinColor(type) {
 
 // Clear all markers from the map
 function clearMapMarkers() {
-  markers.forEach(marker => marker.remove());
+  markers.forEach(marker => marker.setMap(null));
   markers = [];
 }
 
@@ -247,7 +361,7 @@ function filterMapPins(type) {
   if (type === 'all') {
     // Show all markers
     markers.forEach(marker => {
-      marker.getElement().style.display = 'block';
+      marker.setVisible(true);
     });
     
     // Show all POIs in the list
@@ -256,13 +370,11 @@ function filterMapPins(type) {
     });
   } else {
     // Filter markers by type
+    const pins = appState.currentItinerary.pointsOfInterest || [];
+    
     markers.forEach((marker, index) => {
-      const pinType = appState.currentItinerary.pointsOfInterest[index]?.type || 'other';
-      if (pinType === type) {
-        marker.getElement().style.display = 'block';
-      } else {
-        marker.getElement().style.display = 'none';
-      }
+      const pinType = index < pins.length ? pins[index].type : 'other';
+      marker.setVisible(pinType === type);
     });
     
     // Filter POIs in the list
@@ -360,19 +472,21 @@ function updatePoiList(pins) {
     item.querySelector('.show-on-map-btn').addEventListener('click', () => {
       // Center the map on this pin
       if (map) {
-        map.flyTo({
-          center: [pin.coordinates.lng, pin.coordinates.lat],
-          zoom: 15
+        map.setCenter({
+          lat: pin.coordinates.lat,
+          lng: pin.coordinates.lng
         });
+        map.setZoom(15);
         
         // Open the popup for this marker
         const marker = markers.find(m => 
-          m.getLngLat().lng === pin.coordinates.lng && 
-          m.getLngLat().lat === pin.coordinates.lat
+          m.getPosition().lat() === pin.coordinates.lat && 
+          m.getPosition().lng() === pin.coordinates.lng
         );
         
         if (marker) {
-          marker.togglePopup();
+          // Trigger a click on the marker to open its info window
+          new google.maps.event.trigger(marker, 'click');
         }
       }
     });
