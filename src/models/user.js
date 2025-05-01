@@ -9,10 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     username: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
-      validate: {
-        len: [3, 50]
-      }
+      unique: true
     },
     email: {
       type: DataTypes.STRING,
@@ -24,10 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [6, 100]
-      }
+      allowNull: false
     },
     firstName: {
       type: DataTypes.STRING,
@@ -41,30 +35,81 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
-    level: {
+    bio: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    location: {
       type: DataTypes.STRING,
+      allowNull: true
+    },
+    website: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    level: {
+      type: DataTypes.ENUM('beginner', 'explorer', 'traveler', 'globetrotter', 'expert'),
       allowNull: false,
-      defaultValue: 'beginner',
-      validate: {
-        isIn: [['beginner', 'experienced', 'pro', 'expert', 'master']]
-      }
+      defaultValue: 'beginner'
+    },
+    points: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+    badges: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      defaultValue: []
+    },
+    streakDays: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0
+    },
+    lastLoginDate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    role: {
+      type: DataTypes.ENUM('user', 'admin'),
+      allowNull: false,
+      defaultValue: 'user'
     },
     preferences: {
       type: DataTypes.JSON,
-      allowNull: true,
       defaultValue: {
-        travelGoal: '',
-        travelDays: 0,
-        travelStyle: '',
-        planningStyle: '',
-        theme: 'dark'
+        theme: 'light',
+        language: 'en',
+        currency: 'USD',
+        notifications: {
+          email: true,
+          web: true
+        },
+        travelStyles: []
       }
+    },
+    socialProfiles: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
+    totalTrips: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return 0; // This will be calculated on the server
+      }
+    },
+    countriesVisited: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      defaultValue: []
     }
   }, {
     tableName: 'users',
-    timestamps: true,
-    paranoid: true // Enable soft deletes
+    timestamps: true
   });
-
+  
   return User;
 };

@@ -16,10 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     title: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [1, 100]
-      }
+      allowNull: false
     },
     destination: {
       type: DataTypes.STRING,
@@ -34,42 +31,76 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     visibility: {
-      type: DataTypes.ENUM('private', 'link', 'friends', 'public'),
-      defaultValue: 'private',
-      allowNull: false
+      type: DataTypes.ENUM('private', 'shared', 'public'),
+      allowNull: false,
+      defaultValue: 'private'
+    },
+    coverImage: {
+      type: DataTypes.STRING, // URL to cover image
+      allowNull: true
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true
-    },
-    coverImage: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    isCompleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    isTemplate: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
     },
     tags: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: []
     },
     status: {
-      type: DataTypes.ENUM('planning', 'ongoing', 'completed', 'canceled'),
+      type: DataTypes.ENUM('planning', 'booked', 'ongoing', 'completed', 'cancelled'),
+      allowNull: false,
       defaultValue: 'planning'
+    },
+    isTemplate: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    isArchived: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    isFavorite: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    rating: {
+      type: DataTypes.INTEGER, // 1-5 star rating for completed trips
+      allowNull: true
+    },
+    reviewNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    likes: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    views: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    tripType: {
+      type: DataTypes.ENUM('solo', 'family', 'couple', 'friends', 'business', 'other'),
+      allowNull: true
+    },
+    mainTransportMode: {
+      type: DataTypes.ENUM('air', 'train', 'car', 'bus', 'ship', 'other'),
+      allowNull: true
+    },
+    locationCoordinates: {
+      type: DataTypes.JSON, // { lat: number, lng: number }
+      allowNull: true
+    },
+    sharedWith: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return []; // This will be populated from the Share model
+      }
     }
   }, {
     tableName: 'itineraries',
-    timestamps: true,
-    paranoid: true // Enable soft deletes
+    timestamps: true
   });
   
   return Itinerary;

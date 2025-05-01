@@ -22,19 +22,39 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATEONLY,
       allowNull: true
     },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     notes: {
       type: DataTypes.TEXT,
       allowNull: true
     },
     weatherForecast: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSON, // { temp: number, condition: string, icon: string }
       allowNull: true
     },
-    dayColor: {
+    location: {
       type: DataTypes.STRING,
+      allowNull: true
+    },
+    coordinates: {
+      type: DataTypes.JSON, // { lat: number, lng: number }
+      allowNull: true
+    },
+    totalDistance: {
+      type: DataTypes.FLOAT, // Distance in km
+      allowNull: true
+    },
+    totalBudget: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    currency: {
+      type: DataTypes.STRING(3),
       allowNull: true,
-      defaultValue: '#4dabf5' // Default color for days
-    }
+      defaultValue: 'USD'
+    },
   }, {
     tableName: 'days',
     timestamps: true,

@@ -1,0 +1,52 @@
+# Node modules and dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs and backups
+*.log
+*.bak
+logs/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Test files
+/test/
+/tests/
+/coverage/
+
+# Build artifacts
+/dist/
+/build/
+/.cache/
+
+# Development files
+/docker-compose.yml
+/docker-compose.*.yml
+/Dockerfile.dev
+
+# Temporary files
+/tmp/
+/temp/
