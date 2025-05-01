@@ -589,9 +589,64 @@
   <!-- Custom JS -->
   <script src="/static/js/desktop.js"></script>
   <script>
+    // Storage functions for saving and retrieving itinerary data (same as in explorar.html)
+    const saveToLocalStorage = (key, data) => {
+      localStorage.setItem(key, JSON.stringify(data));
+    };
+    
+    const getFromLocalStorage = (key) => {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    };
+    
+    // Function to initialize or get current itinerary
+    const getCurrentItinerary = () => {
+      let itinerary = getFromLocalStorage('currentItinerary');
+      if (!itinerary) {
+        // Create a new itinerary if none exists
+        itinerary = {
+          id: Date.now(),
+          name: 'Roteiro Balneário Camboriú',
+          destination: 'Balneário Camboriú',
+          startDate: '2026-01-12',
+          endDate: '2026-01-20',
+          places: []
+        };
+        saveToLocalStorage('currentItinerary', itinerary);
+      }
+      return itinerary;
+    };
+    
+    // Function to add a place to the current itinerary
+    const addPlaceToItinerary = (placeName, placeType, price, address, description) => {
+      const itinerary = getCurrentItinerary();
+      
+      // Check if this place is already in the itinerary
+      if (itinerary.places.some(place => place.name === placeName)) {
+        return false; // Place already exists
+      }
+      
+      // Add the place
+      itinerary.places.push({
+        id: Date.now(),
+        name: placeName,
+        type: placeType,
+        price: price,
+        address: address,
+        description: description,
+        addedAt: new Date().toISOString()
+      });
+      
+      // Save the updated itinerary
+      saveToLocalStorage('currentItinerary', itinerary);
+      return true;
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Setup user dropdown
-      setupUserDropdown();
+      if (typeof setupUserDropdown === 'function') {
+        setupUserDropdown();
+      }
       
       // Image gallery functionality
       const thumbnails = document.querySelectorAll('.thumbnail');
@@ -638,19 +693,50 @@
       
       // Add to itinerary button
       const addButton = document.getElementById('add-to-itinerary');
-      addButton.addEventListener('click', function() {
-        // Change button state
-        this.innerHTML = '<i class="fas fa-check me-2"></i>Adicionado ao roteiro';
-        this.classList.remove('btn-primary');
-        this.classList.add('btn-success');
-        this.disabled = true;
+      if (addButton) {
+        // Check if this place is already in the itinerary
+        const placeName = document.querySelector('.place-title').textContent.trim();
+        const itinerary = getCurrentItinerary();
         
-        // In a real app, this would send an API request to add the place to the itinerary
-        console.log('Added Hotel Sibara Flat to itinerary');
-        
-        // Show a toast or notification
-        alert('Hotel Sibara Flat adicionado ao seu roteiro!');
-      });
+        if (itinerary && itinerary.places.some(place => place.name === placeName)) {
+          // Already in itinerary, update button state
+          addButton.innerHTML = '<i class="fas fa-check me-2"></i>Adicionado ao roteiro';
+          addButton.classList.remove('btn-primary');
+          addButton.classList.add('btn-success');
+          addButton.disabled = true;
+        } else {
+          // Add event listener for adding to itinerary
+          addButton.addEventListener('click', function() {
+            // Get place details
+            const placeName = document.querySelector('.place-title').textContent.trim();
+            const placeType = document.querySelector('.badge').textContent.trim();
+            const priceElement = document.querySelector('.price-value');
+            const price = priceElement ? priceElement.textContent.trim() + '/noite' : 'Não informado';
+            const addressElement = document.querySelector('.place-location span');
+            const address = addressElement ? addressElement.textContent.trim() : 'Não informado';
+            const descriptionElement = document.querySelector('.place-description');
+            const description = descriptionElement ? descriptionElement.textContent.trim() : '';
+            
+            // Add to itinerary
+            const added = addPlaceToItinerary(placeName, placeType, price, address, description);
+            
+            if (added) {
+              // Change button state
+              this.innerHTML = '<i class="fas fa-check me-2"></i>Adicionado ao roteiro';
+              this.classList.remove('btn-primary');
+              this.classList.add('btn-success');
+              this.disabled = true;
+              
+              console.log('Added', placeName, 'to itinerary');
+              
+              // Show a toast or notification
+              alert(`${placeName} adicionado ao seu roteiro!`);
+            } else {
+              alert(`${placeName} já está no seu roteiro!`);
+            }
+          });
+        }
+      }
     });
   </script>
 </body>
