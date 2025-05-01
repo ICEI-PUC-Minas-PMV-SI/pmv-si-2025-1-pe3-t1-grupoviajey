@@ -2,6 +2,7 @@ from flask import Flask, render_template, send_from_directory, redirect
 import os
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", "viajey_secret_key")
 
 @app.route('/')
 def index():
@@ -15,6 +16,19 @@ def desktop():
 @app.route('/mobile')
 def mobile():
     return send_from_directory('public', 'index.html')
+
+@app.route('/login')
+def login():
+    return send_from_directory('public', 'login.html')
+
+@app.route('/register')
+def register():
+    return send_from_directory('public', 'register.html')
+
+@app.route('/forgot-password')
+def forgot_password():
+    # Will be implemented later
+    return "Página de recuperação de senha"
 
 @app.route('/<path:path>')
 def serve_static(path):

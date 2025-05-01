@@ -14,6 +14,7 @@
   
   <!-- Custom CSS -->
   <link rel="stylesheet" href="/static/css/desktop-style.css">
+  <link rel="stylesheet" href="/static/css/preference-chips.css">
   
   <!-- Favicon -->
   <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
@@ -40,11 +41,25 @@
           <button class="btn btn-primary new-trip-btn">
             <i class="fas fa-plus me-2"></i>Novo Roteiro
           </button>
-          <div class="user-avatar">
+          <div class="user-avatar" id="user-avatar-dropdown">
             <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+            <span class="user-name">Oi, Roberta</span>
+            <i class="fas fa-chevron-down"></i>
           </div>
         </div>
       </div>
+    </div>
+    
+    <!-- User Dropdown Menu -->
+    <div class="user-dropdown" id="user-dropdown">
+      <ul class="dropdown-menu">
+        <li><a href="#profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
+        <li><a href="#favorites"><i class="fas fa-heart me-2"></i>Favoritos</a></li>
+        <li><a href="#itineraries"><i class="fas fa-map-marked-alt me-2"></i>Roteiros</a></li>
+        <li><a href="#create-itinerary"><i class="fas fa-plus-circle me-2"></i>Criar roteiro</a></li>
+        <li class="divider"></li>
+        <li><a href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+      </ul>
     </div>
   </header>
 

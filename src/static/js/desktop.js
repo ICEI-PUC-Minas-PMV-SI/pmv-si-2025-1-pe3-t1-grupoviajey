@@ -80,6 +80,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Update UI with user data
   updateUserInfo();
+  
+  // Set up dropdown functionality
+  setupUserDropdown();
+  
+  // Add current weather to hero section (would use OpenWeather API in production)
+  // addCurrentWeather();
 });
 
 // Set up all event listeners
@@ -140,10 +146,8 @@ function setupEventListeners() {
 
 // Create a new itinerary
 function createNewItinerary() {
-  // In a real app, this would open the itinerary creation modal
-  // or navigate to the itinerary builder page
-  alert('Começando um novo roteiro de viagem...');
-  // window.location.href = '/itinerary/new';
+  // Open the itinerary creation modal
+  openCreateItineraryModal();
 }
 
 // Update user information in the UI
@@ -207,5 +211,151 @@ function formatDate(dateStr) {
   return date.toLocaleDateString('pt-BR', options);
 }
 
-// In a real application, you would have more functionality here
-// such as viewing itineraries, saving filters, etc.
+// Set up the user dropdown menu functionality
+function setupUserDropdown() {
+  const avatarDropdown = document.getElementById('user-avatar-dropdown');
+  const dropdownMenu = document.getElementById('user-dropdown');
+  
+  if (avatarDropdown && dropdownMenu) {
+    // Toggle dropdown when avatar is clicked
+    avatarDropdown.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!avatarDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        dropdownMenu.classList.remove('show');
+      }
+    });
+  }
+}
+
+// Add weather information to the hero section
+function addCurrentWeather() {
+  // This would use OpenWeather API in a real application
+  // For now, just add a placeholder weather widget
+  const heroContent = document.querySelector('.hero-content');
+  if (heroContent) {
+    const weatherWidget = document.createElement('div');
+    weatherWidget.className = 'weather-widget';
+    weatherWidget.innerHTML = `
+      <div class="current-weather">
+        <i class="fas fa-sun"></i>
+        <span class="temperature">28°C</span>
+        <span class="location">Lisboa, PT</span>
+      </div>
+    `;
+    
+    heroContent.appendChild(weatherWidget);
+  }
+}
+
+// Create a new itinerary modal
+function openCreateItineraryModal() {
+  // Create modal element
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.id = 'createItineraryModal';
+  modal.setAttribute('tabindex', '-1');
+  modal.setAttribute('aria-labelledby', 'createItineraryModalLabel');
+  modal.setAttribute('aria-hidden', 'true');
+  
+  modal.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createItineraryModalLabel">Criar Novo Roteiro</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="create-itinerary-form">
+            <div class="mb-3">
+              <label for="itinerary-name" class="form-label">Nome do Roteiro</label>
+              <input type="text" class="form-control" id="itinerary-name" placeholder="Ex: Férias em Paris">
+            </div>
+            <div class="mb-3">
+              <label for="itinerary-destination" class="form-label">Destino</label>
+              <input type="text" class="form-control" id="itinerary-destination" placeholder="Ex: Paris, França">
+            </div>
+            <div class="row mb-3">
+              <div class="col-6">
+                <label for="itinerary-start-date" class="form-label">Data Inicial</label>
+                <input type="date" class="form-control" id="itinerary-start-date">
+              </div>
+              <div class="col-6">
+                <label for="itinerary-end-date" class="form-label">Data Final</label>
+                <input type="date" class="form-control" id="itinerary-end-date">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Preferências</label>
+              <div class="preference-chips">
+                <div class="preference-chip">
+                  <input type="checkbox" id="preference-relaxation" class="preference-checkbox">
+                  <label for="preference-relaxation">Relaxamento</label>
+                </div>
+                <div class="preference-chip">
+                  <input type="checkbox" id="preference-gastronomy" class="preference-checkbox">
+                  <label for="preference-gastronomy">Gastronomia</label>
+                </div>
+                <div class="preference-chip">
+                  <input type="checkbox" id="preference-culture" class="preference-checkbox">
+                  <label for="preference-culture">Cultura</label>
+                </div>
+                <div class="preference-chip">
+                  <input type="checkbox" id="preference-adventure" class="preference-checkbox">
+                  <label for="preference-adventure">Aventura</label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Faixa de Preço</label>
+              <div class="price-range">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="priceRange" id="price-economic" value="economic">
+                  <label class="form-check-label" for="price-economic">Econômico</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="priceRange" id="price-moderate" value="moderate" checked>
+                  <label class="form-check-label" for="price-moderate">Moderado</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="priceRange" id="price-luxury" value="luxury">
+                  <label class="form-check-label" for="price-luxury">Luxo</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="create-itinerary-btn">Criar Roteiro</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add modal to body
+  document.body.appendChild(modal);
+  
+  // Initialize Bootstrap modal
+  const modalInstance = new bootstrap.Modal(modal);
+  modalInstance.show();
+  
+  // Add event listener to create button
+  const createButton = document.getElementById('create-itinerary-btn');
+  if (createButton) {
+    createButton.addEventListener('click', function() {
+      // Process form data and create itinerary
+      // ...
+      
+      // Close modal
+      modalInstance.hide();
+      
+      // Show next step (would navigate to selection screens)
+      alert('Roteiro criado! Redirecionando para escolha de hospedagem...');
+    });
+  }
+}

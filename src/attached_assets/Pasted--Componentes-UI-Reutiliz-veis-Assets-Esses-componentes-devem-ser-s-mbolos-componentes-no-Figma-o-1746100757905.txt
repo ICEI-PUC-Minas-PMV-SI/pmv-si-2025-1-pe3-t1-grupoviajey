@@ -1,0 +1,86 @@
+🧱 Componentes UI Reutilizáveis (Assets)
+Esses componentes devem ser símbolos/componentes no Figma ou componentes React, usados em todas as telas:
+
+Cabeçalho geral (não logado):
+
+Logo à esquerda
+
+Barra de busca central
+
+Botões “Cadastrar” e “Entrar” à direita
+
+Cabeçalho logado:
+
+Mostra nome do usuário ("Oi, Rita") com avatar
+
+Inclui menu dropdown com:
+
+Perfil
+
+Favoritos
+
+Roteiros
+
+Criar roteiro
+
+Sair
+
+Menu lateral ou dropdown do usuário:
+
+Ideal para navegação secundária
+
+Pode ser acessado em todas as telas logadas
+
+📲 TELAS NECESSÁRIAS E FUNCIONALIDADES
+Com base no mapeamento de telas sugerido no wireframe e nessa imagem:
+
+Tela	Funcionalidades principais
+🏠 Tela inicial	Clima local, chamada para ação, mapa interativo, destaques
+🔎 Tela de busca/resultado	Filtros por tipo (hotel, restaurante, atração), carrossel de locais
+📍 Tela de detalhe do local	Informações, clima, botão “Adicionar ao roteiro”
+🧾 Tela Criar Roteiro (popup)	Nome, destino, preferências e faixa de preço
+🏨 Escolher hospedagem	Cards para adicionar opções ao roteiro
+🍽 Escolher restaurantes	Cards com avaliações e preços
+🧭 Escolher atrações/passeios	Mesma estrutura com filtro
+📆 Tela de Revisão e ajustes	Tabela por dia para reorganizar itens selecionados
+✅ Checklists e notas	Interface para checklist e campos de anotação pessoal
+👤 Tela do usuário (Perfil)	Dados pessoais, roteiros salvos, favoritos
+🔐 Login, cadastro, recuperar senha	Autenticação e onboarding
+
+🧠 Integrações e Tecnologias Recomendadas
+Elemento	Como integrar
+Clima do local	OpenWeather API
+Mapa com marcadores clicáveis	Google Maps API ou Leaflet.js
+Sugestão de locais e imagens	Google Places API ou Pexels/Unsplash
+Armazenamento de dados	Supabase ou Firebase
+Geração de sugestões por IA	OpenAI API com base no destino, estilo e tempo disponível
+Checklists, favoritos e roteiros	Guardar no banco de dados por usuário (autenticado)
+
+🔄 Fluxo de navegação ideal (resumido)
+Usuário acessa a Home
+
+Pode:
+
+Buscar um destino
+
+Ver sugestões com base na localização
+
+Ao clicar em um destino:
+
+Acessa a tela com atrações organizadas por categoria
+
+Pode adicionar atrações ao seu roteiro
+
+No botão “Criar Roteiro”:
+
+Define preferências
+
+Passa por etapas de seleção
+
+Revê e ajusta
+
+Depois:
+
+Acessa o roteiro via dashboard ou menu
+
+Tem acesso a checklist, anotações e exportações
