@@ -1,41 +1,55 @@
-// Main server file - Simplified static version
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
-// Create Express app
+// Inicialização do app Express
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/static', express.static(path.join(__dirname, 'static')));
+// Middlewares
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Route for the home page
+// Servir arquivos estáticos
+app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Rotas principais
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'desktop.html'));
 });
 
-// Route for the explorar page
 app.get('/explorar', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'explorar.html'));
 });
 
-// Route for the detail page
 app.get('/detail', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'detail.html'));
 });
 
-// Route for the itinerary page
 app.get('/itinerary', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'itinerary.html'));
 });
 
-// Fallback to home page for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'desktop.html'));
+app.get('/itinerary-kanban', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'itinerary-kanban.html'));
 });
 
-// Start the server
+// Fallback para rotas não encontradas
+app.get('*', (req, res) => {
+  // Tenta servir o arquivo diretamente do diretório public
+  const filePath = path.join(__dirname, 'public', req.path);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      // Se o arquivo não existir, redireciona para a página inicial
+      res.redirect('/');
+    }
+  });
+});
+
+// Iniciar o servidor
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Viajey static server is running on port ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
