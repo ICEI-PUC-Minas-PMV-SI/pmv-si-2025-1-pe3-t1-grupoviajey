@@ -1,0 +1,40 @@
+Aqui está sua página inicial completa do **Viajey**, com todas as funcionalidades detalhadas e integradas:
+
+---
+
+## 🌐 Página Inicial – Viajey (Desktop)
+
+### 🔝 Cabeçalho (Header Fixo no Topo)
+- Localizado no topo da página, fixo durante o scroll.
+- Logotipo “Viajey” (à esquerda).
+- Barra de pesquisa central para busca rápida por destinos, roteiros ou locais, com sugestões automáticas ao digitar.
+- À direita: botão “+ Novo Roteiro” e avatar do usuário, com acesso ao perfil e configurações.
+
+### 🌄 Seção de Boas-vindas (Hero)
+- Imagem de fundo atraente, personalizada com nome do usuário.
+- Texto acolhedor reforçando as sugestões personalizadas da IA copiloto.
+- Botão principal “Começar um novo roteiro” que ativa criação imediata de itinerários.
+
+### 📂 Seção: Seus Roteiros
+- Cards horizontais que exibem roteiros pessoais criados ou em andamento.
+- Cards atualizam-se automaticamente com uso frequente.
+- Cada card mostra: imagem do roteiro, nome da viagem, datas planejadas e botão rápido “Continuar” ou “Explorar” o roteiro.
+
+### 🧭 Seção de Exploração – Filtros e Roteiros Prontos
+- Filtros horizontais interativos:
+  - **Estilo de viagem:** Relaxar, Gastronômico, Família, Aventura, Cultural, etc.
+  - **Duração:** viagens curtas (1–6 dias) ou mais longas (6+ dias).
+  - **Região:** Europa, América do Sul, Ásia, entre outras.
+- Os filtros são cumulativos e alteram os resultados automaticamente sem recarregar a página.
+- Abaixo dos filtros, roteiros prontos aparecem organizados em cards, exibindo imagem da cidade, nome, avaliação média e botão “Ver Roteiro” com detalhes completos da viagem.
+
+### 📝 Seção: Dicas e Checklists
+- Dicas rápidas baseadas no destino ou tema (exemplo: “O que levar para o deserto?”).
+- Acesso rápido para checklists detalhados e personalizáveis, facilitando a organização das viagens.
+
+### 🔚 Rodapé (Footer)
+- Dividido em quatro colunas com informações úteis:
+  1. Sobre o Viajey: quem somos, missão, contato.
+  2. Comunidade: roteiros em destaque, avaliações, colaboração dos usuários.
+  3. Preferências do usuário: idioma e moeda.
+  4. Links para redes sociais: Instagram, YouTube, TikTok, Twitter, etc.

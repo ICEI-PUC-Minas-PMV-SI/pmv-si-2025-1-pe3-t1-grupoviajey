@@ -1,10 +1,19 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, redirect
 import os
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
+    # Redirect to desktop version for now
+    return redirect('/desktop')
+
+@app.route('/desktop')
+def desktop():
+    return send_from_directory('public', 'desktop.html')
+
+@app.route('/mobile')
+def mobile():
     return send_from_directory('public', 'index.html')
 
 @app.route('/<path:path>')

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Planejamento de Viagem</title>
+  <meta name="description" content="Viajey - Aplicativo de planejamento de viagem completo com itinerário, checklist, mapa e compartilhamento">
+  
+  <!-- Bootstrap CSS (Replit Theme) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- Header (Fixed) -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="/">
+            <h1>Viajey</h1>
+          </a>
+        </div>
+        
+        <div class="search-bar">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <button class="btn btn-primary new-trip-btn">
+            <i class="fas fa-plus me-2"></i>Novo Roteiro
+          </button>
+          <div class="user-avatar">
+            <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" style="background-image: url('/static/img/hero-bg.jpg');">
+      <div class="container">
+        <div class="hero-content">
+          <h2 class="hero-title">Olá, Roberta! Vamos planejar sua próxima aventura?</h2>
+          <p class="hero-subtitle">Receba sugestões inteligentes com base no seu estilo de viagem.</p>
+          <button class="btn btn-primary btn-lg start-trip-btn">Começar um novo roteiro</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Your Itineraries Section -->
+    <section class="itineraries-section">
+      <div class="container">
+        <h3 class="section-title">Seus Roteiros</h3>
+        
+        <div class="itineraries-grid">
+          <div class="itinerary-card">
+            <div class="itinerary-image">
+              <img src="/static/img/destinations/japan.jpg" alt="Japão">
+            </div>
+            <div class="itinerary-details">
+              <h4>Japão Exótico</h4>
+              <p class="itinerary-dates">15 — 28 mar. 2024</p>
+              <button class="btn btn-primary btn-block">Continuar</button>
+            </div>
+          </div>
+          
+          <div class="itinerary-card">
+            <div class="itinerary-image">
+              <img src="/static/img/destinations/punta-cana.jpg" alt="Punta Cana">
+            </div>
+            <div class="itinerary-details">
+              <h4>Relaxar em Punta Cana</h4>
+              <div class="itinerary-badge">
+                <small><i class="fas fa-star me-1"></i>Roteiro colaborativo</small>
+              </div>
+              <button class="btn btn-primary btn-block">Explorar</button>
+            </div>
+          </div>
+          
+          <div class="itinerary-card">
+            <div class="itinerary-image">
+              <img src="/static/img/destinations/paraty.jpg" alt="Paraty">
+            </div>
+            <div class="itinerary-details">
+              <h4>Passeio de barco em Paraty</h4>
+              <div class="itinerary-badge">
+                <small><i class="fas fa-check-circle me-1"></i>Concluído</small>
+              </div>
+              <button class="btn btn-primary btn-block">Explorar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explore Ready Itineraries Section -->
+    <section class="explore-section">
+      <div class="container">
+        <h3 class="section-title">Explore roteiros prontos por cidade</h3>
+        
+        <div class="filters-bar">
+          <div class="filter-chips">
+            <div class="filter-chip active">
+              <span>Relaxar</span>
+            </div>
+            <div class="filter-chip">
+              <span>Gastronômico</span>
+            </div>
+            <div class="filter-chip">
+              <span>Família</span>
+              <i class="fas fa-chevron-down ms-1"></i>
+            </div>
+            <div class="filter-divider"></div>
+            <div class="filter-chip">
+              <span>1 - 6 dias</span>
+            </div>
+            <div class="filter-chip">
+              <span>6+ hóspedes</span>
+            </div>
+            <div class="filter-divider"></div>
+            <div class="filter-chip">
+              <span>Europa</span>
+              <i class="fas fa-chevron-right ms-1"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="filter-tabs">
+          <div class="filter-tab active">Relaxar</div>
+          <div class="filter-tab">Praiado</div>
+          <div class="filter-tab">Duração</div>
+        </div>
+
+        <div class="explore-grid">
+          <div class="destination-card">
+            <div class="destination-image">
+              <img src="/static/img/destinations/lisboa.jpg" alt="Lisboa">
+            </div>
+            <div class="destination-details">
+              <h4>Lisboa</h4>
+              <div class="rating">
+                <i class="fas fa-star"></i>
+                <span>4.7</span>
+              </div>
+              <button class="btn btn-primary btn-sm">Ver Roteiro</button>
+            </div>
+          </div>
+          
+          <div class="destination-card">
+            <div class="destination-image">
+              <img src="/static/img/destinations/salvador.jpg" alt="Salvador">
+            </div>
+            <div class="destination-details">
+              <h4>Salvador</h4>
+              <div class="rating">
+                <i class="fas fa-star"></i>
+                <span>4.3</span>
+              </div>
+              <button class="btn btn-primary btn-sm">Ver Roteiro</button>
+            </div>
+          </div>
+          
+          <div class="destination-card">
+            <div class="destination-image">
+              <img src="/static/img/destinations/barcelona.jpg" alt="Barcelona">
+            </div>
+            <div class="destination-details">
+              <h4>Barcelona</h4>
+              <div class="rating">
+                <i class="fas fa-star"></i>
+                <span>4.6</span>
+              </div>
+              <button class="btn btn-primary btn-sm">Ver Roteiro</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tips and Checklists Section -->
+    <section class="tips-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8">
+            <h3 class="section-title">Dicas e Checklists</h3>
+          </div>
+          <div class="col-md-4">
+            <div class="checklist-card">
+              <h4>O que levar para o deserto?</h4>
+              <ul class="checklist-items">
+                <li><i class="far fa-square me-2"></i>Bútter ólebcupmentos</li>
+                <li><i class="far fa-square me-2"></i>Curitibas seguine</li>
+              </ul>
+              <button class="btn btn-primary btn-block">Abrir checklist</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <h5>Sobre o Viajey</h5>
+          <ul class="footer-links">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Missão</a></li>
+            <li><a href="#">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Comunidade</h5>
+          <ul class="footer-links">
+            <li><a href="#">Roteiros em destaque</a></li>
+            <li><a href="#">Enviar roteiro</a></li>
+            <li><a href="#">Avaliações</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Preferências</h5>
+          <ul class="footer-links">
+            <li><a href="#">Idioma</a></li>
+            <li><a href="#">Moeda</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Sociais</h5>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JS -->
+  <script src="/static/js/desktop.js"></script>
+</body>
+</html>
