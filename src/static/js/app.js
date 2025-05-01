@@ -24,13 +24,18 @@ const appState = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+  // Check if we have saved state
+  const hasSavedState = loadFromLocalStorage();
+  
   // Simulate loading (would check authentication, load user data, etc.)
   setTimeout(() => {
     // For initial login/setup, show onboarding
-    showScreen('onboarding-screen');
-    
-    // For returning users, would skip to homescreen
-    // showScreen('home-screen');
+    if (!hasSavedState) {
+      showScreen('onboarding-screen');
+    } else {
+      // For returning users, skip to homescreen
+      showScreen('home-screen');
+    }
     
     // Set up event listeners
     setupEventListeners();
@@ -81,20 +86,28 @@ function initializeScreen(screenId) {
 
 // Set up event listeners for UI interactions
 function setupEventListeners() {
+  // Safely add event listener to an element that might not exist yet
+  const safeAddEventListener = (selector, eventType, handler) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.addEventListener(eventType, handler);
+    }
+  };
+  
   // Onboarding completion
-  document.getElementById('complete-onboarding').addEventListener('click', () => {
+  safeAddEventListener('#complete-onboarding', 'click', () => {
     processOnboardingAnswers();
     showScreen('home-screen');
   });
   
   // New itinerary button
-  document.getElementById('new-itinerary-btn').addEventListener('click', () => {
+  safeAddEventListener('#new-itinerary-btn', 'click', () => {
     createNewItinerary();
     showScreen('itinerary-builder-screen');
   });
   
   // Profile button
-  document.getElementById('open-profile').addEventListener('click', () => {
+  safeAddEventListener('#open-profile', 'click', () => {
     showScreen('profile-screen');
   });
   
@@ -135,56 +148,71 @@ function setupEventListeners() {
   });
   
   // Add day button
-  document.getElementById('add-day-btn')?.addEventListener('click', () => {
+  safeAddEventListener('#add-day-btn', 'click', () => {
     addNewDay();
   });
   
   // Activity modal save button
-  document.getElementById('save-activity-btn')?.addEventListener('click', () => {
+  safeAddEventListener('#save-activity-btn', 'click', () => {
     // Read form data and add activity
     const activityTitle = document.getElementById('activity-title').value;
     const activityType = document.getElementById('activity-type').value;
     if (activityTitle) {
       addNewActivity(activityType);
       // Close the modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('activity-modal'));
-      modal.hide();
+      const modalElement = document.getElementById('activity-modal');
+      if (modalElement && bootstrap.Modal) {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+      }
     }
   });
   
   // Add checklist item button
-  document.getElementById('add-checklist-item-btn')?.addEventListener('click', () => {
+  safeAddEventListener('#add-checklist-item-btn', 'click', () => {
     // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById('checklist-item-modal'));
-    modal.show();
+    const modalElement = document.getElementById('checklist-item-modal');
+    if (modalElement && bootstrap.Modal) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
   });
   
   // Save checklist item button
-  document.getElementById('save-checklist-item-btn')?.addEventListener('click', () => {
+  safeAddEventListener('#save-checklist-item-btn', 'click', () => {
     addChecklistItem();
     // Close the modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('checklist-item-modal'));
-    modal.hide();
+    const modalElement = document.getElementById('checklist-item-modal');
+    if (modalElement && bootstrap.Modal) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) modal.hide();
+    }
   });
   
   // Copy share link button
-  document.getElementById('copy-share-link-btn')?.addEventListener('click', () => {
+  safeAddEventListener('#copy-share-link-btn', 'click', () => {
     copyShareLink();
   });
   
   // Checklist item checkboxes
   document.querySelectorAll('.checklist-items input[type="checkbox"]').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
-      const itemId = e.target.closest('li').getAttribute('data-item-id');
-      toggleChecklistItem(itemId);
+      const listItem = e.target.closest('li');
+      if (listItem) {
+        const itemId = listItem.getAttribute('data-item-id');
+        toggleChecklistItem(itemId);
+      }
     });
   });
   
   // Delete checklist item buttons
   document.querySelectorAll('.delete-item-btn').forEach(button => {
     button.addEventListener('click', (e) => {
-      const itemId = e.target.closest('li').getAttribute('data-item-id');
-      removeChecklistItem(itemId);
+      const listItem = e.target.closest('li');
+      if (listItem) {
+        const itemId = listItem.getAttribute('data-item-id');
+        removeChecklistItem(itemId);
+      }
     });
   });
   

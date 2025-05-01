@@ -1,18 +1,18 @@
+from flask import Flask, render_template, send_from_directory
 import os
-import logging
-from flask import Flask, render_template
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-# Create Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "viajey-secret-key")
 
-# Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_from_directory('public', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    if path.startswith('static/'):
+        # Remove 'static/' prefix and serve from the static directory
+        return send_from_directory('.', path)
+    return send_from_directory('public', path)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
