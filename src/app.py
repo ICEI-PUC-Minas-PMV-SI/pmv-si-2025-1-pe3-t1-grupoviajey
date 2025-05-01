@@ -30,6 +30,14 @@ def forgot_password():
     # Will be implemented later
     return "Página de recuperação de senha"
 
+@app.route('/detail')
+def detail():
+    return send_from_directory('public', 'detail.html')
+
+@app.route('/itinerary')
+def itinerary():
+    return send_from_directory('public', 'itinerary.html')
+
 @app.route('/<path:path>')
 def serve_static(path):
     if path.startswith('static/'):

@@ -70,6 +70,19 @@ wheels = [
 ]
 
 [[package]]
+name = "flask-login"
+version = "0.6.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flask" },
+    { name = "werkzeug" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c3/6e/2f4e13e373bb49e68c02c51ceadd22d172715a06716f9299d9df01b6ddb2/Flask-Login-0.6.3.tar.gz", hash = "sha256:5e23d14a607ef12806c699590b89d0f0e0d67baeec599d75947bf9c147330333", size = 48834 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/f5/67e9cc5c2036f58115f9fe0f00d203cf6780c3ff8ae0e705e7a9d9e8ff9e/Flask_Login-0.6.3-py3-none-any.whl", hash = "sha256:849b25b82a436bf830a054e74214074af59097171562ab10bfa999e6b78aae5d", size = 17303 },
+]
+
+[[package]]
 name = "flask-sqlalchemy"
 version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -274,6 +287,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "email-validator" },
     { name = "flask" },
+    { name = "flask-login" },
     { name = "flask-sqlalchemy" },
     { name = "gunicorn" },
     { name = "psycopg2-binary" },
@@ -283,6 +297,7 @@ dependencies = [
 requires-dist = [
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "flask", specifier = ">=3.1.0" },
+    { name = "flask-login", specifier = ">=0.6.3" },
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
