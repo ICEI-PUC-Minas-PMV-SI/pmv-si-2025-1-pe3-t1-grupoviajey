@@ -19,6 +19,10 @@ def detail():
 def itinerary():
     return send_from_directory('public', 'itinerary.html')
 
+@app.route('/itinerary-kanban')
+def itinerary_kanban():
+    return send_from_directory('public', 'itinerary-kanban.html')
+
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
