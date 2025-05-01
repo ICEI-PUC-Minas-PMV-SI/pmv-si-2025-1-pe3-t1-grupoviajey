@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Planejamento de Viagem</title>
+  <meta name="description" content="Viajey - Aplicativo de planejamento de viagem completo com itinerário, checklist, mapa e compartilhamento">
+  
+  <!-- Bootstrap CSS (Replit Theme) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen">
+      <div class="loading-content text-center">
+        <div class="mb-4">
+          <img src="/static/img/logo.svg" alt="Viajey Logo" class="app-logo">
+        </div>
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding Screen -->
+    <div id="onboarding-screen" class="screen d-none">
+      <div class="onboarding-content">
+        <div class="text-center mb-4">
+          <img src="/static/img/logo.svg" alt="Viajey Logo" class="app-logo">
+          <h1 class="welcome-title">Bem-vindo ao Viajey</h1>
+          <p class="welcome-subtitle">Vamos planejar sua próxima aventura</p>
+        </div>
+        
+        <div class="onboarding-carousel">
+          <!-- Carousel slides here -->
+          <div id="onboardingCarousel" class="carousel slide" data-bs-ride="false">
+            <div class="carousel-indicators">
+              <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+              <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+              <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            </div>
+            <div class="carousel-inner">
+              <div class="carousel-item active">
+                <div class="d-flex justify-content-center">
+                  <div class="onboarding-illustration">
+                    <i class="fas fa-map-marked-alt fa-5x text-primary"></i>
+                  </div>
+                </div>
+                <div class="carousel-caption">
+                  <h3>Planeje Roteiros</h3>
+                  <p>Crie itinerários detalhados por dia e hora</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <div class="d-flex justify-content-center">
+                  <div class="onboarding-illustration">
+                    <i class="fas fa-share-alt fa-5x text-primary"></i>
+                  </div>
+                </div>
+                <div class="carousel-caption">
+                  <h3>Compartilhe</h3>
+                  <p>Compartilhe seus planos com amigos e família</p>
+                </div>
+              </div>
+              <div class="carousel-item">
+                <div class="d-flex justify-content-center">
+                  <div class="onboarding-illustration">
+                    <i class="fas fa-check-double fa-5x text-primary"></i>
+                  </div>
+                </div>
+                <div class="carousel-caption">
+                  <h3>Nunca Esqueça Nada</h3>
+                  <p>Checklists personalizados para cada viagem</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="onboarding-form">
+          <h3 class="mb-3">Como você gosta de viajar?</h3>
+          <div class="mb-3">
+            <label for="travel-style" class="form-label">Estilo de viagem</label>
+            <select class="form-select" id="travel-style">
+              <option value="adventure">Aventura</option>
+              <option value="culture">Cultural</option>
+              <option value="relax">Relaxamento</option>
+              <option value="food">Gastronomia</option>
+              <option value="budget">Econômica</option>
+              <option value="luxury">Luxo</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="preferred-transport" class="form-label">Transporte preferido</label>
+            <select class="form-select" id="preferred-transport">
+              <option value="air">Avião</option>
+              <option value="car">Carro</option>
+              <option value="train">Trem</option>
+              <option value="bus">Ônibus</option>
+              <option value="boat">Barco</option>
+              <option value="walk">A pé</option>
+            </select>
+          </div>
+          <button id="complete-onboarding" class="btn btn-primary w-100 mt-3">Começar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen d-none">
+      <div class="container">
+        <div class="home-header">
+          <div class="user-welcome">
+            <h2>Olá, Viajante!</h2>
+            <p>O que vamos planejar hoje?</p>
+          </div>
+          <div class="user-profile-icon">
+            <button class="btn btn-link" id="open-profile">
+              <i class="fas fa-user-circle fa-2x"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="travel-stats">
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Roteiros</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Países</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-item text-center">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Dias</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="create-trip">
+          <button id="new-itinerary-btn" class="btn btn-primary w-100">
+            <i class="fas fa-plus-circle me-2"></i>Criar Nova Viagem
+          </button>
+        </div>
+        
+        <div class="upcoming-trips">
+          <h3 class="section-title">Próximas Viagens</h3>
+          <div id="upcoming-trips-list">
+            <!-- Trips will be loaded here -->
+            <div class="trip-placeholder text-center p-5">
+              <p>Você ainda não tem viagens planejadas.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="recommendations">
+          <h3 class="section-title">Recomendações</h3>
+          <div class="row g-3" id="recommendations-list">
+            <div class="col-6">
+              <div class="card recommendation-card">
+                <img src="/static/img/destinations/paris.jpg" class="card-img-top" alt="Paris">
+                <div class="card-body">
+                  <h5 class="card-title">Paris, França</h5>
+                  <p class="card-text small">5 dias de cultura e gastronomia</p>
+                  <button class="btn btn-sm btn-outline-primary w-100 mt-2">Usar modelo</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card recommendation-card">
+                <img src="/static/img/destinations/tokyo.jpg" class="card-img-top" alt="Tokyo">
+                <div class="card-body">
+                  <h5 class="card-title">Tokyo, Japão</h5>
+                  <p class="card-text small">7 dias de aventura urbana</p>
+                  <button class="btn btn-sm btn-outline-primary w-100 mt-2">Usar modelo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav">
+        <div class="nav-item active">
+          <i class="fas fa-home"></i>
+          <span>Início</span>
+        </div>
+        <div class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Explorar</span>
+        </div>
+        <div class="nav-item">
+          <i class="fas fa-bell"></i>
+          <span>Alertas</span>
+        </div>
+        <div class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Config.</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Itinerary Builder Screen -->
+    <div id="itinerary-builder-screen" class="screen d-none">
+      <div class="screen-header">
+        <button class="btn btn-link back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="screen-title">Construir Roteiro</h2>
+        <button class="btn btn-link save-button">
+          <i class="fas fa-save"></i>
+        </button>
+      </div>
+      
+      <div class="itinerary-details container">
+        <div class="mb-3">
+          <label for="itinerary-title" class="form-label">Título</label>
+          <input type="text" class="form-control" id="itinerary-title" placeholder="Ex: Férias em Paris">
+        </div>
+        <div class="row mb-3">
+          <div class="col">
+            <label for="itinerary-destination" class="form-label">Destino</label>
+            <input type="text" class="form-control" id="itinerary-destination" placeholder="Cidade, País">
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-6">
+            <label for="itinerary-start-date" class="form-label">Data Inicial</label>
+            <input type="date" class="form-control" id="itinerary-start-date">
+          </div>
+          <div class="col-6">
+            <label for="itinerary-end-date" class="form-label">Data Final</label>
+            <input type="date" class="form-control" id="itinerary-end-date">
+          </div>
+        </div>
+      </div>
+      
+      <div class="itinerary-days container">
+        <div class="days-header d-flex justify-content-between align-items-center">
+          <h3>Dias</h3>
+          <button class="btn btn-sm btn-outline-primary" id="add-day-btn">
+            <i class="fas fa-plus"></i> Adicionar Dia
+          </button>
+        </div>
+        
+        <div id="days-container">
+          <!-- Days will be added here -->
+          <div class="day-card card mb-3" data-day="1">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h4>Dia 1</h4>
+              <div class="day-actions">
+                <button class="btn btn-sm btn-link add-activity-btn">
+                  <i class="fas fa-plus-circle"></i>
+                </button>
+                <button class="btn btn-sm btn-link remove-day-btn">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="activities-container" id="day-1-activities">
+                <div class="activity-placeholder text-center p-3">
+                  <p class="text-muted">Nenhuma atividade adicionada.</p>
+                  <button class="btn btn-sm btn-outline-primary add-first-activity-btn">
+                    <i class="fas fa-plus me-1"></i> Adicionar Atividade
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Activity Modal -->
+      <div class="modal fade" id="activity-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Nova Atividade</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="activity-form">
+                <div class="mb-3">
+                  <label for="activity-title" class="form-label">Título</label>
+                  <input type="text" class="form-control" id="activity-title" required>
+                </div>
+                <div class="mb-3">
+                  <label for="activity-type" class="form-label">Tipo</label>
+                  <select class="form-select" id="activity-type">
+                    <option value="place">Local/Atração</option>
+                    <option value="activity">Atividade</option>
+                    <option value="transport">Transporte</option>
+                    <option value="accommodation">Hospedagem</option>
+                    <option value="meal">Refeição</option>
+                    <option value="ticket">Ingresso</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-6">
+                    <label for="activity-start-time" class="form-label">Horário Inicial</label>
+                    <input type="time" class="form-control" id="activity-start-time">
+                  </div>
+                  <div class="col-6">
+                    <label for="activity-end-time" class="form-label">Horário Final</label>
+                    <input type="time" class="form-control" id="activity-end-time">
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="activity-location" class="form-label">Localização</label>
+                  <input type="text" class="form-control" id="activity-location">
+                </div>
+                <div class="mb-3">
+                  <label for="activity-description" class="form-label">Descrição</label>
+                  <textarea class="form-control" id="activity-description" rows="3"></textarea>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-6">
+                    <label for="activity-cost" class="form-label">Custo</label>
+                    <input type="number" class="form-control" id="activity-cost" step="0.01" min="0">
+                  </div>
+                  <div class="col-6">
+                    <label for="activity-currency" class="form-label">Moeda</label>
+                    <select class="form-select" id="activity-currency">
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="BRL">BRL</option>
+                      <option value="JPY">JPY</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary" id="save-activity-btn">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <nav class="itinerary-nav">
+        <div class="nav-item" data-target="itinerary">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Roteiro</span>
+        </div>
+        <div class="nav-item" data-target="checklist">
+          <i class="fas fa-check-square"></i>
+          <span>Checklist</span>
+        </div>
+        <div class="nav-item" data-target="map">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Mapa</span>
+        </div>
+        <div class="nav-item" data-target="share">
+          <i class="fas fa-share-alt"></i>
+          <span>Compartilhar</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Checklist Screen -->
+    <div id="checklist-screen" class="screen d-none">
+      <div class="screen-header">
+        <button class="btn btn-link back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="screen-title">Checklist</h2>
+        <button class="btn btn-link add-button" id="add-checklist-item-btn">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      
+      <div class="container">
+        <div class="checklist-progress mb-3">
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="progress-text text-end mt-1">
+            <small class="text-muted">0 de 0 itens completos</small>
+          </div>
+        </div>
+        
+        <div class="checklist-categories">
+          <div class="category-filter mb-3">
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="category-filter" id="all-category" checked>
+              <label class="btn btn-outline-primary" for="all-category">Todos</label>
+              
+              <input type="radio" class="btn-check" name="category-filter" id="documents-category">
+              <label class="btn btn-outline-primary" for="documents-category">Documentos</label>
+              
+              <input type="radio" class="btn-check" name="category-filter" id="packing-category">
+              <label class="btn btn-outline-primary" for="packing-category">Malas</label>
+              
+              <input type="radio" class="btn-check" name="category-filter" id="reservations-category">
+              <label class="btn btn-outline-primary" for="reservations-category">Reservas</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="checklist-items">
+          <ul class="list-group" id="checklist-items-container">
+            <!-- Checklist items will be loaded here -->
+            <li class="list-group-item d-flex align-items-center">
+              <input class="form-check-input me-3" type="checkbox" value="">
+              <span class="checklist-item-text">Passaporte/RG</span>
+              <div class="ms-auto">
+                <button class="btn btn-sm btn-link delete-item-btn">
+                  <i class="fas fa-trash-alt text-danger"></i>
+                </button>
+              </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+              <input class="form-check-input me-3" type="checkbox" value="">
+              <span class="checklist-item-text">Seguro viagem</span>
+              <div class="ms-auto">
+                <button class="btn btn-sm btn-link delete-item-btn">
+                  <i class="fas fa-trash-alt text-danger"></i>
+                </button>
+              </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center">
+              <input class="form-check-input me-3" type="checkbox" value="">
+              <span class="checklist-item-text">Carregador de celular</span>
+              <div class="ms-auto">
+                <button class="btn btn-sm btn-link delete-item-btn">
+                  <i class="fas fa-trash-alt text-danger"></i>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- New Checklist Item Modal -->
+      <div class="modal fade" id="checklist-item-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Novo Item</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="checklist-item-form">
+                <div class="mb-3">
+                  <label for="checklist-item-text" class="form-label">Descrição</label>
+                  <input type="text" class="form-control" id="checklist-item-text" required>
+                </div>
+                <div class="mb-3">
+                  <label for="checklist-item-category" class="form-label">Categoria</label>
+                  <select class="form-select" id="checklist-item-category">
+                    <option value="documents">Documentos</option>
+                    <option value="packing">Malas</option>
+                    <option value="reservations">Reservas</option>
+                    <option value="other">Outros</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="checklist-item-priority" class="form-label">Prioridade</label>
+                  <select class="form-select" id="checklist-item-priority">
+                    <option value="low">Baixa</option>
+                    <option value="medium" selected>Média</option>
+                    <option value="high">Alta</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="checklist-item-duedate" class="form-label">Data Limite (opcional)</label>
+                  <input type="date" class="form-control" id="checklist-item-duedate">
+                </div>
+                <div class="mb-3">
+                  <label for="checklist-item-notes" class="form-label">Notas (opcional)</label>
+                  <textarea class="form-control" id="checklist-item-notes" rows="2"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-primary" id="save-checklist-item-btn">Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <nav class="itinerary-nav">
+        <div class="nav-item" data-target="itinerary">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Roteiro</span>
+        </div>
+        <div class="nav-item active" data-target="checklist">
+          <i class="fas fa-check-square"></i>
+          <span>Checklist</span>
+        </div>
+        <div class="nav-item" data-target="map">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Mapa</span>
+        </div>
+        <div class="nav-item" data-target="share">
+          <i class="fas fa-share-alt"></i>
+          <span>Compartilhar</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Map Screen -->
+    <div id="map-screen" class="screen d-none">
+      <div class="screen-header">
+        <button class="btn btn-link back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="screen-title">Mapa</h2>
+        <button class="btn btn-link filter-button" id="map-filter-btn">
+          <i class="fas fa-filter"></i>
+        </button>
+      </div>
+      
+      <div class="map-container">
+        <div id="map"></div>
+        
+        <div class="map-filters">
+          <div class="filter-pills">
+            <span class="badge rounded-pill bg-primary active" data-filter="all">Todos</span>
+            <span class="badge rounded-pill bg-success" data-filter="places">Lugares</span>
+            <span class="badge rounded-pill bg-warning" data-filter="food">Comida</span>
+            <span class="badge rounded-pill bg-info" data-filter="accommodation">Hospedagem</span>
+            <span class="badge rounded-pill bg-secondary" data-filter="transport">Transporte</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="map-poi-list">
+        <h4 class="ms-3 mt-2">Pontos de Interesse</h4>
+        <div class="list-group list-group-flush" id="poi-list">
+          <!-- Points of interest will be loaded here -->
+          <div class="list-group-item d-flex">
+            <div class="poi-icon me-3">
+              <i class="fas fa-monument text-success"></i>
+            </div>
+            <div class="poi-details">
+              <h5 class="mb-1">Torre Eiffel</h5>
+              <p class="mb-0 small">Atração turística - Dia 1</p>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+              <button class="btn btn-sm btn-link">
+                <i class="fas fa-map-pin"></i>
+              </button>
+            </div>
+          </div>
+          <div class="list-group-item d-flex">
+            <div class="poi-icon me-3">
+              <i class="fas fa-utensils text-warning"></i>
+            </div>
+            <div class="poi-details">
+              <h5 class="mb-1">Le Petit Café</h5>
+              <p class="mb-0 small">Restaurante - Dia 2</p>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+              <button class="btn btn-sm btn-link">
+                <i class="fas fa-map-pin"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Map Pin Details Modal -->
+      <div class="modal fade" id="map-pin-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Detalhes do Local</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="pin-details">
+                <h4 id="pin-title">Nome do Local</h4>
+                <p id="pin-address" class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Endereço</p>
+                <p id="pin-category" class="mb-3"><span class="badge bg-info">Categoria</span></p>
+                <p id="pin-description">Descrição do local...</p>
+                
+                <div class="pin-details-footer mt-3 pt-3 border-top">
+                  <div class="row">
+                    <div class="col">
+                      <p class="mb-0 small"><i class="fas fa-calendar-day me-1"></i> <span id="pin-day">Dia 1</span></p>
+                    </div>
+                    <div class="col text-end">
+                      <p class="mb-0 small"><i class="fas fa-clock me-1"></i> <span id="pin-time">14:00</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-primary" id="add-pin-to-itinerary-btn">Adicionar ao Roteiro</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <nav class="itinerary-nav">
+        <div class="nav-item" data-target="itinerary">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Roteiro</span>
+        </div>
+        <div class="nav-item" data-target="checklist">
+          <i class="fas fa-check-square"></i>
+          <span>Checklist</span>
+        </div>
+        <div class="nav-item active" data-target="map">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Mapa</span>
+        </div>
+        <div class="nav-item" data-target="share">
+          <i class="fas fa-share-alt"></i>
+          <span>Compartilhar</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Share Screen -->
+    <div id="share-screen" class="screen d-none">
+      <div class="screen-header">
+        <button class="btn btn-link back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="screen-title">Compartilhar</h2>
+        <div class="spacer"></div>
+      </div>
+      
+      <div class="container">
+        <div class="share-preview-card card mb-4">
+          <div class="card-body">
+            <h4 class="card-title" id="share-itinerary-title">Título do Roteiro</h4>
+            <p class="card-text" id="share-itinerary-destination">
+              <i class="fas fa-map-marker-alt me-2"></i>Destino
+            </p>
+            <p class="card-text" id="share-itinerary-dates">
+              <i class="fas fa-calendar-alt me-2"></i>01/01/2023 - 05/01/2023
+            </p>
+          </div>
+        </div>
+        
+        <div class="share-options">
+          <h4>Compartilhar via</h4>
+          
+          <div class="share-link mb-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="share-link-input" value="https://viajey.app/share/abc123" readonly>
+              <button class="btn btn-primary" id="copy-share-link-btn">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            <div class="form-text">Link copiado para a área de transferência!</div>
+          </div>
+          
+          <div class="share-permissions mb-4">
+            <h5>Permissões</h5>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="sharePermission" id="permission-view" checked>
+              <label class="form-check-label" for="permission-view">
+                <i class="fas fa-eye me-2"></i>Apenas visualizar
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="sharePermission" id="permission-edit">
+              <label class="form-check-label" for="permission-edit">
+                <i class="fas fa-edit me-2"></i>Pode editar
+              </label>
+            </div>
+          </div>
+          
+          <div class="share-email mb-4">
+            <h5>Compartilhar por E-mail</h5>
+            <div class="mb-3">
+              <input type="email" class="form-control" id="share-email-input" placeholder="email@exemplo.com">
+            </div>
+            <button class="btn btn-primary w-100" id="share-email-btn">
+              <i class="fas fa-envelope me-2"></i>Enviar Convite
+            </button>
+          </div>
+          
+          <div class="share-social mb-4">
+            <h5>Compartilhar nas Redes Sociais</h5>
+            <div class="social-buttons d-flex justify-content-between">
+              <button class="btn btn-outline-primary social-btn">
+                <i class="fab fa-whatsapp"></i>
+              </button>
+              <button class="btn btn-outline-primary social-btn">
+                <i class="fab fa-facebook"></i>
+              </button>
+              <button class="btn btn-outline-primary social-btn">
+                <i class="fab fa-twitter"></i>
+              </button>
+              <button class="btn btn-outline-primary social-btn">
+                <i class="fab fa-telegram"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="shared-with mb-4">
+            <h5>Compartilhado com</h5>
+            <ul class="list-group" id="shared-with-list">
+              <!-- Shared users will be loaded here -->
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-user me-2"></i>usuario@exemplo.com
+                </div>
+                <span class="badge bg-primary rounded-pill">Visualizar</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <nav class="itinerary-nav">
+        <div class="nav-item" data-target="itinerary">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Roteiro</span>
+        </div>
+        <div class="nav-item" data-target="checklist">
+          <i class="fas fa-check-square"></i>
+          <span>Checklist</span>
+        </div>
+        <div class="nav-item" data-target="map">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Mapa</span>
+        </div>
+        <div class="nav-item active" data-target="share">
+          <i class="fas fa-share-alt"></i>
+          <span>Compartilhar</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Profile Screen -->
+    <div id="profile-screen" class="screen d-none">
+      <div class="screen-header">
+        <button class="btn btn-link back-button">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="screen-title">Perfil</h2>
+        <button class="btn btn-link edit-button" id="edit-profile-btn">
+          <i class="fas fa-edit"></i>
+        </button>
+      </div>
+      
+      <div class="container">
+        <div class="profile-card card mb-4">
+          <div class="card-body text-center">
+            <div class="profile-avatar mb-3">
+              <i class="fas fa-user-circle fa-5x"></i>
+            </div>
+            <h3 class="profile-name" id="profile-name">Nome do Usuário</h3>
+            <p class="profile-email text-muted" id="profile-email">usuario@exemplo.com</p>
+            <div class="profile-level badge bg-success mb-2">
+              <i class="fas fa-award me-1"></i> <span id="profile-level">Viajante Iniciante</span>
+            </div>
+            <div class="profile-stats d-flex justify-content-around mt-3">
+              <div class="stat-item">
+                <div class="stat-value" id="profile-trips-count">0</div>
+                <div class="stat-label">Viagens</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="profile-countries-count">0</div>
+                <div class="stat-label">Países</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="profile-points">0</div>
+                <div class="stat-label">Pontos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="accordion" id="profileAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="myTripsHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#myTripsCollapse" aria-expanded="true" aria-controls="myTripsCollapse">
+                Minhas Viagens
+              </button>
+            </h2>
+            <div id="myTripsCollapse" class="accordion-collapse collapse show" aria-labelledby="myTripsHeading">
+              <div class="accordion-body">
+                <div id="profile-trips-list">
+                  <!-- User trips will be loaded here -->
+                  <div class="trip-placeholder text-center">
+                    <p>Você ainda não tem viagens.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="preferencesHeading">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#preferencesCollapse" aria-expanded="false" aria-controls="preferencesCollapse">
+                Preferências
+              </button>
+            </h2>
+            <div id="preferencesCollapse" class="accordion-collapse collapse" aria-labelledby="preferencesHeading">
+              <div class="accordion-body">
+                <div class="mb-3">
+                  <label for="user-language" class="form-label">Idioma</label>
+                  <select class="form-select" id="user-language">
+                    <option value="pt-BR" selected>Português (Brasil)</option>
+                    <option value="en-US">Inglês (EUA)</option>
+                    <option value="es-ES">Espanhol</option>
+                    <option value="fr-FR">Francês</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="user-currency" class="form-label">Moeda</label>
+                  <select class="form-select" id="user-currency">
+                    <option value="BRL" selected>Real (R$)</option>
+                    <option value="USD">Dólar (US$)</option>
+                    <option value="EUR">Euro (€)</option>
+                    <option value="GBP">Libra (£)</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="user-theme" class="form-label">Tema</label>
+                  <select class="form-select" id="user-theme">
+                    <option value="dark" selected>Escuro</option>
+                    <option value="light">Claro</option>
+                    <option value="system">Sistema</option>
+                  </select>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" id="notification-switch" checked>
+                  <label class="form-check-label" for="notification-switch">Notificações</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="badgesHeading">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#badgesCollapse" aria-expanded="false" aria-controls="badgesCollapse">
+                Conquistas
+              </button>
+            </h2>
+            <div id="badgesCollapse" class="accordion-collapse collapse" aria-labelledby="badgesHeading">
+              <div class="accordion-body">
+                <div class="badges-container row g-3" id="profile-badges">
+                  <!-- Badges will be loaded here -->
+                  <div class="col-4 text-center">
+                    <div class="badge-item locked">
+                      <i class="fas fa-globe-americas fa-2x mb-2"></i>
+                      <p class="badge-name small">Primeiro Roteiro</p>
+                    </div>
+                  </div>
+                  <div class="col-4 text-center">
+                    <div class="badge-item locked">
+                      <i class="fas fa-plane fa-2x mb-2"></i>
+                      <p class="badge-name small">Viajante</p>
+                    </div>
+                  </div>
+                  <div class="col-4 text-center">
+                    <div class="badge-item locked">
+                      <i class="fas fa-map fa-2x mb-2"></i>
+                      <p class="badge-name small">Explorador</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <button class="btn btn-danger w-100" id="logout-btn">
+            <i class="fas fa-sign-out-alt me-2"></i>Sair
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Mapbox JS for map functionality -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  
+  <!-- Custom JS -->
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/drag-drop.js"></script>
+  <script src="/static/js/map.js"></script>
+</body>
+</html>

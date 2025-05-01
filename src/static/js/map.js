@@ -1,193 +1,437 @@
-// Map functionality for the travel planner
+// Map functionality using Mapbox
+let map = null;
+let markers = [];
 
-// Sample map data (points of interest)
-const mapPins = [
-  {
-    id: 1,
-    name: 'Eiffel Tower',
-    type: 'attraction',
-    description: 'Iconic iron tower in Paris',
-    position: { left: '48%', top: '35%' }
-  },
-  {
-    id: 2,
-    name: 'Louvre Museum',
-    type: 'attraction',
-    description: 'World-renowned art museum',
-    position: { left: '52%', top: '37%' }
-  },
-  {
-    id: 3,
-    name: 'Café de Paris',
-    type: 'restaurant',
-    description: 'Traditional French cuisine',
-    position: { left: '46%', top: '42%' }
-  },
-  {
-    id: 4,
-    name: 'Seine River Cruise',
-    type: 'experience',
-    description: 'Scenic boat tour along the Seine',
-    position: { left: '50%', top: '40%' }
-  },
-  {
-    id: 5,
-    name: 'Notre-Dame Cathedral',
-    type: 'attraction',
-    description: 'Medieval Catholic cathedral',
-    position: { left: '54%', top: '39%' }
-  },
-  {
-    id: 6,
-    name: 'Montmartre',
-    type: 'attraction',
-    description: 'Artistic hill and neighborhood',
-    position: { left: '49%', top: '30%' }
-  },
-  {
-    id: 7,
-    name: 'Le Bistro',
-    type: 'restaurant',
-    description: 'Charming local eatery',
-    position: { left: '43%', top: '38%' }
-  },
-  {
-    id: 8,
-    name: 'Wine Tasting Tour',
-    type: 'experience',
-    description: 'Guided wine tasting experience',
-    position: { left: '57%', top: '44%' }
-  }
-];
-
-// Initialize map functionality
+// Initialize the map
 function initMap() {
-  const mapContainer = document.getElementById('mapContainer');
-  if (!mapContainer) return;
+  // Check if map container exists and Mapbox is loaded
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer || typeof mapboxgl === 'undefined') {
+    console.error('Map container not found or Mapbox not loaded');
+    return;
+  }
   
-  // Clear previous pins
-  const existingPins = mapContainer.querySelectorAll('.map-pin, .map-pin-popup');
-  existingPins.forEach(pin => pin.remove());
+  // Check if we have an API key (would normally be provided as environment variable)
+  // In a real app, this would be securely loaded from your backend
+  // DO NOT hardcode API keys in production code
+  let mapboxAccessToken = null;
   
-  // Place pins on the map
-  mapPins.forEach(pin => {
-    createMapPin(mapContainer, pin);
-  });
-  
-  // Add event listeners for map filters
-  document.querySelectorAll('.map-filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const filterType = this.getAttribute('data-filter');
-      filterMapPins(filterType);
-    });
-  });
-}
-
-// Create a pin on the map
-function createMapPin(container, pin) {
-  // Create pin element
-  const pinElement = document.createElement('div');
-  pinElement.className = `map-pin map-pin-${pin.type}`;
-  pinElement.style.left = pin.position.left;
-  pinElement.style.top = pin.position.top;
-  pinElement.setAttribute('data-id', pin.id);
-  pinElement.setAttribute('data-type', pin.type);
-  
-  // Create popup element
-  const popupElement = document.createElement('div');
-  popupElement.className = 'map-pin-popup';
-  popupElement.id = `popup-${pin.id}`;
-  popupElement.style.left = `calc(${pin.position.left} + 15px)`;
-  popupElement.style.top = `calc(${pin.position.top} - 70px)`;
-  popupElement.innerHTML = `
-    <h5>${pin.name}</h5>
-    <p>${pin.description}</p>
-    <button class="btn btn-sm btn-info add-to-itinerary-btn" data-id="${pin.id}">
-      Add to Itinerary
-    </button>
-    <button class="btn btn-sm btn-secondary close-popup-btn">
-      Close
-    </button>
-  `;
-  
-  // Add pin and popup to container
-  container.appendChild(pinElement);
-  container.appendChild(popupElement);
-  
-  // Add event listeners
-  pinElement.addEventListener('click', function() {
-    // Close all other popups
-    document.querySelectorAll('.map-pin-popup').forEach(popup => {
-      popup.classList.remove('active');
+  try {
+    // Try to get API key from a meta tag set by the server
+    const metaToken = document.querySelector('meta[name="mapbox-token"]');
+    if (metaToken) {
+      mapboxAccessToken = metaToken.getAttribute('content');
+    }
+    
+    // If no token is available, use a fallback to show a placeholder
+    if (!mapboxAccessToken) {
+      showMapPlaceholder();
+      return;
+    }
+    
+    // Initialize the map
+    mapboxgl.accessToken = mapboxAccessToken;
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [2.3522, 48.8566], // Default to Paris
+      zoom: 12
     });
     
-    // Show this popup
-    popupElement.classList.add('active');
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    
+    // Setup event listeners
+    map.on('load', () => {
+      // Load map pins if we have an itinerary
+      if (appState && appState.currentItinerary) {
+        loadMapPins();
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error initializing map:', error);
+    showMapPlaceholder();
+  }
+}
+
+// Show a placeholder when map can't be loaded
+function showMapPlaceholder() {
+  const mapContainer = document.getElementById('map');
+  if (mapContainer) {
+    mapContainer.innerHTML = `
+      <div class="map-placeholder p-4 d-flex flex-column justify-content-center align-items-center h-100">
+        <i class="fas fa-map-marked-alt fa-3x mb-3 text-muted"></i>
+        <h5 class="text-center">Mapa não disponível</h5>
+        <p class="text-center text-muted">Configure a chave de API do Mapbox para visualizar o mapa.</p>
+      </div>
+    `;
+  }
+}
+
+// Load pins from the current itinerary
+function loadMapPins() {
+  if (!map || !appState || !appState.currentItinerary) return;
+  
+  // Clear existing markers
+  clearMapMarkers();
+  
+  // If we have coordinates for the destination, center the map there
+  if (appState.currentItinerary.locationCoordinates) {
+    map.setCenter([
+      appState.currentItinerary.locationCoordinates.lng,
+      appState.currentItinerary.locationCoordinates.lat
+    ]);
+  }
+  
+  // Add markers for all points of interest
+  const pins = appState.currentItinerary.pointsOfInterest || [];
+  
+  if (pins.length === 0) {
+    // Add dummy pins for preview
+    const dummyPins = [
+      {
+        id: 'poi-1',
+        name: 'Torre Eiffel',
+        description: 'Atração turística icônica',
+        type: 'attraction',
+        coordinates: { lat: 48.858093, lng: 2.294694 },
+        dayId: 1
+      },
+      {
+        id: 'poi-2',
+        name: 'Museu do Louvre',
+        description: 'O maior museu de arte do mundo',
+        type: 'attraction',
+        coordinates: { lat: 48.8606, lng: 2.3376 },
+        dayId: 1
+      },
+      {
+        id: 'poi-3',
+        name: 'Le Petit Café',
+        description: 'Café tradicional francês',
+        type: 'restaurant',
+        coordinates: { lat: 48.8646, lng: 2.3324 },
+        dayId: 2
+      }
+    ];
+    
+    // If the destination contains Tokyo, show Tokyo pins instead
+    if (appState.currentItinerary.destination && 
+        appState.currentItinerary.destination.toLowerCase().includes('tokyo')) {
+      map.setCenter([139.7690, 35.6804]);
+      dummyPins[0] = {
+        id: 'poi-1',
+        name: 'Tokyo Skytree',
+        description: 'Torre de transmissão e observação',
+        type: 'attraction',
+        coordinates: { lat: 35.7101, lng: 139.8107 },
+        dayId: 1
+      };
+      dummyPins[1] = {
+        id: 'poi-2',
+        name: 'Templo Senso-ji',
+        description: 'Templo budista mais antigo de Tokyo',
+        type: 'attraction',
+        coordinates: { lat: 35.7147, lng: 139.7966 },
+        dayId: 1
+      };
+      dummyPins[2] = {
+        id: 'poi-3',
+        name: 'Ichiran Ramen',
+        description: 'Restaurante de ramen tradicional',
+        type: 'restaurant',
+        coordinates: { lat: 35.6595, lng: 139.7005 },
+        dayId: 2
+      };
+    }
+    
+    // Add the dummy pins to the map
+    dummyPins.forEach(pin => {
+      createMapPin(mapContainer, pin);
+    });
+    
+    // Update the POI list in the UI
+    updatePoiList(dummyPins);
+    
+  } else {
+    // Add real pins from the itinerary
+    pins.forEach(pin => {
+      createMapPin(mapContainer, pin);
+    });
+    
+    // Update the POI list in the UI
+    updatePoiList(pins);
+  }
+}
+
+// Create a map pin/marker
+function createMapPin(container, pin) {
+  if (!map) return;
+  
+  // Create a marker element
+  const el = document.createElement('div');
+  el.className = 'map-marker';
+  el.innerHTML = `<i class="${getPinIcon(pin.type)}"></i>`;
+  el.style.color = getPinColor(pin.type);
+  
+  // Create a popup
+  const popup = new mapboxgl.Popup({ offset: 25 })
+    .setHTML(`
+      <h5>${pin.name}</h5>
+      <p>${pin.description || ''}</p>
+      <p><small>Dia ${pin.dayId || '?'}</small></p>
+    `);
+  
+  // Create the marker
+  const marker = new mapboxgl.Marker(el)
+    .setLngLat([pin.coordinates.lng, pin.coordinates.lat])
+    .setPopup(popup)
+    .addTo(map);
+  
+  // Add click listener to open pin details
+  el.addEventListener('click', () => {
+    showPinDetails(pin);
   });
   
-  // Close button
-  popupElement.querySelector('.close-popup-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    popupElement.classList.remove('active');
-  });
+  // Store the marker for later reference
+  markers.push(marker);
+}
+
+// Get icon for a pin type
+function getPinIcon(type) {
+  const icons = {
+    'attraction': 'fas fa-monument',
+    'restaurant': 'fas fa-utensils',
+    'accommodation': 'fas fa-bed',
+    'transport': 'fas fa-subway',
+    'experience': 'fas fa-ticket-alt',
+    'other': 'fas fa-map-pin'
+  };
   
-  // Add to itinerary button
-  popupElement.querySelector('.add-to-itinerary-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    addPinToItinerary(pin);
-    popupElement.classList.remove('active');
-  });
+  return icons[type] || icons.other;
+}
+
+// Get color for a pin type
+function getPinColor(type) {
+  const colors = {
+    'attraction': '#28a745', // green
+    'restaurant': '#ffc107', // yellow
+    'accommodation': '#6c757d', // gray
+    'transport': '#17a2b8', // cyan
+    'experience': '#dc3545', // red
+    'other': '#007bff' // blue
+  };
+  
+  return colors[type] || colors.other;
+}
+
+// Clear all markers from the map
+function clearMapMarkers() {
+  markers.forEach(marker => marker.remove());
+  markers = [];
 }
 
 // Filter map pins by type
 function filterMapPins(type) {
-  const allPins = document.querySelectorAll('.map-pin');
+  // Update active state in the UI
+  document.querySelectorAll('.filter-pills .badge').forEach(pill => {
+    if (pill.getAttribute('data-filter') === type) {
+      pill.classList.add('active');
+    } else {
+      pill.classList.remove('active');
+    }
+  });
   
+  // Filter markers
   if (type === 'all') {
-    // Show all pins
-    allPins.forEach(pin => {
-      pin.style.display = 'block';
+    // Show all markers
+    markers.forEach(marker => {
+      marker.getElement().style.display = 'block';
+    });
+    
+    // Show all POIs in the list
+    document.querySelectorAll('#poi-list .list-group-item').forEach(item => {
+      item.style.display = 'flex';
     });
   } else {
-    // Show only pins of the selected type
-    allPins.forEach(pin => {
-      const pinType = pin.getAttribute('data-type');
-      pin.style.display = pinType === type ? 'block' : 'none';
+    // Filter markers by type
+    markers.forEach((marker, index) => {
+      const pinType = appState.currentItinerary.pointsOfInterest[index]?.type || 'other';
+      if (pinType === type) {
+        marker.getElement().style.display = 'block';
+      } else {
+        marker.getElement().style.display = 'none';
+      }
+    });
+    
+    // Filter POIs in the list
+    document.querySelectorAll('#poi-list .list-group-item').forEach(item => {
+      const itemType = item.getAttribute('data-type');
+      if (itemType === type) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
     });
   }
 }
 
-// Add map pin to itinerary
-function addPinToItinerary(pin) {
-  // First, check if there's an active itinerary
-  if (!appState.currentItinerary.id) {
-    alert('Please create or select an itinerary first.');
-    return;
-  }
+// Show detailed information about a map pin
+function showPinDetails(pin) {
+  // Update modal content
+  document.getElementById('pin-title').textContent = pin.name;
+  document.getElementById('pin-address').innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>${pin.address || 'Endereço não disponível'}`;
+  document.getElementById('pin-category').innerHTML = `<span class="badge bg-${getPinTypeClass(pin.type)}">${getPinTypeName(pin.type)}</span>`;
+  document.getElementById('pin-description').textContent = pin.description || 'Sem descrição.';
+  document.getElementById('pin-day').textContent = pin.dayId ? `Dia ${pin.dayId}` : 'Não agendado';
+  document.getElementById('pin-time').textContent = pin.time || '--:--';
   
-  // Create a new activity based on the pin
-  const activity = {
-    id: Date.now(),
-    type: pin.type === 'attraction' ? 'place' : 
-          pin.type === 'restaurant' ? 'activity' : 'activity',
-    text: pin.name
+  // Open the modal
+  const modal = new bootstrap.Modal(document.getElementById('map-pin-modal'));
+  modal.show();
+  
+  // Add event listener to add the pin to itinerary
+  document.getElementById('add-pin-to-itinerary-btn').onclick = () => {
+    addPinToItinerary(pin);
+    modal.hide();
+  };
+}
+
+// Get CSS class for a pin type
+function getPinTypeClass(type) {
+  const classes = {
+    'attraction': 'success',
+    'restaurant': 'warning',
+    'accommodation': 'secondary',
+    'transport': 'info',
+    'experience': 'danger',
+    'other': 'primary'
   };
   
-  // Add to the first day's morning by default
-  if (appState.currentItinerary.days.length > 0) {
-    appState.currentItinerary.days[0].morning.push(activity);
-    alert(`Added "${pin.name}" to your itinerary!`);
-  } else {
-    alert('Error: No days in your itinerary.');
-  }
+  return classes[type] || classes.other;
 }
 
-// Initialize map when the map screen is shown
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-navigate="map"]').forEach(el => {
-    el.addEventListener('click', () => {
-      // Small delay to ensure the map container is visible
-      setTimeout(initMap, 100);
+// Get display name for a pin type
+function getPinTypeName(type) {
+  const names = {
+    'attraction': 'Atração',
+    'restaurant': 'Restaurante',
+    'accommodation': 'Hospedagem',
+    'transport': 'Transporte',
+    'experience': 'Experiência',
+    'other': 'Outro'
+  };
+  
+  return names[type] || names.other;
+}
+
+// Update the POI list in the UI
+function updatePoiList(pins) {
+  const poiList = document.getElementById('poi-list');
+  if (!poiList) return;
+  
+  // Clear existing items
+  poiList.innerHTML = '';
+  
+  // Add POIs to the list
+  pins.forEach(pin => {
+    const item = document.createElement('div');
+    item.className = 'list-group-item d-flex';
+    item.setAttribute('data-type', pin.type);
+    item.setAttribute('data-id', pin.id);
+    
+    item.innerHTML = `
+      <div class="poi-icon me-3">
+        <i class="${getPinIcon(pin.type)} ${getTextColorClass(pin.type)}"></i>
+      </div>
+      <div class="poi-details">
+        <h5 class="mb-1">${pin.name}</h5>
+        <p class="mb-0 small">${getPinTypeName(pin.type)}${pin.dayId ? ` - Dia ${pin.dayId}` : ''}</p>
+      </div>
+      <div class="ms-auto d-flex align-items-center">
+        <button class="btn btn-sm btn-link show-on-map-btn">
+          <i class="fas fa-map-pin"></i>
+        </button>
+      </div>
+    `;
+    
+    // Add event listener to show the pin on the map
+    item.querySelector('.show-on-map-btn').addEventListener('click', () => {
+      // Center the map on this pin
+      if (map) {
+        map.flyTo({
+          center: [pin.coordinates.lng, pin.coordinates.lat],
+          zoom: 15
+        });
+        
+        // Open the popup for this marker
+        const marker = markers.find(m => 
+          m.getLngLat().lng === pin.coordinates.lng && 
+          m.getLngLat().lat === pin.coordinates.lat
+        );
+        
+        if (marker) {
+          marker.togglePopup();
+        }
+      }
     });
+    
+    poiList.appendChild(item);
   });
-});
+}
+
+// Get text color class for a pin type
+function getTextColorClass(type) {
+  const classes = {
+    'attraction': 'text-success',
+    'restaurant': 'text-warning',
+    'accommodation': 'text-secondary',
+    'transport': 'text-info',
+    'experience': 'text-danger',
+    'other': 'text-primary'
+  };
+  
+  return classes[type] || classes.other;
+}
+
+// Add a pin to the itinerary
+function addPinToItinerary(pin) {
+  if (!appState.currentItinerary) return;
+  
+  // Get the day to add the pin to (default to the first day)
+  let targetDayId = pin.dayId || 1;
+  
+  // Find the day
+  const day = appState.currentItinerary.days.find(d => d.dayNumber === targetDayId);
+  if (!day) return;
+  
+  // Create a new activity from the pin
+  const newActivity = {
+    id: 'activity-' + Date.now(),
+    type: pin.type === 'restaurant' ? 'meal' : (pin.type === 'accommodation' ? 'accommodation' : 'place'),
+    title: pin.name,
+    description: pin.description,
+    location: pin.address,
+    coordinates: pin.coordinates,
+    startTime: pin.time || null
+  };
+  
+  // Add to the day's activities
+  day.activities.push(newActivity);
+  
+  // Add to points of interest if not already there
+  if (!appState.currentItinerary.pointsOfInterest.some(p => p.id === pin.id)) {
+    appState.currentItinerary.pointsOfInterest.push({
+      ...pin,
+      activityId: newActivity.id,
+      dayId: targetDayId
+    });
+  }
+  
+  // Save changes and notify the user
+  saveCurrentItinerary();
+  alert('Adicionado ao roteiro com sucesso!');
+  
+  // Would navigate to the itinerary screen in a real app
+}

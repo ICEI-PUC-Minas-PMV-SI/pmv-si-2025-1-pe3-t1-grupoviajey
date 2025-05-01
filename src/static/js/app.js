@@ -1,200 +1,224 @@
-// Main Application JavaScript for Viajey App
+// Viajey - Main Application JavaScript
 
-// App state management
+// State management for the app
 const appState = {
-  currentScreen: 'onboarding',
-  user: {
-    name: 'Traveler',
-    preferences: {
-      travelGoal: '',
-      travelDays: 0,
-      travelStyle: '',
-      planningStyle: ''
-    }
-  },
+  currentScreen: 'loading-screen',
+  currentItinerary: null,
+  userData: null,
   itineraries: [],
-  currentItinerary: {
-    id: null,
-    title: '',
-    destination: '',
-    days: [],
-    checklist: []
-  }
+  recommendations: [
+    {
+      id: 'recommendation-1',
+      title: 'Paris, França',
+      description: '5 dias de cultura e gastronomia',
+      image: '/static/img/destinations/paris.jpg'
+    },
+    {
+      id: 'recommendation-2',
+      title: 'Tokyo, Japão',
+      description: '7 dias de aventura urbana',
+      image: '/static/img/destinations/tokyo.jpg'
+    }
+  ]
 };
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', () => {
-  // Load saved data from localStorage
-  loadFromLocalStorage();
-  
-  // Show initial screen
-  showScreen('onboarding');
-  
-  // Set up event listeners
-  setupEventListeners();
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+  // Simulate loading (would check authentication, load user data, etc.)
+  setTimeout(() => {
+    // For initial login/setup, show onboarding
+    showScreen('onboarding-screen');
+    
+    // For returning users, would skip to homescreen
+    // showScreen('home-screen');
+    
+    // Set up event listeners
+    setupEventListeners();
+  }, 2000);
 });
 
-// Screen navigation
+// Show a specific screen and hide others
 function showScreen(screenId) {
   // Hide all screens
   document.querySelectorAll('.screen').forEach(screen => {
-    screen.classList.remove('active');
+    screen.classList.add('d-none');
   });
   
-  // Show requested screen
-  const screen = document.getElementById(screenId);
-  if (screen) {
-    screen.classList.add('active');
+  // Show the requested screen
+  const targetScreen = document.getElementById(screenId);
+  if (targetScreen) {
+    targetScreen.classList.remove('d-none');
     appState.currentScreen = screenId;
     
-    // Perform any screen-specific initialization
+    // Initialize the screen content
     initializeScreen(screenId);
   }
 }
 
-// Screen-specific initialization
+// Initialize screen-specific content
 function initializeScreen(screenId) {
   switch(screenId) {
-    case 'home':
+    case 'home-screen':
       renderHomeScreen();
       break;
-    case 'itinerary':
+    case 'itinerary-builder-screen':
       renderItineraryBuilder();
       break;
-    case 'checklist':
+    case 'checklist-screen':
       renderChecklist();
       break;
-    case 'map':
+    case 'map-screen':
       renderMap();
       break;
-    case 'share':
+    case 'share-screen':
       renderShareScreen();
       break;
-    case 'profile':
+    case 'profile-screen':
       renderProfileScreen();
-      break;
-    default:
       break;
   }
 }
 
-// Set up event listeners for all interactive elements
+// Set up event listeners for UI interactions
 function setupEventListeners() {
-  // Onboarding form
-  document.getElementById('onboardingForm').addEventListener('submit', (e) => {
-    e.preventDefault();
+  // Onboarding completion
+  document.getElementById('complete-onboarding').addEventListener('click', () => {
     processOnboardingAnswers();
-    showScreen('home');
-  });
-  
-  // Option cards in onboarding
-  document.querySelectorAll('.option-card').forEach(card => {
-    card.addEventListener('click', function() {
-      const questionGroup = this.closest('.onboarding-question');
-      questionGroup.querySelectorAll('.option-card').forEach(c => {
-        c.classList.remove('selected');
-      });
-      this.classList.add('selected');
-    });
-  });
-  
-  // Navigation buttons
-  document.querySelectorAll('[data-navigate]').forEach(button => {
-    button.addEventListener('click', function() {
-      const targetScreen = this.getAttribute('data-navigate');
-      showScreen(targetScreen);
-    });
+    showScreen('home-screen');
   });
   
   // New itinerary button
-  document.getElementById('newItineraryBtn').addEventListener('click', () => {
+  document.getElementById('new-itinerary-btn').addEventListener('click', () => {
     createNewItinerary();
-    showScreen('itinerary');
+    showScreen('itinerary-builder-screen');
   });
   
-  // Add activity buttons
-  document.getElementById('addPlaceBtn').addEventListener('click', () => {
-    addNewActivity('place');
+  // Profile button
+  document.getElementById('open-profile').addEventListener('click', () => {
+    showScreen('profile-screen');
   });
   
-  document.getElementById('addActivityBtn').addEventListener('click', () => {
-    addNewActivity('activity');
+  // Back buttons
+  document.querySelectorAll('.back-button').forEach(button => {
+    button.addEventListener('click', () => {
+      if (appState.currentScreen.includes('itinerary') || 
+          appState.currentScreen.includes('checklist') || 
+          appState.currentScreen.includes('map') || 
+          appState.currentScreen.includes('share')) {
+        saveCurrentItinerary();
+        showScreen('home-screen');
+      } else if (appState.currentScreen === 'profile-screen') {
+        showScreen('home-screen');
+      }
+    });
   });
   
-  document.getElementById('addTransportBtn').addEventListener('click', () => {
-    addNewActivity('transport');
-  });
-  
-  document.getElementById('addAccommodationBtn').addEventListener('click', () => {
-    addNewActivity('accommodation');
+  // Itinerary navigation
+  document.querySelectorAll('.itinerary-nav .nav-item').forEach(navItem => {
+    navItem.addEventListener('click', (e) => {
+      const target = e.currentTarget.getAttribute('data-target');
+      switch(target) {
+        case 'itinerary':
+          showScreen('itinerary-builder-screen');
+          break;
+        case 'checklist':
+          showScreen('checklist-screen');
+          break;
+        case 'map':
+          showScreen('map-screen');
+          break;
+        case 'share':
+          showScreen('share-screen');
+          break;
+      }
+    });
   });
   
   // Add day button
-  document.getElementById('addDayBtn').addEventListener('click', () => {
+  document.getElementById('add-day-btn')?.addEventListener('click', () => {
     addNewDay();
   });
   
-  // Save itinerary button
-  document.getElementById('saveItineraryBtn').addEventListener('click', () => {
-    saveCurrentItinerary();
-    showScreen('home');
+  // Activity modal save button
+  document.getElementById('save-activity-btn')?.addEventListener('click', () => {
+    // Read form data and add activity
+    const activityTitle = document.getElementById('activity-title').value;
+    const activityType = document.getElementById('activity-type').value;
+    if (activityTitle) {
+      addNewActivity(activityType);
+      // Close the modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('activity-modal'));
+      modal.hide();
+    }
   });
   
-  // Add checklist item
-  document.getElementById('addChecklistItemBtn').addEventListener('click', () => {
+  // Add checklist item button
+  document.getElementById('add-checklist-item-btn')?.addEventListener('click', () => {
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('checklist-item-modal'));
+    modal.show();
+  });
+  
+  // Save checklist item button
+  document.getElementById('save-checklist-item-btn')?.addEventListener('click', () => {
     addChecklistItem();
+    // Close the modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('checklist-item-modal'));
+    modal.hide();
   });
   
-  // Copy share link
-  document.getElementById('copyLinkBtn').addEventListener('click', () => {
+  // Copy share link button
+  document.getElementById('copy-share-link-btn')?.addEventListener('click', () => {
     copyShareLink();
   });
   
-  // Reset all data
-  document.getElementById('resetDataBtn').addEventListener('click', () => {
-    resetAllData();
+  // Checklist item checkboxes
+  document.querySelectorAll('.checklist-items input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const itemId = e.target.closest('li').getAttribute('data-item-id');
+      toggleChecklistItem(itemId);
+    });
   });
   
-  // Checklist form
-  document.getElementById('newChecklistForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    addChecklistItem();
+  // Delete checklist item buttons
+  document.querySelectorAll('.delete-item-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const itemId = e.target.closest('li').getAttribute('data-item-id');
+      removeChecklistItem(itemId);
+    });
+  });
+  
+  // Map filter pills
+  document.querySelectorAll('.filter-pills .badge').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      const filter = e.target.getAttribute('data-filter');
+      filterMapPins(filter);
+    });
   });
 }
 
-// Process onboarding answers
+// Process onboarding form answers
 function processOnboardingAnswers() {
-  // Travel goal
-  const goalOptions = document.querySelectorAll('.goal-option');
-  goalOptions.forEach(option => {
-    if (option.classList.contains('selected')) {
-      appState.user.preferences.travelGoal = option.getAttribute('data-value');
-    }
-  });
+  const travelStyle = document.getElementById('travel-style').value;
+  const preferredTransport = document.getElementById('preferred-transport').value;
   
-  // Travel days
-  const daysOptions = document.querySelectorAll('.days-option');
-  daysOptions.forEach(option => {
-    if (option.classList.contains('selected')) {
-      appState.user.preferences.travelDays = parseInt(option.getAttribute('data-value'));
-    }
-  });
+  // Save user preferences
+  appState.userData = {
+    preferences: {
+      travelStyle,
+      preferredTransport,
+      theme: 'dark',
+      language: 'pt-BR',
+      currency: 'BRL'
+    },
+    level: 'beginner',
+    points: 0,
+    badges: [],
+    trips: []
+  };
   
-  // Travel style
-  const styleOptions = document.querySelectorAll('.style-option');
-  styleOptions.forEach(option => {
-    if (option.classList.contains('selected')) {
-      appState.user.preferences.travelStyle = option.getAttribute('data-value');
-    }
-  });
-  
-  // Planning style
-  const planningOptions = document.querySelectorAll('.planning-option');
-  planningOptions.forEach(option => {
-    if (option.classList.contains('selected')) {
-      appState.user.preferences.planningStyle = option.getAttribute('data-value');
-    }
-  });
+  // Update recommendations based on preferences
+  updateRecommendations();
   
   // Save to localStorage
   saveToLocalStorage();
@@ -202,256 +226,182 @@ function processOnboardingAnswers() {
 
 // Create a new itinerary
 function createNewItinerary() {
-  const newItinerary = {
-    id: Date.now(),
-    title: 'New Trip',
-    destination: 'Choose Destination',
-    days: [{
-      dayNumber: 1,
-      morning: [],
-      afternoon: [],
-      evening: []
-    }],
-    checklist: []
+  appState.currentItinerary = {
+    id: 'itinerary-' + Date.now(),
+    title: '',
+    destination: '',
+    startDate: null,
+    endDate: null,
+    days: [
+      {
+        id: 'day-1',
+        dayNumber: 1,
+        date: null,
+        activities: []
+      }
+    ],
+    checklist: {
+      items: [
+        { id: 'item-1', text: 'Passaporte/RG', isChecked: false, category: 'documents', priority: 'high' },
+        { id: 'item-2', text: 'Seguro viagem', isChecked: false, category: 'reservations', priority: 'high' },
+        { id: 'item-3', text: 'Carregador de celular', isChecked: false, category: 'packing', priority: 'medium' }
+      ]
+    },
+    budget: {
+      total: 0,
+      currency: 'BRL',
+      expenses: []
+    },
+    pointsOfInterest: []
   };
-  
-  appState.currentItinerary = newItinerary;
-  
-  // Pre-fill checklist based on preferences
-  generateSmartChecklist();
 }
 
-// Generate smart checklist based on user preferences
+// Generate a smart checklist based on destination
 function generateSmartChecklist() {
-  const checklist = [];
-  
-  // Basic items for all trips
-  checklist.push({ id: Date.now(), text: 'Passport/ID', checked: false });
-  checklist.push({ id: Date.now() + 1, text: 'Travel insurance', checked: false });
-  checklist.push({ id: Date.now() + 2, text: 'Phone charger', checked: false });
-  
-  // Add items based on travel goal
-  switch(appState.user.preferences.travelGoal) {
-    case 'relax':
-      checklist.push({ id: Date.now() + 3, text: 'Books/E-reader', checked: false });
-      checklist.push({ id: Date.now() + 4, text: 'Beach towel', checked: false });
-      break;
-    case 'adventure':
-      checklist.push({ id: Date.now() + 3, text: 'Hiking boots', checked: false });
-      checklist.push({ id: Date.now() + 4, text: 'First aid kit', checked: false });
-      break;
-    case 'family':
-      checklist.push({ id: Date.now() + 3, text: 'Games/Entertainment', checked: false });
-      checklist.push({ id: Date.now() + 4, text: 'Snacks', checked: false });
-      break;
-    case 'spiritual':
-      checklist.push({ id: Date.now() + 3, text: 'Meditation items', checked: false });
-      checklist.push({ id: Date.now() + 4, text: 'Comfortable clothing', checked: false });
-      break;
-  }
-  
-  // Add items based on travel style
-  if (appState.user.preferences.travelStyle === 'economy') {
-    checklist.push({ id: Date.now() + 5, text: 'Water bottle', checked: false });
-  } else if (appState.user.preferences.travelStyle === 'luxury') {
-    checklist.push({ id: Date.now() + 5, text: 'Formal attire', checked: false });
-  }
-  
-  appState.currentItinerary.checklist = checklist;
-}
-
-// Render home screen with personalized content
-function renderHomeScreen() {
-  const savedTrips = document.getElementById('savedTrips');
-  savedTrips.innerHTML = '';
-  
-  if (appState.itineraries.length === 0) {
-    savedTrips.innerHTML = '<div class="alert alert-info">No saved trips yet. Create your first itinerary!</div>';
-  } else {
-    // Render saved itineraries
-    appState.itineraries.forEach(itinerary => {
-      const tripCard = document.createElement('div');
-      tripCard.className = 'col-md-4 mb-4';
-      tripCard.innerHTML = `
-        <div class="travel-card card">
-          <img src="https://images.unsplash.com/photo-1605130284535-11dd9eedc58a" class="card-img-top" alt="${itinerary.destination}">
-          <div class="card-body">
-            <h5 class="card-title">${itinerary.title}</h5>
-            <p class="card-text">${itinerary.destination} • ${itinerary.days.length} days</p>
-            <button class="btn btn-sm btn-secondary edit-trip-btn" data-id="${itinerary.id}">Edit Trip</button>
-          </div>
-        </div>
-      `;
-      savedTrips.appendChild(tripCard);
-    });
-    
-    // Add event listeners to edit buttons
-    document.querySelectorAll('.edit-trip-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const tripId = parseInt(this.getAttribute('data-id'));
-        loadItinerary(tripId);
-        showScreen('itinerary');
-      });
-    });
-  }
-  
-  // Update recommendation section based on preferences
-  updateRecommendations();
-}
-
-// Update the recommendations section based on user preferences
-function updateRecommendations() {
-  const recommendationsContainer = document.getElementById('recommendations');
-  recommendationsContainer.innerHTML = '';
-  
-  // Define recommendation data
-  const recommendations = [
-    {
-      title: 'Beach Paradise',
-      description: 'Perfect for relaxation and unwinding',
-      image: 'https://images.unsplash.com/photo-1554366347-897a5113f6ab',
-      type: 'relax'
-    },
-    {
-      title: 'Mountain Trek',
-      description: 'Adventure awaits in the peaks',
-      image: 'https://images.unsplash.com/photo-1606944331341-72bf6523ff5e',
-      type: 'adventure'
-    },
-    {
-      title: 'Cultural Tour',
-      description: 'Explore historical sites and local traditions',
-      image: 'https://images.unsplash.com/photo-1594661745200-810105bcf054',
-      type: 'cultural'
-    },
-    {
-      title: 'Family Resort',
-      description: 'Fun activities for all ages',
-      image: 'https://images.unsplash.com/photo-1484910292437-025e5d13ce87',
-      type: 'family'
-    },
-    {
-      title: 'Spiritual Retreat',
-      description: 'Find inner peace and tranquility',
-      image: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd',
-      type: 'spiritual'
-    }
-  ];
-  
-  // Filter recommendations based on user preferences
-  let filteredRecommendations = recommendations;
-  if (appState.user.preferences.travelGoal) {
-    filteredRecommendations = recommendations.filter(rec => 
-      rec.type === appState.user.preferences.travelGoal || Math.random() > 0.5
+  // This would be powered by an AI service, here we'll add some placeholders
+  const destination = appState.currentItinerary.destination.toLowerCase();
+  if (destination.includes('praia') || destination.includes('beach')) {
+    appState.currentItinerary.checklist.items.push(
+      { id: 'item-' + Date.now(), text: 'Protetor solar', isChecked: false, category: 'packing', priority: 'high' },
+      { id: 'item-' + (Date.now()+1), text: 'Óculos de sol', isChecked: false, category: 'packing', priority: 'medium' },
+      { id: 'item-' + (Date.now()+2), text: 'Traje de banho', isChecked: false, category: 'packing', priority: 'high' }
+    );
+  } else if (destination.includes('europa') || destination.includes('europe')) {
+    appState.currentItinerary.checklist.items.push(
+      { id: 'item-' + Date.now(), text: 'Adaptador de tomada', isChecked: false, category: 'packing', priority: 'high' },
+      { id: 'item-' + (Date.now()+1), text: 'Converter moeda', isChecked: false, category: 'reservations', priority: 'medium' },
+      { id: 'item-' + (Date.now()+2), text: 'Verificar roaming internacional', isChecked: false, category: 'reservations', priority: 'medium' }
     );
   }
+}
+
+// Render the home screen content
+function renderHomeScreen() {
+  // Update user level/stats
+  if (appState.userData) {
+    // Would display actual user data from server
+  }
   
-  // Limit to 3 recommendations
-  filteredRecommendations = filteredRecommendations.slice(0, 3);
-  
-  // Create recommendation cards
-  filteredRecommendations.forEach(rec => {
-    const recCard = document.createElement('div');
-    recCard.className = 'col-md-4 mb-4';
-    recCard.innerHTML = `
-      <div class="travel-card card">
-        <img src="${rec.image}" class="card-img-top" alt="${rec.title}">
-        <div class="card-body">
-          <h5 class="card-title">${rec.title}</h5>
-          <p class="card-text">${rec.description}</p>
-          <button class="btn btn-sm btn-info recommendation-btn">Explore</button>
+  // Render upcoming trips
+  const upcomingTripsContainer = document.getElementById('upcoming-trips-list');
+  if (upcomingTripsContainer) {
+    if (appState.itineraries.length === 0) {
+      upcomingTripsContainer.innerHTML = `
+        <div class="trip-placeholder text-center p-5">
+          <p>Você ainda não tem viagens planejadas.</p>
         </div>
-      </div>
-    `;
-    recommendationsContainer.appendChild(recCard);
-  });
+      `;
+    } else {
+      // Would render user's itineraries
+    }
+  }
   
-  // Add event listeners to recommendation buttons
-  document.querySelectorAll('.recommendation-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const title = this.closest('.card').querySelector('.card-title').textContent;
+  // Set up recommendation click handlers
+  document.querySelectorAll('.recommendation-card button').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const card = e.target.closest('.recommendation-card');
+      const title = card.querySelector('.card-title').textContent;
       createNewItineraryFromRecommendation(title);
-      showScreen('itinerary');
     });
   });
 }
 
-// Create a new itinerary from a recommendation
+// Update recommendations based on user preferences
+function updateRecommendations() {
+  // This would fetch recommendations from server based on user preferences
+  // For now, just use the static ones in appState
+}
+
+// Create new itinerary from recommendation
 function createNewItineraryFromRecommendation(title) {
-  const newItinerary = {
-    id: Date.now(),
-    title: title,
-    destination: title,
-    days: [{
-      dayNumber: 1,
-      morning: [],
-      afternoon: [],
-      evening: []
-    }],
-    checklist: []
-  };
+  createNewItinerary();
+  appState.currentItinerary.title = title;
   
-  appState.currentItinerary = newItinerary;
+  // Set destination based on title
+  const destination = title.split(',')[0].trim();
+  appState.currentItinerary.destination = destination;
   
-  // Generate checklist items
+  // Generate a smart checklist
   generateSmartChecklist();
+  
+  // Go to itinerary builder
+  showScreen('itinerary-builder-screen');
 }
 
-// Render itinerary builder
+// Render the itinerary builder screen
 function renderItineraryBuilder() {
-  // Update title and destination
-  document.getElementById('itineraryTitle').value = appState.currentItinerary.title;
-  document.getElementById('itineraryDestination').value = appState.currentItinerary.destination;
+  // Set form values from current itinerary
+  if (appState.currentItinerary) {
+    document.getElementById('itinerary-title').value = appState.currentItinerary.title || '';
+    document.getElementById('itinerary-destination').value = appState.currentItinerary.destination || '';
+    document.getElementById('itinerary-start-date').value = appState.currentItinerary.startDate || '';
+    document.getElementById('itinerary-end-date').value = appState.currentItinerary.endDate || '';
+    
+    // Render days and activities
+    renderDays();
+  }
   
-  // Set up event listeners for title and destination changes
-  document.getElementById('itineraryTitle').addEventListener('change', function() {
-    appState.currentItinerary.title = this.value;
+  // Add activity button handlers
+  document.querySelectorAll('.add-activity-btn, .add-first-activity-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const dayElement = e.target.closest('.day-card');
+      const dayNumber = dayElement ? parseInt(dayElement.getAttribute('data-day')) : 1;
+      
+      // Set up the modal for this day
+      document.querySelector('#activity-modal .modal-title').textContent = `Nova Atividade - Dia ${dayNumber}`;
+      document.querySelector('#activity-modal').setAttribute('data-day', dayNumber);
+      
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById('activity-modal'));
+      modal.show();
+    });
   });
   
-  document.getElementById('itineraryDestination').addEventListener('change', function() {
-    appState.currentItinerary.destination = this.value;
+  // Remove day button handlers
+  document.querySelectorAll('.remove-day-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const dayElement = e.target.closest('.day-card');
+      const dayNumber = parseInt(dayElement.getAttribute('data-day'));
+      removeDay(dayNumber);
+    });
   });
-  
-  // Render days
-  renderDays();
 }
 
-// Render days in the itinerary
+// Render days and activities
 function renderDays() {
-  const daysContainer = document.getElementById('daysContainer');
+  const daysContainer = document.getElementById('days-container');
+  if (!daysContainer || !appState.currentItinerary) return;
+  
   daysContainer.innerHTML = '';
   
-  appState.currentItinerary.days.forEach((day, index) => {
+  appState.currentItinerary.days.forEach(day => {
     const dayElement = document.createElement('div');
-    dayElement.className = 'day-block';
+    dayElement.className = 'day-card card mb-3';
     dayElement.setAttribute('data-day', day.dayNumber);
     
     dayElement.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Day ${day.dayNumber}</h3>
-        <button class="btn btn-sm btn-danger remove-day-btn" data-day="${day.dayNumber}">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-      
-      <div class="time-section">
-        <h5>Morning</h5>
-        <div class="drop-zone morning-zone" data-day="${day.dayNumber}" data-time="morning">
-          ${renderActivities(day.morning)}
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Dia ${day.dayNumber}</h4>
+        <div class="day-actions">
+          <button class="btn btn-sm btn-link add-activity-btn">
+            <i class="fas fa-plus-circle"></i>
+          </button>
+          ${day.dayNumber > 1 ? `<button class="btn btn-sm btn-link remove-day-btn">
+            <i class="fas fa-trash"></i>
+          </button>` : ''}
         </div>
       </div>
-      
-      <div class="time-section">
-        <h5>Afternoon</h5>
-        <div class="drop-zone afternoon-zone" data-day="${day.dayNumber}" data-time="afternoon">
-          ${renderActivities(day.afternoon)}
-        </div>
-      </div>
-      
-      <div class="time-section">
-        <h5>Evening</h5>
-        <div class="drop-zone evening-zone" data-day="${day.dayNumber}" data-time="evening">
-          ${renderActivities(day.evening)}
+      <div class="card-body">
+        <div class="activities-container" id="day-${day.dayNumber}-activities">
+          ${day.activities.length > 0 ? 
+            renderActivities(day.activities) :
+            `<div class="activity-placeholder text-center p-3">
+              <p class="text-muted">Nenhuma atividade adicionada.</p>
+              <button class="btn btn-sm btn-outline-primary add-first-activity-btn">
+                <i class="fas fa-plus me-1"></i> Adicionar Atividade
+              </button>
+            </div>`
+          }
         </div>
       </div>
     `;
@@ -459,331 +409,431 @@ function renderDays() {
     daysContainer.appendChild(dayElement);
   });
   
-  // Add event listeners for remove day buttons
-  document.querySelectorAll('.remove-day-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const dayNumber = parseInt(this.getAttribute('data-day'));
-      removeDay(dayNumber);
-    });
-  });
-  
-  // Set up drag and drop functionality
-  initDragAndDrop();
+  // Re-attach event listeners
+  setupEventListeners();
 }
 
-// Render activities for a time section
+// Render activities for a day
 function renderActivities(activities) {
-  if (!activities || activities.length === 0) {
-    return '';
-  }
+  if (!activities || activities.length === 0) return '';
   
-  let html = '';
-  activities.forEach(activity => {
-    html += `
-      <div class="activity-item" draggable="true" data-id="${activity.id}">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="badge bg-${getActivityTypeBadge(activity.type)} me-2">${activity.type}</span>
-            ${activity.text}
-          </div>
-          <button class="btn btn-sm btn-link text-danger remove-activity-btn" data-id="${activity.id}">
-            <i class="fas fa-times"></i>
+  return activities.map(activity => `
+    <div class="activity-card card" data-activity-id="${activity.id}" draggable="true">
+      <div class="card-body">
+        <div class="activity-type-badge">
+          ${getActivityTypeBadge(activity.type)}
+        </div>
+        <h5 class="card-title">${activity.title}</h5>
+        ${activity.startTime ? `<p class="card-text"><i class="fas fa-clock me-2"></i>${activity.startTime}${activity.endTime ? ` - ${activity.endTime}` : ''}</p>` : ''}
+        ${activity.location ? `<p class="card-text"><i class="fas fa-map-marker-alt me-2"></i>${activity.location}</p>` : ''}
+        ${activity.description ? `<p class="card-text">${activity.description}</p>` : ''}
+        ${activity.cost ? `<p class="card-text"><i class="fas fa-coins me-2"></i>${activity.cost} ${activity.currency || 'BRL'}</p>` : ''}
+        <div class="activity-actions mt-2">
+          <button class="btn btn-sm btn-link edit-activity-btn">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-sm btn-link remove-activity-btn">
+            <i class="fas fa-trash-alt"></i>
           </button>
         </div>
       </div>
-    `;
-  });
-  
-  return html;
+    </div>
+  `).join('');
 }
 
-// Get badge color for activity type
+// Get badge for activity type
 function getActivityTypeBadge(type) {
-  switch(type) {
-    case 'place': return 'primary';
-    case 'activity': return 'success';
-    case 'transport': return 'warning';
-    case 'accommodation': return 'info';
-    default: return 'secondary';
-  }
-}
-
-// Add a new activity to the current day
-function addNewActivity(type) {
-  // Prompt for activity details
-  const activityText = prompt(`Enter ${type} details:`);
-  if (!activityText) return;
-  
-  // Create new activity
-  const newActivity = {
-    id: Date.now(),
-    type: type,
-    text: activityText
+  const badges = {
+    'place': '<span class="badge bg-success">Local</span>',
+    'activity': '<span class="badge bg-primary">Atividade</span>',
+    'transport': '<span class="badge bg-info">Transporte</span>',
+    'accommodation': '<span class="badge bg-secondary">Hospedagem</span>',
+    'meal': '<span class="badge bg-warning">Refeição</span>',
+    'ticket': '<span class="badge bg-danger">Ingresso</span>',
+    'other': '<span class="badge bg-light text-dark">Outro</span>'
   };
   
-  // Get current day (default to first day)
-  const currentDay = appState.currentItinerary.days[0];
+  return badges[type] || badges.other;
+}
+
+// Add new activity to the current itinerary
+function addNewActivity(type) {
+  if (!appState.currentItinerary) return;
   
-  // Add to morning by default (user can drag to reposition)
-  currentDay.morning.push(newActivity);
+  const modal = document.getElementById('activity-modal');
+  const dayNumber = parseInt(modal.getAttribute('data-day'));
+  const day = appState.currentItinerary.days.find(d => d.dayNumber === dayNumber);
   
-  // Rerender days
+  if (!day) return;
+  
+  const title = document.getElementById('activity-title').value;
+  const startTime = document.getElementById('activity-start-time').value;
+  const endTime = document.getElementById('activity-end-time').value;
+  const location = document.getElementById('activity-location').value;
+  const description = document.getElementById('activity-description').value;
+  const cost = document.getElementById('activity-cost').value;
+  const currency = document.getElementById('activity-currency').value;
+  
+  const newActivity = {
+    id: 'activity-' + Date.now(),
+    type: type,
+    title: title,
+    startTime: startTime,
+    endTime: endTime,
+    location: location,
+    description: description,
+    cost: cost ? parseFloat(cost) : null,
+    currency: currency
+  };
+  
+  day.activities.push(newActivity);
+  
+  // Re-render days
   renderDays();
+  
+  // Reset form
+  document.getElementById('activity-form').reset();
 }
 
 // Add a new day to the itinerary
 function addNewDay() {
-  // Calculate the next day number
-  const nextDayNumber = appState.currentItinerary.days.length + 1;
+  if (!appState.currentItinerary) return;
   
-  // Create a new day
+  const newDayNumber = appState.currentItinerary.days.length + 1;
   const newDay = {
-    dayNumber: nextDayNumber,
-    morning: [],
-    afternoon: [],
-    evening: []
+    id: 'day-' + Date.now(),
+    dayNumber: newDayNumber,
+    date: null,
+    activities: []
   };
   
-  // Add to days array
   appState.currentItinerary.days.push(newDay);
-  
-  // Rerender days
   renderDays();
 }
 
 // Remove a day from the itinerary
 function removeDay(dayNumber) {
-  if (appState.currentItinerary.days.length <= 1) {
-    alert("You can't remove the only day in your itinerary.");
-    return;
+  if (!appState.currentItinerary) return;
+  
+  // Find the day index
+  const dayIndex = appState.currentItinerary.days.findIndex(day => day.dayNumber === dayNumber);
+  
+  if (dayIndex !== -1) {
+    // Remove the day
+    appState.currentItinerary.days.splice(dayIndex, 1);
+    
+    // Reorder day numbers
+    appState.currentItinerary.days.forEach((day, index) => {
+      day.dayNumber = index + 1;
+    });
+    
+    // Re-render
+    renderDays();
   }
-  
-  // Confirm deletion
-  if (!confirm(`Are you sure you want to remove Day ${dayNumber}?`)) {
-    return;
-  }
-  
-  // Remove the day
-  appState.currentItinerary.days = appState.currentItinerary.days.filter(day => day.dayNumber !== dayNumber);
-  
-  // Renumber remaining days
-  appState.currentItinerary.days.forEach((day, index) => {
-    day.dayNumber = index + 1;
-  });
-  
-  // Rerender days
-  renderDays();
 }
 
 // Save the current itinerary
 function saveCurrentItinerary() {
-  // Remove any existing itinerary with the same ID
-  appState.itineraries = appState.itineraries.filter(itinerary => itinerary.id !== appState.currentItinerary.id);
+  if (!appState.currentItinerary) return;
   
-  // Add the current itinerary to the itineraries array
-  appState.itineraries.push(appState.currentItinerary);
+  // Update itinerary with form values
+  appState.currentItinerary.title = document.getElementById('itinerary-title').value;
+  appState.currentItinerary.destination = document.getElementById('itinerary-destination').value;
+  appState.currentItinerary.startDate = document.getElementById('itinerary-start-date').value;
+  appState.currentItinerary.endDate = document.getElementById('itinerary-end-date').value;
+  
+  // Check if itinerary is already in the list
+  const existingIndex = appState.itineraries.findIndex(it => it.id === appState.currentItinerary.id);
+  
+  if (existingIndex !== -1) {
+    // Update existing
+    appState.itineraries[existingIndex] = appState.currentItinerary;
+  } else {
+    // Add new
+    appState.itineraries.push(appState.currentItinerary);
+  }
   
   // Save to localStorage
   saveToLocalStorage();
   
-  alert('Itinerary saved successfully!');
+  // Would also save to server API
 }
 
-// Load an itinerary for editing
+// Load an itinerary by ID
 function loadItinerary(itineraryId) {
-  const itinerary = appState.itineraries.find(i => i.id === itineraryId);
+  const itinerary = appState.itineraries.find(it => it.id === itineraryId);
   if (itinerary) {
-    appState.currentItinerary = JSON.parse(JSON.stringify(itinerary)); // Deep copy
+    appState.currentItinerary = itinerary;
+    showScreen('itinerary-builder-screen');
   }
 }
 
-// Render checklist
+// Render the checklist screen
 function renderChecklist() {
-  const checklistContainer = document.getElementById('checklistContainer');
-  const checklistProgress = document.getElementById('checklistProgress');
+  if (!appState.currentItinerary) return;
   
+  const checklistContainer = document.getElementById('checklist-items-container');
+  if (!checklistContainer) return;
+  
+  // Clear previous items
   checklistContainer.innerHTML = '';
   
-  if (!appState.currentItinerary.checklist || appState.currentItinerary.checklist.length === 0) {
-    checklistContainer.innerHTML = '<div class="alert alert-info">No items in your checklist yet. Add your first item!</div>';
-    checklistProgress.style.width = '0%';
-    checklistProgress.textContent = '0%';
-    return;
-  }
-  
-  // Count checked items
-  const totalItems = appState.currentItinerary.checklist.length;
-  const checkedItems = appState.currentItinerary.checklist.filter(item => item.checked).length;
-  const progressPercentage = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
-  
-  // Update progress bar
-  checklistProgress.style.width = progressPercentage + '%';
-  checklistProgress.textContent = progressPercentage + '%';
-  
   // Render checklist items
-  appState.currentItinerary.checklist.forEach(item => {
-    const itemElement = document.createElement('div');
-    itemElement.className = `checklist-item ${item.checked ? 'checked' : ''}`;
+  appState.currentItinerary.checklist.items.forEach(item => {
+    const itemElement = document.createElement('li');
+    itemElement.className = 'list-group-item d-flex align-items-center';
+    itemElement.setAttribute('data-item-id', item.id);
     
     itemElement.innerHTML = `
-      <input type="checkbox" id="check-${item.id}" ${item.checked ? 'checked' : ''}>
-      <label for="check-${item.id}">${item.text}</label>
-      <button class="btn btn-sm btn-link text-danger ms-auto remove-checklist-btn" data-id="${item.id}">
-        <i class="fas fa-times"></i>
-      </button>
+      <input class="form-check-input me-3" type="checkbox" ${item.isChecked ? 'checked' : ''}>
+      <span class="checklist-item-text ${item.isChecked ? 'text-decoration-line-through' : ''}">${item.text}</span>
+      <div class="ms-auto">
+        <button class="btn btn-sm btn-link delete-item-btn">
+          <i class="fas fa-trash-alt text-danger"></i>
+        </button>
+      </div>
     `;
     
     checklistContainer.appendChild(itemElement);
-    
-    // Add event listener for checkbox
-    itemElement.querySelector('input[type="checkbox"]').addEventListener('change', function() {
-      toggleChecklistItem(item.id);
-    });
-    
-    // Add event listener for remove button
-    itemElement.querySelector('.remove-checklist-btn').addEventListener('click', function() {
-      removeChecklistItem(item.id);
-    });
   });
+  
+  // Update progress bar
+  updateChecklistProgress();
+  
+  // Re-attach event listeners
+  setupEventListeners();
 }
 
 // Add a new checklist item
 function addChecklistItem() {
-  const itemText = document.getElementById('newChecklistItem').value.trim();
+  if (!appState.currentItinerary) return;
   
-  if (!itemText) {
-    alert('Please enter an item description.');
-    return;
-  }
+  const text = document.getElementById('checklist-item-text').value;
+  const category = document.getElementById('checklist-item-category').value;
+  const priority = document.getElementById('checklist-item-priority').value;
+  const dueDate = document.getElementById('checklist-item-duedate').value;
+  const notes = document.getElementById('checklist-item-notes').value;
   
-  // Create new item
+  if (!text) return;
+  
   const newItem = {
-    id: Date.now(),
-    text: itemText,
-    checked: false
+    id: 'item-' + Date.now(),
+    text: text,
+    isChecked: false,
+    category: category,
+    priority: priority,
+    dueDate: dueDate || null,
+    notes: notes || null
   };
   
-  // Add to checklist
-  appState.currentItinerary.checklist.push(newItem);
+  appState.currentItinerary.checklist.items.push(newItem);
   
-  // Clear input field
-  document.getElementById('newChecklistItem').value = '';
+  // Reset form
+  document.getElementById('checklist-item-form').reset();
   
-  // Rerender checklist
+  // Re-render checklist
   renderChecklist();
 }
 
-// Toggle checklist item checked status
+// Toggle a checklist item's checked state
 function toggleChecklistItem(itemId) {
-  const item = appState.currentItinerary.checklist.find(i => i.id === itemId);
+  if (!appState.currentItinerary) return;
+  
+  const item = appState.currentItinerary.checklist.items.find(item => item.id === itemId);
   if (item) {
-    item.checked = !item.checked;
-    renderChecklist();
+    item.isChecked = !item.isChecked;
+    
+    // Update UI
+    const itemElement = document.querySelector(`li[data-item-id="${itemId}"] .checklist-item-text`);
+    if (itemElement) {
+      if (item.isChecked) {
+        itemElement.classList.add('text-decoration-line-through');
+      } else {
+        itemElement.classList.remove('text-decoration-line-through');
+      }
+    }
+    
+    // Update progress
+    updateChecklistProgress();
   }
 }
 
 // Remove a checklist item
 function removeChecklistItem(itemId) {
-  appState.currentItinerary.checklist = appState.currentItinerary.checklist.filter(item => item.id !== itemId);
-  renderChecklist();
+  if (!appState.currentItinerary) return;
+  
+  const itemIndex = appState.currentItinerary.checklist.items.findIndex(item => item.id === itemId);
+  if (itemIndex !== -1) {
+    appState.currentItinerary.checklist.items.splice(itemIndex, 1);
+    
+    // Re-render checklist
+    renderChecklist();
+  }
 }
 
-// Render map screen
+// Update checklist progress bar
+function updateChecklistProgress() {
+  if (!appState.currentItinerary) return;
+  
+  const items = appState.currentItinerary.checklist.items;
+  if (items.length === 0) {
+    document.querySelector('.progress-bar').style.width = '0%';
+    document.querySelector('.progress-text small').textContent = '0 de 0 itens completos';
+    return;
+  }
+  
+  const checkedItems = items.filter(item => item.isChecked).length;
+  const progressPercentage = Math.round((checkedItems / items.length) * 100);
+  
+  document.querySelector('.progress-bar').style.width = `${progressPercentage}%`;
+  document.querySelector('.progress-text small').textContent = `${checkedItems} de ${items.length} itens completos`;
+}
+
+// Render the map screen (would integrate with Mapbox)
 function renderMap() {
-  // The actual map functionality is in map.js
-  // This just ensures the container is properly sized
-  const mapContainer = document.getElementById('mapContainer');
-  mapContainer.innerHTML = `
-    <img src="https://images.unsplash.com/photo-1738601077283-9215e4f2a098" class="img-fluid" alt="Map">
-  `;
+  // This would integrate with Mapbox API
+  // For now, display placeholder content
+  const mapElement = document.getElementById('map');
+  
+  if (mapElement && typeof mapboxgl !== 'undefined') {
+    try {
+      mapboxgl.accessToken = 'YOUR_MAPBOX_API_KEY'; // Would be retrieved from environment variables
+      
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [-74.5, 40], // Default center
+        zoom: 9
+      });
+      
+      // Would add map markers for the itinerary points of interest
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      mapElement.innerHTML = '<div class="p-5 text-center"><p>Mapa não disponível no momento.</p></div>';
+    }
+  }
 }
 
-// Render share screen
+// Render the share screen
 function renderShareScreen() {
-  // Generate share link (just JSON for this demo)
-  const shareData = {
-    itinerary: appState.currentItinerary
-  };
+  if (!appState.currentItinerary) return;
   
-  const shareLink = JSON.stringify(shareData);
-  document.getElementById('shareLinkText').textContent = shareLink;
+  // Update share preview card
+  document.getElementById('share-itinerary-title').textContent = appState.currentItinerary.title || 'Meu Roteiro';
+  document.getElementById('share-itinerary-destination').innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>${appState.currentItinerary.destination || 'Destino não definido'}`;
   
-  // Update itinerary summary
-  document.getElementById('shareItineraryTitle').textContent = appState.currentItinerary.title;
-  document.getElementById('shareItineraryDestination').textContent = appState.currentItinerary.destination;
-  document.getElementById('shareItineraryDays').textContent = appState.currentItinerary.days.length;
+  // Format dates
+  let dateText = 'Datas não definidas';
+  if (appState.currentItinerary.startDate && appState.currentItinerary.endDate) {
+    const startDate = new Date(appState.currentItinerary.startDate);
+    const endDate = new Date(appState.currentItinerary.endDate);
+    dateText = `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`;
+  } else if (appState.currentItinerary.startDate) {
+    const startDate = new Date(appState.currentItinerary.startDate);
+    dateText = `A partir de ${startDate.toLocaleDateString('pt-BR')}`;
+  }
+  document.getElementById('share-itinerary-dates').innerHTML = `<i class="fas fa-calendar-alt me-2"></i>${dateText}`;
+  
+  // Generate share link
+  const shareUrl = `https://viajey.app/share/${appState.currentItinerary.id}`;
+  document.getElementById('share-link-input').value = shareUrl;
+  
+  // Hide copy confirmation initially
+  document.querySelector('.share-link .form-text').style.display = 'none';
 }
 
 // Copy share link to clipboard
 function copyShareLink() {
-  const shareLink = document.getElementById('shareLinkText').textContent;
+  const linkInput = document.getElementById('share-link-input');
+  linkInput.select();
+  document.execCommand('copy');
   
-  navigator.clipboard.writeText(shareLink).then(() => {
-    alert('Link copied to clipboard!');
-  }).catch(err => {
-    console.error('Could not copy text: ', err);
-  });
+  // Show copy confirmation
+  const confirmation = document.querySelector('.share-link .form-text');
+  confirmation.style.display = 'block';
+  
+  // Hide after 3 seconds
+  setTimeout(() => {
+    confirmation.style.display = 'none';
+  }, 3000);
 }
 
-// Render profile screen
+// Render the profile screen
 function renderProfileScreen() {
-  // Update user information
-  document.getElementById('profileName').textContent = appState.user.name;
+  if (!appState.userData) return;
   
-  // Update preferences
-  document.getElementById('profileTravelGoal').textContent = appState.user.preferences.travelGoal || 'Not set';
-  document.getElementById('profileTravelStyle').textContent = appState.user.preferences.travelStyle || 'Not set';
+  // Set user details
+  document.getElementById('profile-name').textContent = appState.userData.name || 'Viajante';
+  document.getElementById('profile-email').textContent = appState.userData.email || 'usuario@exemplo.com';
+  document.getElementById('profile-level').textContent = appState.userData.level || 'Viajante Iniciante';
+  document.getElementById('profile-trips-count').textContent = appState.itineraries.length;
+  document.getElementById('profile-countries-count').textContent = appState.userData.countriesVisited?.length || 0;
+  document.getElementById('profile-points').textContent = appState.userData.points || 0;
   
-  // Update trip count
-  document.getElementById('profileTripCount').textContent = appState.itineraries.length;
+  // Render trips list
+  const tripsListContainer = document.getElementById('profile-trips-list');
+  if (tripsListContainer) {
+    if (appState.itineraries.length === 0) {
+      tripsListContainer.innerHTML = `
+        <div class="trip-placeholder text-center">
+          <p>Você ainda não tem viagens.</p>
+        </div>
+      `;
+    } else {
+      tripsListContainer.innerHTML = appState.itineraries.map(trip => `
+        <div class="card mb-2">
+          <div class="card-body">
+            <h5 class="card-title">${trip.title || 'Viagem sem título'}</h5>
+            <p class="card-text">${trip.destination || 'Sem destino'}</p>
+            <button class="btn btn-sm btn-primary open-trip-btn" data-trip-id="${trip.id}">Abrir</button>
+          </div>
+        </div>
+      `).join('');
+      
+      // Add event listeners for trip cards
+      document.querySelectorAll('.open-trip-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const tripId = e.target.getAttribute('data-trip-id');
+          loadItinerary(tripId);
+        });
+      });
+    }
+  }
   
-  // Update avatar with user initial
-  const avatar = document.getElementById('profileAvatar');
-  avatar.textContent = appState.user.name.charAt(0).toUpperCase();
+  // Set preference values
+  document.getElementById('user-language').value = appState.userData.preferences?.language || 'pt-BR';
+  document.getElementById('user-currency').value = appState.userData.preferences?.currency || 'BRL';
+  document.getElementById('user-theme').value = appState.userData.preferences?.theme || 'dark';
+  document.getElementById('notification-switch').checked = appState.userData.preferences?.notifications?.web || true;
 }
 
-// Save application state to localStorage
+// Save app state to localStorage
 function saveToLocalStorage() {
-  localStorage.setItem('viajeyAppState', JSON.stringify({
-    user: appState.user,
+  localStorage.setItem('viajey-state', JSON.stringify({
+    userData: appState.userData,
     itineraries: appState.itineraries
   }));
 }
 
-// Load application state from localStorage
+// Load app state from localStorage
 function loadFromLocalStorage() {
-  const savedState = localStorage.getItem('viajeyAppState');
-  
+  const savedState = localStorage.getItem('viajey-state');
   if (savedState) {
     const parsedState = JSON.parse(savedState);
-    appState.user = parsedState.user || appState.user;
-    appState.itineraries = parsedState.itineraries || [];
+    appState.userData = parsedState.userData;
+    appState.itineraries = parsedState.itineraries;
+    return true;
   }
+  return false;
 }
 
-// Reset all data
+// Reset all data (for testing)
 function resetAllData() {
-  if (confirm('Are you sure you want to reset all your data? This cannot be undone.')) {
-    localStorage.removeItem('viajeyAppState');
-    appState.user = {
-      name: 'Traveler',
-      preferences: {
-        travelGoal: '',
-        travelDays: 0,
-        travelStyle: '',
-        planningStyle: ''
-      }
-    };
-    appState.itineraries = [];
-    appState.currentItinerary = {
-      id: null,
-      title: '',
-      destination: '',
-      days: [],
-      checklist: []
-    };
-    
-    showScreen('onboarding');
-    alert('All data has been reset.');
-  }
+  localStorage.removeItem('viajey-state');
+  appState.userData = null;
+  appState.itineraries = [];
+  appState.currentItinerary = null;
+  
+  // Go back to onboarding
+  showScreen('onboarding-screen');
 }

@@ -1,135 +1,152 @@
-// Drag and Drop functionality for the itinerary builder
+// Drag and Drop functionality for itinerary activities
 
-// Initialize drag and drop functionality
+// Initialize drag and drop for the itinerary activities
 function initDragAndDrop() {
-  // Get all draggable items
-  const draggables = document.querySelectorAll('.activity-item');
+  // Get all draggable elements
+  const draggables = document.querySelectorAll('.activity-card');
+  const dropZones = document.querySelectorAll('.activities-container');
   
-  // Get all drop zones
-  const dropZones = document.querySelectorAll('.drop-zone');
-  
-  // Set up drag events for draggable items
+  // Add event listeners to draggable elements
   draggables.forEach(draggable => {
     draggable.addEventListener('dragstart', dragStart);
     draggable.addEventListener('dragend', dragEnd);
   });
   
-  // Set up drag events for drop zones
-  dropZones.forEach(zone => {
-    zone.addEventListener('dragover', dragOver);
-    zone.addEventListener('dragenter', dragEnter);
-    zone.addEventListener('dragleave', dragLeave);
-    zone.addEventListener('drop', drop);
-  });
-  
-  // Set up click handlers for remove activity buttons
-  document.querySelectorAll('.remove-activity-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const activityId = parseInt(this.getAttribute('data-id'));
-      removeActivity(activityId);
-    });
+  // Add event listeners to drop zones
+  dropZones.forEach(dropZone => {
+    dropZone.addEventListener('dragover', dragOver);
+    dropZone.addEventListener('dragenter', dragEnter);
+    dropZone.addEventListener('dragleave', dragLeave);
+    dropZone.addEventListener('drop', drop);
   });
 }
 
-// Drag start handler
+// Drag start event
 function dragStart() {
   this.classList.add('dragging');
   
-  // Store the activity ID and origin information
-  const activityId = parseInt(this.getAttribute('data-id'));
-  const originZone = this.closest('.drop-zone');
-  const originDay = parseInt(originZone.getAttribute('data-day'));
-  const originTime = originZone.getAttribute('data-time');
+  // Store the source day and activity details
+  this.setAttribute('data-source-day', this.closest('.day-card').getAttribute('data-day'));
   
-  // Store this information in the dataTransfer object
-  this.setAttribute('data-origin-day', originDay);
-  this.setAttribute('data-origin-time', originTime);
+  // Set data for the drag operation
+  const activityId = this.getAttribute('data-activity-id');
+  event.dataTransfer.setData('text/plain', activityId);
 }
 
-// Drag end handler
+// Drag end event
 function dragEnd() {
   this.classList.remove('dragging');
 }
 
-// Drag over handler
+// Drag over event
 function dragOver(e) {
   e.preventDefault();
+  this.classList.add('drop-target');
 }
 
-// Drag enter handler
+// Drag enter event
 function dragEnter(e) {
   e.preventDefault();
-  this.classList.add('drag-over');
+  this.classList.add('drop-target');
 }
 
-// Drag leave handler
+// Drag leave event
 function dragLeave() {
-  this.classList.remove('drag-over');
+  this.classList.remove('drop-target');
 }
 
-// Drop handler
+// Drop event
 function drop(e) {
   e.preventDefault();
-  this.classList.remove('drag-over');
+  this.classList.remove('drop-target');
   
-  // Get the dragged element
-  const draggedItem = document.querySelector('.dragging');
-  if (!draggedItem) return;
+  // Get the activity ID from the data transfer
+  const activityId = e.dataTransfer.getData('text/plain');
   
-  // Get the activity ID
-  const activityId = parseInt(draggedItem.getAttribute('data-id'));
+  // Get the source day number
+  const sourceDayElement = document.querySelector(`.activity-card[data-activity-id="${activityId}"]`);
+  if (!sourceDayElement) return;
   
-  // Get origin information
-  const originDay = parseInt(draggedItem.getAttribute('data-origin-day'));
-  const originTime = draggedItem.getAttribute('data-origin-time');
+  const sourceDay = parseInt(sourceDayElement.getAttribute('data-source-day'));
   
-  // Get destination information
-  const destDay = parseInt(this.getAttribute('data-day'));
-  const destTime = this.getAttribute('data-time');
+  // Get the target day
+  const targetDayElement = this.closest('.day-card');
+  if (!targetDayElement) return;
   
-  // Move the activity in the app state
-  moveActivity(activityId, originDay, originTime, destDay, destTime);
+  const targetDay = parseInt(targetDayElement.getAttribute('data-day'));
   
-  // Rerender days to reflect the change
+  // Determine position in target day (could get more sophisticated)
+  const targetPosition = 0; // Default to the top
+  
+  // Move the activity in the data model
+  moveActivity(activityId, sourceDay, 0, targetDay, targetPosition);
+  
+  // Re-render the days to reflect the changes
   renderDays();
 }
 
-// Move an activity from one section to another
+// Move an activity from one day to another
 function moveActivity(activityId, fromDay, fromTime, toDay, toTime) {
-  // Find the origin day
-  const originDay = appState.currentItinerary.days.find(day => day.dayNumber === fromDay);
-  if (!originDay) return;
+  if (!appState.currentItinerary) return;
   
-  // Find the activity in the origin day and time
-  const activityIndex = originDay[fromTime].findIndex(activity => activity.id === activityId);
+  // Find the source day
+  const sourceDay = appState.currentItinerary.days.find(day => day.dayNumber === fromDay);
+  if (!sourceDay) return;
+  
+  // Find the activity in the source day
+  const activityIndex = sourceDay.activities.findIndex(activity => activity.id === activityId);
   if (activityIndex === -1) return;
   
-  // Remove the activity from the origin
-  const activity = originDay[fromTime].splice(activityIndex, 1)[0];
+  // Get the activity
+  const activity = sourceDay.activities[activityIndex];
   
-  // Find the destination day
-  const destDay = appState.currentItinerary.days.find(day => day.dayNumber === toDay);
-  if (!destDay) return;
+  // Remove from source day
+  sourceDay.activities.splice(activityIndex, 1);
   
-  // Add the activity to the destination
-  destDay[toTime].push(activity);
+  // Find the target day
+  const targetDay = appState.currentItinerary.days.find(day => day.dayNumber === toDay);
+  if (!targetDay) return;
+  
+  // Add to target day at the specified position
+  if (toTime < targetDay.activities.length) {
+    targetDay.activities.splice(toTime, 0, activity);
+  } else {
+    targetDay.activities.push(activity);
+  }
+  
+  // Save changes
+  saveCurrentItinerary();
 }
 
 // Remove an activity
 function removeActivity(activityId) {
-  // Confirm before removing
-  if (!confirm('Are you sure you want to remove this activity?')) {
-    return;
+  if (!appState.currentItinerary) return;
+  
+  // Loop through all days to find the activity
+  for (const day of appState.currentItinerary.days) {
+    const activityIndex = day.activities.findIndex(activity => activity.id === activityId);
+    if (activityIndex !== -1) {
+      // Remove the activity
+      day.activities.splice(activityIndex, 1);
+      
+      // Re-render
+      renderDays();
+      
+      // Save changes
+      saveCurrentItinerary();
+      
+      return;
+    }
   }
-  
-  // Loop through all days and time periods to find and remove the activity
-  appState.currentItinerary.days.forEach(day => {
-    ['morning', 'afternoon', 'evening'].forEach(time => {
-      day[time] = day[time].filter(activity => activity.id !== activityId);
-    });
-  });
-  
-  // Rerender days
-  renderDays();
 }
+
+// Initialize drag and drop when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // This will be called when screens are initialized
+  // See app.js for the initialization flow
+});
+
+// Add an event listener for when days are rendered
+document.addEventListener('daysRendered', function() {
+  initDragAndDrop();
+});
