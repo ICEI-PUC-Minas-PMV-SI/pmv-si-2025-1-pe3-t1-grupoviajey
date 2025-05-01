@@ -589,7 +589,7 @@
   <!-- Custom JS -->
   <script src="/static/js/desktop.js"></script>
   <script>
-    // Storage functions for saving and retrieving itinerary data (same as in explorar.html)
+    // Storage functions for saving and retrieving itinerary data
     const saveToLocalStorage = (key, data) => {
       localStorage.setItem(key, JSON.stringify(data));
     };
@@ -597,6 +597,12 @@
     const getFromLocalStorage = (key) => {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : null;
+    };
+    
+    // Function to get URL parameters
+    const getUrlParam = (param) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
     };
     
     // Function to initialize or get current itinerary
@@ -610,6 +616,7 @@
           destination: 'Balneário Camboriú',
           startDate: '2026-01-12',
           endDate: '2026-01-20',
+          preferences: ['Relaxamento', 'Praias', 'Luxo'],
           places: []
         };
         saveToLocalStorage('currentItinerary', itinerary);
@@ -642,11 +649,37 @@
       return true;
     };
     
+    // Function to update page title and breadcrumb based on place name
+    const updateDetailPageInfo = () => {
+      const placeParam = getUrlParam('place');
+      if (placeParam) {
+        const decodedPlaceName = decodeURIComponent(placeParam);
+        
+        // Update page title if needed
+        document.title = `Viajey - ${decodedPlaceName} - Balneário Camboriú`;
+        
+        // Update breadcrumb if it exists
+        const breadcrumbPlace = document.querySelector('.breadcrumb-item.active');
+        if (breadcrumbPlace) {
+          breadcrumbPlace.textContent = decodedPlaceName;
+        }
+        
+        // Update place title if it doesn't match the URL parameter
+        const placeTitle = document.querySelector('.place-title');
+        if (placeTitle && placeTitle.textContent.trim() !== decodedPlaceName) {
+          placeTitle.textContent = decodedPlaceName;
+        }
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Setup user dropdown
       if (typeof setupUserDropdown === 'function') {
         setupUserDropdown();
       }
+      
+      // Update page info based on URL parameter
+      updateDetailPageInfo();
       
       // Image gallery functionality
       const thumbnails = document.querySelectorAll('.thumbnail');
@@ -731,11 +764,29 @@
               
               // Show a toast or notification
               alert(`${placeName} adicionado ao seu roteiro!`);
+              
+              // Offer to return to explore page
+              const returnToExplore = confirm("Deseja voltar para a página de exploração?");
+              if (returnToExplore) {
+                // Get the current itinerary
+                const itinerary = getCurrentItinerary();
+                window.location.href = `/explorar?roteiroId=${itinerary.id}`;
+              }
             } else {
               alert(`${placeName} já está no seu roteiro!`);
             }
           });
         }
+      }
+      
+      // Add a return to explore button in the breadcrumb
+      const breadcrumbItem = document.querySelector('.breadcrumb-item a');
+      if (breadcrumbItem) {
+        breadcrumbItem.addEventListener('click', function(e) {
+          e.preventDefault();
+          const itinerary = getCurrentItinerary();
+          window.location.href = `/explorar?roteiroId=${itinerary.id}`;
+        });
       }
     });
   </script>

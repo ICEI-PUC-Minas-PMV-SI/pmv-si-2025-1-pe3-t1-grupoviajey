@@ -669,21 +669,41 @@
       return data ? JSON.parse(data) : null;
     };
     
+    // Function to get URL parameters
+    const getUrlParam = (param) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    };
+    
     // Function to initialize or get current itinerary
     const getCurrentItinerary = () => {
+      // Check if there's a roteiroId in the URL
+      const roteiroId = getUrlParam('roteiroId');
+      
+      // Get the stored itinerary
       let itinerary = getFromLocalStorage('currentItinerary');
+      
+      // If we have an ID in the URL and it doesn't match the stored one, 
+      // we might need to load a different itinerary (in a real app)
+      if (roteiroId && itinerary && roteiroId != itinerary.id) {
+        console.log(`URL has roteiroId ${roteiroId}, but loaded itinerary has id ${itinerary.id}`);
+        // In a real app with a database, we would load the correct itinerary here
+      }
+      
       if (!itinerary) {
-        // Create a new itinerary if none exists
+        // Create a default itinerary if none exists
         itinerary = {
-          id: Date.now(),
+          id: roteiroId || Date.now(),
           name: 'Roteiro Balneário Camboriú',
           destination: 'Balneário Camboriú',
           startDate: '2026-01-12',
           endDate: '2026-01-20',
+          preferences: ['Relaxamento', 'Praias', 'Luxo'],
           places: []
         };
         saveToLocalStorage('currentItinerary', itinerary);
       }
+      
       return itinerary;
     };
     
@@ -711,11 +731,53 @@
       return true;
     };
     
+    // Function to update the UI with itinerary data
+    const updateExplorerUI = (itinerary) => {
+      // Update the destination title
+      const destinationTitle = document.querySelector('.destination-title');
+      if (destinationTitle) {
+        destinationTitle.textContent = itinerary.destination;
+      }
+      
+      // Update preferences tags
+      const preferencesContainer = document.querySelector('.destination-preferences');
+      if (preferencesContainer && itinerary.preferences && itinerary.preferences.length > 0) {
+        // Clear current tags
+        preferencesContainer.innerHTML = '';
+        
+        // Add preference tags
+        itinerary.preferences.forEach(pref => {
+          const prefTag = document.createElement('div');
+          prefTag.className = 'preference-tag';
+          prefTag.textContent = pref;
+          preferencesContainer.appendChild(prefTag);
+        });
+      }
+      
+      // Update date information
+      const dateInfo = document.querySelector('.text-muted');
+      if (dateInfo && itinerary.startDate && itinerary.endDate) {
+        // Format dates
+        const startDate = new Date(itinerary.startDate);
+        const endDate = new Date(itinerary.endDate);
+        
+        const formatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+        const formattedStart = startDate.toLocaleDateString('pt-BR', formatOptions);
+        const formattedEnd = endDate.toLocaleDateString('pt-BR', formatOptions);
+        
+        dateInfo.textContent = `Adicionando locais ao seu roteiro: ${formattedStart} - ${formattedEnd}`;
+      }
+    };
+    
     document.addEventListener('DOMContentLoaded', function() {
       // Setup user dropdown
       if (typeof setupUserDropdown === 'function') {
         setupUserDropdown();
       }
+      
+      // Get the current itinerary and update the UI
+      const itinerary = getCurrentItinerary();
+      updateExplorerUI(itinerary);
       
       // Setup category buttons
       const categoryButtons = document.querySelectorAll('.category-btn');
@@ -732,6 +794,7 @@
           console.log('Selected category:', category);
           
           // Implementation would filter the displayed places
+          // Here we would typically make an API call to get places for this category
         });
       });
       
@@ -771,7 +834,6 @@
       });
       
       // Check which places are already in the itinerary and update their buttons
-      const itinerary = getCurrentItinerary();
       if (itinerary && itinerary.places.length > 0) {
         const placeCards = document.querySelectorAll('.place-card');
         placeCards.forEach(card => {
@@ -787,6 +849,29 @@
           }
         });
       }
+      
+      // Add event listener to all "Ver detalhes" buttons/links
+      document.querySelectorAll('.place-actions .btn-outline-secondary').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent card click event if inside a clickable card
+          
+          // Get the place name
+          const card = this.closest('.place-card');
+          const placeName = card.querySelector('.place-name').childNodes[0].textContent.trim();
+          
+          // In a real app, we would pass a place ID in the URL
+          // For now, we'll just redirect to the detail page
+          window.location.href = `/detail?place=${encodeURIComponent(placeName)}`;
+        });
+      });
+      
+      // Make all cards clickable to go to detail page
+      document.querySelectorAll('.place-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const placeName = this.querySelector('.place-name').childNodes[0].textContent.trim();
+          window.location.href = `/detail?place=${encodeURIComponent(placeName)}`;
+        });
+      });
     });
   </script>
 </body>
