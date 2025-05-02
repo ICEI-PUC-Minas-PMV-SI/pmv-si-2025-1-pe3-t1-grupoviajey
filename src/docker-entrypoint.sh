@@ -7,34 +7,57 @@ check_db_connection() {
     echo "Testando conexão com o banco de dados..."
     
     # Extrair informações da URL
-    # Formato: postgres://username:password@hostname:port/database
-    regex="postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+)"
+    # Suporta formatos:
+    # 1. postgres://username:password@hostname:port/database
+    # 2. postgres://username:username@hostname:port/database
+    # 3. postgres://username-username@hostname.hostname:port/database
     
-    if [[ $db_url =~ $regex ]]; then
-        DB_USER="${BASH_REMATCH[1]}"
-        DB_PASS="${BASH_REMATCH[2]}"
-        DB_HOST="${BASH_REMATCH[3]}"
-        DB_PORT="${BASH_REMATCH[4]}"
-        DB_NAME="${BASH_REMATCH[5]}"
+    # Tratar especificamente o formato do EasyPanel
+    if [[ "$db_url" == *"viajey-viajey"* ]]; then
+        echo "Detectado formato EasyPanel!"
+        # Format: postgres://viajey-viajey@viajey_viajey:5432/viajey?sslmode=disable
         
-        # Remover parâmetros extras da URL se existirem
-        DB_NAME=$(echo $DB_NAME | cut -d'?' -f1)
+        # Extração manual para este formato específico
+        DB_USER="viajey"
+        DB_PASS="viajey"
         
-        echo "Tentando conectar a $DB_HOST:$DB_PORT/$DB_NAME como $DB_USER..."
+        # Extrair host e porta
+        host_port=$(echo "$db_url" | sed -n 's/postgres:\/\/viajey-viajey@\([^\/]*\)\/.*/\1/p')
+        DB_HOST=$(echo "$host_port" | cut -d':' -f1)
+        DB_PORT=$(echo "$host_port" | cut -d':' -f2)
         
-        # Exportar PGPASSWORD é uma prática comum para automatizar o login do psql
-        export PGPASSWORD="$DB_PASS"
+        # Extrair nome do banco
+        DB_NAME=$(echo "$db_url" | sed -n 's/.*\/\([^?]*\).*/\1/p')
+    else
+        # Formato padrão: postgres://username:password@hostname:port/database
+        regex="postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/([^?]+)"
         
-        # Tentar conexão com timeout para não travar se o banco estiver indisponível
-        if timeout 5 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c '\q' > /dev/null 2>&1; then
-            echo "Conexão bem-sucedida!"
-            return 0
+        if [[ $db_url =~ $regex ]]; then
+            DB_USER="${BASH_REMATCH[1]}"
+            DB_PASS="${BASH_REMATCH[2]}"
+            DB_HOST="${BASH_REMATCH[3]}"
+            DB_PORT="${BASH_REMATCH[4]}"
+            DB_NAME="${BASH_REMATCH[5]}"
         else
-            echo "Falha na conexão."
+            echo "Formato da URL de banco de dados não reconhecido: $db_url"
             return 1
         fi
+    fi
+    
+    # Remover parâmetros extras da URL se existirem
+    DB_NAME=$(echo $DB_NAME | cut -d'?' -f1)
+    
+    echo "Tentando conectar a $DB_HOST:$DB_PORT/$DB_NAME como $DB_USER..."
+    
+    # Exportar PGPASSWORD é uma prática comum para automatizar o login do psql
+    export PGPASSWORD="$DB_PASS"
+    
+    # Tentar conexão com timeout para não travar se o banco estiver indisponível
+    if timeout 5 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c '\q' > /dev/null 2>&1; then
+        echo "Conexão bem-sucedida!"
+        return 0
     else
-        echo "Formato da URL de banco de dados inválido: $db_url"
+        echo "Falha na conexão."
         return 1
     fi
 }
@@ -104,7 +127,22 @@ echo "PORT: $PORT"
 echo "DATABASE_URL: ****** (ofuscado para segurança)"
 
 # Definir variáveis de ambiente adicionais com base na DATABASE_URL
-if [[ $DATABASE_URL =~ postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+) ]]; then
+if [[ "$DATABASE_URL" == *"viajey-viajey"* ]]; then
+    # Formato EasyPanel: postgres://viajey-viajey@viajey_viajey:5432/viajey?sslmode=disable
+    export PGUSER="viajey"
+    export PGPASSWORD="viajey"
+    
+    # Extrair host e porta
+    host_port=$(echo "$DATABASE_URL" | sed -n 's/postgres:\/\/viajey-viajey@\([^\/]*\)\/.*/\1/p')
+    export PGHOST=$(echo "$host_port" | cut -d':' -f1)
+    export PGPORT=$(echo "$host_port" | cut -d':' -f2)
+    
+    # Extrair nome do banco
+    export PGDATABASE=$(echo "$DATABASE_URL" | sed -n 's/.*\/\([^?]*\).*/\1/p')
+    
+    echo "Variáveis de ambiente PostgreSQL definidas com sucesso (formato EasyPanel)"
+elif [[ $DATABASE_URL =~ postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+) ]]; then
+    # Formato padrão
     export PGUSER="${BASH_REMATCH[1]}"
     export PGPASSWORD="${BASH_REMATCH[2]}"
     export PGHOST="${BASH_REMATCH[3]}"
@@ -114,7 +152,20 @@ if [[ $DATABASE_URL =~ postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+) ]]; t
     # Remover parâmetros extras da URL se existirem
     export PGDATABASE=$(echo $PGDATABASE | cut -d'?' -f1)
     
-    echo "Variáveis de ambiente PostgreSQL definidas com sucesso"
+    echo "Variáveis de ambiente PostgreSQL definidas com sucesso (formato padrão)"
+else
+    echo "AVISO: Não foi possível definir variáveis de ambiente PostgreSQL a partir da URL"
+fi
+
+# Adicionar no driver PG para evitar erros com SSL no EasyPanel
+if [[ "$DATABASE_URL" != *"sslmode=disable"* && "$DISABLE_SSL" == "true" ]]; then
+    # Verificar se já tem parâmetros na URL
+    if [[ "$DATABASE_URL" == *"?"* ]]; then
+        export DATABASE_URL="${DATABASE_URL}&sslmode=disable"
+    else
+        export DATABASE_URL="${DATABASE_URL}?sslmode=disable"
+    fi
+    echo "Modo SSL desativado para a conexão com o banco de dados"
 fi
 
 # Iniciar a aplicação

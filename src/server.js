@@ -9,14 +9,33 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração da conexão com PostgreSQL
-const dbConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey',
-  // Configuração SSL para produção (necessário para muitos hosts como Heroku, AWS RDS, etc)
-  ssl: process.env.NODE_ENV === 'production' && !process.env.DISABLE_SSL ? 
-    { rejectUnauthorized: false } : 
-    false
+// Configurar conexão PostgreSQL
+const getDbConfig = () => {
+  // String de conexão padrão
+  let connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
+  console.log('Configurando conexão com PostgreSQL...');
+  
+  // Determinar se deve usar SSL
+  const useSSL = process.env.NODE_ENV === 'production' && 
+                !process.env.DISABLE_SSL && 
+                !connectionString.includes('sslmode=disable');
+  
+  // Log da decisão de SSL (sem exibir a string completa por segurança)
+  console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
+  
+  // Opções de conexão
+  return {
+    connectionString,
+    ssl: useSSL ? { rejectUnauthorized: false } : false,
+    // Configurações adicionais para robustez
+    max: 20, // máximo de conexões no pool
+    idleTimeoutMillis: 30000, // tempo máximo que uma conexão pode ficar inativa no pool
+    connectionTimeoutMillis: 10000, // tempo máximo para tentar estabelecer uma conexão
+  };
 };
+
+// Configuração da conexão com PostgreSQL
+const dbConfig = getDbConfig();
 
 // Criar pool de conexões PostgreSQL
 const pool = new Pool(dbConfig);
