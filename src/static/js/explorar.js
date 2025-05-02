@@ -822,4 +822,3 @@ function getActivityCount(day) {
     // Por enquanto, vamos retornar um valor aleatório entre 0 e 5
     return Math.floor(Math.random() * 5);
 }
-}
