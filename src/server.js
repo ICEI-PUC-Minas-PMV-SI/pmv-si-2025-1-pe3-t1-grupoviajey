@@ -7,7 +7,7 @@ const { Pool } = require('pg');
 
 // Inicialização do app Express
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Configuração da conexão com PostgreSQL
 const dbConfig = {
@@ -21,6 +21,18 @@ const pool = new Pool(dbConfig);
 // Inicializar banco de dados - criação de tabelas
 const initDatabase = async () => {
   try {
+    // Testar conectividade com o banco antes de continuar
+    try {
+      await pool.query('SELECT NOW()');
+      console.log('Conexão com o banco de dados estabelecida.');
+    } catch (dbError) {
+      console.error('Erro na conexão com o banco de dados:', dbError);
+      console.log('Verificando novamente em 5 segundos...');
+      // Espera 5 segundos e tenta novamente
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      await pool.query('SELECT NOW()');
+    }
+    
     // Criar tabela de usuários
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -134,6 +146,11 @@ app.post('/api/users', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Endpoint de ping para verificação de status
+app.get('/ping', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Servidor funcionando!' });
 });
 
 // Itinerários

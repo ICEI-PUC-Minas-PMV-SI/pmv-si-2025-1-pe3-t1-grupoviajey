@@ -146,8 +146,14 @@ function setupEventListeners() {
 
 // Create a new itinerary
 function createNewItinerary() {
-  // Open the itinerary creation modal
-  openCreateItineraryModal();
+  // Usar o modal já existente no HTML em vez de criar um novo
+  const modal = document.getElementById('createItineraryModal');
+  if (modal) {
+    const modalInstance = new bootstrap.Modal(modal);
+    modalInstance.show();
+  } else {
+    console.error("Modal 'createItineraryModal' não encontrado no HTML");
+  }
 }
 
 // Update user information in the UI
@@ -252,110 +258,33 @@ function addCurrentWeather() {
   }
 }
 
-// Create a new itinerary modal
-function openCreateItineraryModal() {
-  // Create modal element
-  const modal = document.createElement('div');
-  modal.className = 'modal fade';
-  modal.id = 'createItineraryModal';
-  modal.setAttribute('tabindex', '-1');
-  modal.setAttribute('aria-labelledby', 'createItineraryModalLabel');
-  modal.setAttribute('aria-hidden', 'true');
-  
-  modal.innerHTML = `
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createItineraryModalLabel">Criar Novo Roteiro</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="create-itinerary-form">
-            <div class="mb-3">
-              <label for="itinerary-name" class="form-label">Nome do Roteiro</label>
-              <input type="text" class="form-control" id="itinerary-name" placeholder="Ex: Férias em Paris">
-            </div>
-            <div class="mb-3">
-              <label for="itinerary-destination" class="form-label">Destino</label>
-              <input type="text" class="form-control" id="itinerary-destination" placeholder="Ex: Paris, França">
-            </div>
-            <div class="row mb-3">
-              <div class="col-6">
-                <label for="itinerary-start-date" class="form-label">Data Inicial</label>
-                <input type="date" class="form-control" id="itinerary-start-date">
-              </div>
-              <div class="col-6">
-                <label for="itinerary-end-date" class="form-label">Data Final</label>
-                <input type="date" class="form-control" id="itinerary-end-date">
-              </div>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Preferências</label>
-              <div class="preference-chips">
-                <div class="preference-chip">
-                  <input type="checkbox" id="preference-relaxation" class="preference-checkbox">
-                  <label for="preference-relaxation">Relaxamento</label>
-                </div>
-                <div class="preference-chip">
-                  <input type="checkbox" id="preference-gastronomy" class="preference-checkbox">
-                  <label for="preference-gastronomy">Gastronomia</label>
-                </div>
-                <div class="preference-chip">
-                  <input type="checkbox" id="preference-culture" class="preference-checkbox">
-                  <label for="preference-culture">Cultura</label>
-                </div>
-                <div class="preference-chip">
-                  <input type="checkbox" id="preference-adventure" class="preference-checkbox">
-                  <label for="preference-adventure">Aventura</label>
-                </div>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Faixa de Preço</label>
-              <div class="price-range">
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="priceRange" id="price-economic" value="economic">
-                  <label class="form-check-label" for="price-economic">Econômico</label>
-                </div>
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="priceRange" id="price-moderate" value="moderate" checked>
-                  <label class="form-check-label" for="price-moderate">Moderado</label>
-                </div>
-                <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="priceRange" id="price-luxury" value="luxury">
-                  <label class="form-check-label" for="price-luxury">Luxo</label>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="create-itinerary-btn">Criar Roteiro</button>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Add modal to body
-  document.body.appendChild(modal);
-  
-  // Initialize Bootstrap modal
-  const modalInstance = new bootstrap.Modal(modal);
-  modalInstance.show();
-  
-  // Add event listener to create button
-  const createButton = document.getElementById('create-itinerary-btn');
-  if (createButton) {
-    createButton.addEventListener('click', function() {
-      // Process form data and create itinerary
-      // ...
+// Inicializar o formulário para o modal existente
+document.addEventListener('DOMContentLoaded', function() {
+  // Adicionar event listener para o botão "Criar Roteiro" no modal fixo
+  const saveItineraryBtn = document.getElementById('saveItineraryBtn');
+  if (saveItineraryBtn) {
+    saveItineraryBtn.addEventListener('click', function() {
+      // Obter dados do formulário
+      const itineraryName = document.getElementById('itineraryName').value;
+      const destination = document.getElementById('destination').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
       
-      // Close modal
-      modalInstance.hide();
+      // Validação básica
+      if (!itineraryName || !destination || !startDate || !endDate) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+      }
       
-      // Show next step (would navigate to selection screens)
-      alert('Roteiro criado! Redirecionando para escolha de hospedagem...');
+      // Processar e criar itinerário
+      console.log('Criando roteiro:', { itineraryName, destination, startDate, endDate });
+      
+      // Fechar modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('createItineraryModal'));
+      if (modal) modal.hide();
+      
+      // Redirecionar para a página de itinerário
+      window.location.href = `/itinerary-kanban.html?name=${encodeURIComponent(itineraryName)}&destination=${encodeURIComponent(destination)}`;
     });
   }
-}
+});
