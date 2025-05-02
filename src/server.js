@@ -11,8 +11,11 @@ const PORT = process.env.PORT || 3000;
 
 // Configuração da conexão com PostgreSQL
 const dbConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey',
+  // Configuração SSL para produção (necessário para muitos hosts como Heroku, AWS RDS, etc)
+  ssl: process.env.NODE_ENV === 'production' && !process.env.DISABLE_SSL ? 
+    { rejectUnauthorized: false } : 
+    false
 };
 
 // Criar pool de conexões PostgreSQL
