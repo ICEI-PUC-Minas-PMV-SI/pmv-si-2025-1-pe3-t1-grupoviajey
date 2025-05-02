@@ -7,8 +7,8 @@ let currentDestination = '';
 let placesCache = {}; // Cache para armazenar resultados da API por destino e tipo
 let allPlaces = []; // Array para armazenar todos os lugares encontrados
 
-// Tipo de lugar ativo para filtragem
-let activeType = 'all';
+// Tipo de lugar ativo para filtragem (começa com atrações turísticas)
+let activeType = 'tourist_attraction';
 
 // Inicialização do mapa
 function initMap() {
@@ -48,11 +48,58 @@ function initMap() {
     // Inicializar InfoWindow para marcadores
     infoWindow = new google.maps.InfoWindow();
     
-    // Verificar se há destino na URL
+    // Verificar se há parâmetros na URL
     const urlParams = new URLSearchParams(window.location.search);
     const destination = urlParams.get('destination');
+    const roteiroId = urlParams.get('roteiroId');
     
-    if (destination) {
+    if (roteiroId) {
+        // Buscar dados do roteiro a partir do ID
+        fetch(`/api/itineraries/${roteiroId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar roteiro');
+                }
+                return response.json();
+            })
+            .then(roteiro => {
+                // Atualizar interface com dados do roteiro
+                document.getElementById('search-destination').value = roteiro.destination;
+                currentDestination = roteiro.destination;
+                
+                // Mostrar destino do roteiro com preferências
+                const preferencesText = roteiro.preferences ? 
+                    JSON.parse(roteiro.preferences).join(', ') : '';
+                
+                document.getElementById('destination-title').textContent = 
+                    `Explorando ${roteiro.destination}`;
+                
+                // Adicionar chips com as preferências se existirem
+                if (preferencesText) {
+                    const prefsContainer = document.createElement('div');
+                    prefsContainer.className = 'preference-chips mt-2';
+                    
+                    JSON.parse(roteiro.preferences).forEach(pref => {
+                        const chip = document.createElement('span');
+                        chip.className = 'badge rounded-pill bg-secondary me-1';
+                        chip.textContent = pref;
+                        prefsContainer.appendChild(chip);
+                    });
+                    
+                    // Inserir após o título
+                    const titleElement = document.getElementById('destination-title');
+                    titleElement.parentNode.insertBefore(prefsContainer, titleElement.nextSibling);
+                }
+                
+                // Buscar lugares para o destino
+                searchPlacesByDestination(roteiro.destination);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar roteiro:', error);
+                document.getElementById('loading-places').innerHTML = 
+                    '<div class="alert alert-danger">Erro ao carregar dados do roteiro. Por favor, tente novamente.</div>';
+            });
+    } else if (destination) {
         // Atualizar interface e buscar lugares
         document.getElementById('search-destination').value = destination;
         currentDestination = destination;
@@ -393,9 +440,9 @@ function renderPlaceCard(place) {
             </div>
             <div class="card-footer bg-transparent border-top-0">
                 <div class="d-flex gap-2 justify-content-between">
-                    <a href="/local/${place.place_id}" class="btn btn-primary btn-sm flex-grow-1">Ver detalhes</a>
-                    <button class="btn btn-outline-success btn-sm add-to-itinerary" data-place-id="${place.place_id}">
-                        <i class="fas fa-plus"></i> Adicionar
+                    <a href="/local/${place.place_id}" class="btn btn-primary btn-sm">Ver detalhes</a>
+                    <button class="btn btn-outline-primary btn-sm add-to-itinerary-btn" data-place-id="${place.place_id}">
+                        <i class="fas fa-plus-circle"></i> Adicionar ao roteiro
                     </button>
                 </div>
             </div>
@@ -412,7 +459,7 @@ function renderPlaceCard(place) {
     });
     
     // Adicionar evento para adicionar ao itinerário
-    card.querySelector('.add-to-itinerary').addEventListener('click', () => {
+    card.querySelector('.add-to-itinerary-btn').addEventListener('click', () => {
         addPlaceToItinerary(place);
     });
     
@@ -450,29 +497,148 @@ function getPlaceTypeClass(type) {
 
 // Adicionar lugar ao itinerário atual
 function addPlaceToItinerary(place) {
+    // Obter o ID do roteiro a partir da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roteiroId = urlParams.get('roteiroId');
+    
+    if (!roteiroId) {
+        alert('É necessário criar um roteiro antes de adicionar lugares.');
+        return;
+    }
+    
+    // Mostrar indicador de carregamento no botão
+    const addButton = document.querySelector(`[data-place-id="${place.place_id}"] .add-to-itinerary-btn`);
+    if (addButton) {
+        const originalText = addButton.innerHTML;
+        addButton.disabled = true;
+        addButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adicionando...';
+    }
+    
     // Buscar detalhes completos do lugar
     service.getDetails({ placeId: place.place_id }, (details, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             // Converter dados para o formato esperado pelo sistema
             const placeData = {
+                itinerary_id: parseInt(roteiroId),
                 name: details.name,
-                type: details.types[0],
-                location: details.formatted_address,
+                type: place.placeType || details.types[0],
+                location: details.formatted_address || details.vicinity || '',
+                period: 'manhã', // Período padrão, será ajustável na visualização Kanban
                 notes: `Avaliação: ${details.rating || 'N/A'}\nTelefone: ${details.formatted_phone_number || 'N/A'}\nSite: ${details.website || 'N/A'}`,
                 place_id: details.place_id,
-                image_url: details.photos && details.photos.length > 0 ? 
-                    details.photos[0].getUrl({maxWidth: 400, maxHeight: 300}) : null
+                photo_url: details.photos && details.photos.length > 0 ? 
+                    details.photos[0].getUrl({maxWidth: 400, maxHeight: 300}) : null,
+                position: 0 // Será ajustado no modo Kanban
             };
             
-            console.log("Added to itinerary:", details.name);
-            
-            // Armazenar temporariamente
-            let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '[]');
-            savedPlaces.push(placeData);
-            localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-            
-            // Notificar usuário
-            alert(`${details.name} foi adicionado ao seu itinerário!`);
+            // Primeiro, verificar se já temos dias criados para este itinerário
+            fetch(`/api/itinerary-days?itinerary_id=${roteiroId}`)
+                .then(response => response.json())
+                .then(days => {
+                    if (days && days.length > 0) {
+                        // Se dias existem, usar o primeiro dia
+                        return days[0].id;
+                    } else {
+                        // Se não existem dias, criar o primeiro dia
+                        const today = new Date().toISOString().split('T')[0];
+                        return fetch('/api/itinerary-days', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                itinerary_id: parseInt(roteiroId),
+                                day_number: 1,
+                                date: today
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(day => day.id);
+                    }
+                })
+                .then(dayId => {
+                    // Agora com o ID do dia, criar a atividade
+                    return fetch('/api/activities', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ...placeData,
+                            itinerary_day_id: dayId
+                        })
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao salvar atividade');
+                    }
+                    return response.json();
+                })
+                .then(savedActivity => {
+                    console.log("Added to itinerary:", details.name);
+                    
+                    // Armazenar cache local para uso futuro (opcional)
+                    let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '[]');
+                    savedPlaces.push(savedActivity);
+                    localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
+                    
+                    // Atualizar o botão
+                    if (addButton) {
+                        addButton.disabled = false;
+                        addButton.innerHTML = '<i class="fas fa-check"></i> Adicionado';
+                        addButton.classList.remove('btn-primary');
+                        addButton.classList.add('btn-success');
+                    }
+                    
+                    // Notificar usuário com um toast em vez de alert
+                    const toastContainer = document.getElementById('toast-container') || (() => {
+                        const container = document.createElement('div');
+                        container.id = 'toast-container';
+                        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                        document.body.appendChild(container);
+                        return container;
+                    })();
+                    
+                    const toastElement = document.createElement('div');
+                    toastElement.className = 'toast';
+                    toastElement.setAttribute('role', 'alert');
+                    toastElement.setAttribute('aria-live', 'assertive');
+                    toastElement.setAttribute('aria-atomic', 'true');
+                    
+                    toastElement.innerHTML = `
+                        <div class="toast-header">
+                            <strong class="me-auto">Viajey</strong>
+                            <small>Agora</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            ${details.name} foi adicionado ao seu roteiro!
+                        </div>
+                    `;
+                    
+                    toastContainer.appendChild(toastElement);
+                    const toast = new bootstrap.Toast(toastElement);
+                    toast.show();
+                    
+                    // Remover toast após ser fechado
+                    toastElement.addEventListener('hidden.bs.toast', () => {
+                        toastElement.remove();
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao adicionar lugar ao roteiro:', error);
+                    
+                    // Restaurar botão
+                    if (addButton) {
+                        addButton.disabled = false;
+                        addButton.innerHTML = 'Adicionar ao roteiro';
+                    }
+                    
+                    // Mostrar erro
+                    alert('Erro ao adicionar lugar ao roteiro. Por favor, tente novamente.');
+                });
         }
     });
 }
