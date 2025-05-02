@@ -377,7 +377,27 @@ app.get('*', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+// Função para iniciar o servidor com fallback para portas alternativas
+function startServer(port) {
+  const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`Servidor rodando na porta ${port}`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`Porta ${port} já está em uso, tentando porta alternativa...`);
+      
+      // Se a porta solicitada for 5000, tentar 3000, senão incrementar em 10
+      const newPort = port === 5000 ? 3000 : port + 10;
+      
+      console.log(`Tentando porta alternativa: ${newPort}`);
+      process.env.PORT = newPort; // Atualizar a variável de ambiente
+      startServer(newPort);
+    } else {
+      console.error('Erro ao iniciar servidor:', err);
+    }
+  });
+  
+  return server;
+}
+
+// Iniciar servidor com fallback automático
+startServer(PORT);
