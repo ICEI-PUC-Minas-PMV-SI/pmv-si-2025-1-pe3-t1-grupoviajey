@@ -280,14 +280,23 @@ app.get('*', (req, res) => {
 
 // Função para iniciar o servidor com fallback para portas alternativas
 function startServer(port) {
+  // Converter para número para garantir que seja tratado como número
+  port = Number(port);
+  
+  // Verificar se é um número válido e está dentro do intervalo permitido
+  if (isNaN(port) || port < 1024 || port > 65535) {
+    console.warn(`Porta inválida: ${port}, usando porta padrão 3000`);
+    port = 3000;
+  }
+  
   const server = app.listen(port, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${port}`);
   }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.warn(`Porta ${port} já está em uso, tentando porta alternativa...`);
       
-      // Se a porta solicitada for 5000, tentar 3000, senão incrementar em 10
-      const newPort = port === 5000 ? 3000 : port + 10;
+      // Se a porta solicitada for 5000, tentar 3000, senão incrementar em 1
+      const newPort = port === 5000 ? 3000 : (port + 1 > 65535 ? 3000 : port + 1);
       
       console.log(`Tentando porta alternativa: ${newPort}`);
       startServer(newPort);
