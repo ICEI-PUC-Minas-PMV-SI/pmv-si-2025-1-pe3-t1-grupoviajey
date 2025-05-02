@@ -1,4 +1,5 @@
 #!/bin/bash
 
-# Inicia o servidor Node.js
-node server.js
+# Script para iniciar a aplicação Node.js
+echo "Iniciando servidor Node.js..."
+node main.js

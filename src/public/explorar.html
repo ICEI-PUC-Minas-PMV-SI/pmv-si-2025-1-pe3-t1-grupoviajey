@@ -131,6 +131,11 @@
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
         script.async = true;
         script.defer = true;
+        script.onerror = function() {
+            console.error('Erro ao carregar a API do Google Maps');
+            document.getElementById('map').innerHTML = 
+                '<div class="alert alert-danger">Erro ao carregar o mapa. Por favor, tente novamente mais tarde.</div>';
+        };
         document.head.appendChild(script);
     </script>
 </body>
