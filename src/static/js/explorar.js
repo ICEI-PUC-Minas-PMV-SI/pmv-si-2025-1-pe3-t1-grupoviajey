@@ -175,6 +175,30 @@ function setupEventListeners() {
             filterPlaces();
         });
     });
+    
+    // Botão para ir para a página de planejamento (kanban)
+    const goToPlanningBtn = document.getElementById('go-to-planning-btn');
+    if (goToPlanningBtn) {
+        goToPlanningBtn.addEventListener('click', function() {
+            // Obter o ID do roteiro atual
+            const urlParams = new URLSearchParams(window.location.search);
+            const roteiroId = urlParams.get('roteiroId');
+            
+            if (roteiroId) {
+                // Redirecionar para a página de planejamento com o ID do roteiro
+                window.location.href = `/itinerary-kanban?roteiroId=${roteiroId}`;
+            } else {
+                // Se não tiver roteiro, verificar se há um roteiro salvo no localStorage
+                const currentItinerary = JSON.parse(localStorage.getItem('currentItinerary') || '{}');
+                
+                if (currentItinerary && currentItinerary.id) {
+                    window.location.href = `/itinerary-kanban?roteiroId=${currentItinerary.id}`;
+                } else {
+                    alert('Você precisa criar um roteiro primeiro.');
+                }
+            }
+        });
+    }
 }
 
 // Buscar lugares pelo destino

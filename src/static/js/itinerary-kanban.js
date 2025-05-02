@@ -112,6 +112,30 @@ function setupEventListeners() {
   
   // Botão de adicionar dia
   addDayBtn.addEventListener('click', addNewDay);
+  
+  // Botão para voltar para a página de exploração
+  const backToExploreBtn = document.getElementById('back-to-explore-btn');
+  if (backToExploreBtn) {
+    backToExploreBtn.addEventListener('click', function() {
+      // Obter o ID do roteiro atual
+      const urlParams = new URLSearchParams(window.location.search);
+      const roteiroId = urlParams.get('roteiroId');
+      
+      if (roteiroId) {
+        // Redirecionar para a página de exploração com o ID do roteiro
+        window.location.href = `/explorar?roteiroId=${roteiroId}`;
+      } else {
+        // Verificar se há um roteiro no localStorage
+        const currentItinerary = appState.currentItinerary || JSON.parse(localStorage.getItem('currentItinerary') || '{}');
+        
+        if (currentItinerary && currentItinerary.id) {
+          window.location.href = `/explorar?roteiroId=${currentItinerary.id}`;
+        } else {
+          window.location.href = '/explorar';
+        }
+      }
+    });
+  }
 }
 
 // Obter o dia ativo nas tabs
