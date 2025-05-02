@@ -21,6 +21,12 @@ fi
 # Encerrar qualquer instância anterior
 pkill -f "node server.js" || true
 
+# Configurar a chave da API do Google Maps como variável de ambiente
+export GOOGLE_MAPS_API_KEY="AIzaSyD7M0OUg3wzN6p1J5Onzix7o3KmsBQRMAo"
+
+# Definir a porta para o servidor
+export PORT=5000
+
 # Iniciar o servidor
-echo "Iniciando o servidor Node.js..."
+echo "Iniciando o servidor Node.js na porta $PORT..."
 node server.js
