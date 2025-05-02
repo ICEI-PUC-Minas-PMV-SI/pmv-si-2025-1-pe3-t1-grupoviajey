@@ -47,7 +47,7 @@ try_db_connections() {
     # Lista de possíveis hosts de banco de dados
     local db_hosts=("postgres" "db" "database" "postgresql" "postgres-db")
     
-    # Tentar usar a variável de ambiente primeira
+    # Tentar usar a variável de ambiente DATABASE_URL primeira
     for var in "${db_vars[@]}"; do
         if [ ! -z "${!var}" ]; then
             echo "Encontrada variável de ambiente $var"
@@ -58,7 +58,18 @@ try_db_connections() {
         fi
     done
     
-    # Se não encontrar ou a conexão falhar, tentar diferentes hosts
+    # Verificar se temos as variáveis de banco separadas (comum em muitas plataformas)
+    if [ ! -z "$DB_HOST" ] && [ ! -z "$DB_USER" ] && [ ! -z "$DB_PASSWORD" ] && [ ! -z "$DB_NAME" ]; then
+        local db_port=${DB_PORT:-5432}
+        local url="postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${db_port}/${DB_NAME}"
+        echo "Construindo URL do banco a partir de variáveis separadas"
+        if check_db_connection "$url"; then
+            export DATABASE_URL="$url"
+            return 0
+        fi
+    fi
+    
+    # Se não encontrar ou a conexão falhar, tentar diferentes hosts com as credenciais padrão
     local user="viajey"
     local pass="viajey"
     local database="viajey"
@@ -73,7 +84,7 @@ try_db_connections() {
     done
     
     # Se tudo falhar, usar o valor padrão
-    echo "Todas as tentativas de conexão falharam. Usando valor padrão."
+    echo "Todas as tentativas de conexão falharam. Usando valor padrão de DATABASE_URL."
     return 1
 }
 
@@ -90,7 +101,21 @@ fi
 echo "Iniciando aplicação com as seguintes configurações:"
 echo "NODE_ENV: $NODE_ENV"
 echo "PORT: $PORT"
-echo "DATABASE_URL: $DATABASE_URL (formato ofuscado para segurança)"
+echo "DATABASE_URL: ****** (ofuscado para segurança)"
+
+# Definir variáveis de ambiente adicionais com base na DATABASE_URL
+if [[ $DATABASE_URL =~ postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+) ]]; then
+    export PGUSER="${BASH_REMATCH[1]}"
+    export PGPASSWORD="${BASH_REMATCH[2]}"
+    export PGHOST="${BASH_REMATCH[3]}"
+    export PGPORT="${BASH_REMATCH[4]}"
+    export PGDATABASE="${BASH_REMATCH[5]}"
+    
+    # Remover parâmetros extras da URL se existirem
+    export PGDATABASE=$(echo $PGDATABASE | cut -d'?' -f1)
+    
+    echo "Variáveis de ambiente PostgreSQL definidas com sucesso"
+fi
 
 # Iniciar a aplicação
 exec node server.js

@@ -22,9 +22,16 @@ EXPOSE 5000
 # Definir variáveis de ambiente, com valores padrão que serão substituídos no deploy
 ENV PORT=5000
 ENV NODE_ENV=production
-# A URL do banco de dados será fornecida pelo EasyPanel como variável de ambiente
-# Este é apenas um valor padrão para desenvolvimento local
+# As variáveis de ambiente abaixo são apenas valores padrão para desenvolvimento local
+# No deploy via EasyPanel, elas serão substituídas pelas variáveis fornecidas na plataforma
 ENV DATABASE_URL=postgres://viajey:viajey@postgres:5432/viajey
+ENV DB_HOST=postgres
+ENV DB_PORT=5432
+ENV DB_USER=viajey
+ENV DB_PASSWORD=viajey
+ENV DB_NAME=viajey
+# Opcional: desativar SSL para ambientes que não precisam de conexão segura
+ENV DISABLE_SSL=true
 
 # Script para iniciar a aplicação
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
