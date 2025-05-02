@@ -168,8 +168,31 @@ if [[ "$DATABASE_URL" != *"sslmode=disable"* && "$DISABLE_SSL" == "true" ]]; the
     echo "Modo SSL desativado para a conexão com o banco de dados"
 fi
 
-# Tornar o script de espera executável
-chmod +x wait-for-postgres.sh
+# Configurar variáveis do PostgreSQL a partir da DATABASE_URL (se existir)
+if [ -n "$DATABASE_URL" ]; then
+    echo "Detectado DATABASE_URL, extraindo componentes..."
+    
+    # Tentar extrair informações da URL - formato esperado pelo EasyPanel
+    # Formato comum: postgres://usuario:senha@host:porta/nome_banco
+    if [[ "$DATABASE_URL" =~ postgres://([^:]+):([^@]+)@([^:]+):([^/]+)/([^?]+) ]]; then
+        export PGUSER="${BASH_REMATCH[1]}"
+        export PGPASSWORD="${BASH_REMATCH[2]}"
+        export PGHOST="${BASH_REMATCH[3]}"
+        export PGPORT="${BASH_REMATCH[4]}"
+        export PGDATABASE="${BASH_REMATCH[5]}"
+        
+        # Remover parâmetros extras se existirem
+        export PGDATABASE=$(echo $PGDATABASE | cut -d'?' -f1)
+        
+        echo "Componentes extraídos com sucesso:"
+        echo "- Host: $PGHOST"
+        echo "- Porta: $PGPORT"
+        echo "- Banco: $PGDATABASE"
+        echo "- Usuário: $PGUSER"
+    else
+        echo "Formato de DATABASE_URL não reconhecido, tentando alternativas..."
+    fi
+fi
 
 # Verificar se o PostgreSQL está disponível antes de iniciar
 if [ -n "$PGHOST" ] && [ -n "$PGUSER" ] && [ -n "$PGPASSWORD" ] && [ -n "$PGDATABASE" ]; then

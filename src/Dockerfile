@@ -5,6 +5,8 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     python3 \
     python3-pip \
+    python3-flask \
+    python3-psycopg2 \
     gunicorn \
     curl \
     netcat-openbsd \
@@ -12,8 +14,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar dependências do Python para o script de inicialização
-RUN pip3 install flask psycopg2-binary
+# Não precisamos usar pip diretamente, estamos usando os pacotes do sistema
 
 # Criar diretório da aplicação
 WORKDIR /app
@@ -31,18 +32,11 @@ RUN rm -rf .git .cache .vscode
 # Expor porta
 EXPOSE 5000
 
-# Definir variáveis de ambiente, com valores padrão que serão substituídos no deploy
+# Definir variáveis de ambiente mínimas necessárias para o funcionamento
+# As variáveis de banco de dados não devem ser definidas no Dockerfile por questões de segurança
+# Serão fornecidas como variáveis de ambiente no EasyPanel ou via .env no desenvolvimento local
 ENV PORT=5000
 ENV NODE_ENV=production
-# As variáveis de ambiente abaixo são apenas valores padrão para desenvolvimento local
-# No deploy via EasyPanel, elas serão substituídas pelas variáveis fornecidas na plataforma
-ENV DATABASE_URL=postgres://viajey:viajey@postgres:5432/viajey
-ENV DB_HOST=postgres
-ENV DB_PORT=5432
-ENV DB_USER=viajey
-ENV DB_PASSWORD=viajey
-ENV DB_NAME=viajey
-# Opcional: desativar SSL para ambientes que não precisam de conexão segura
 ENV DISABLE_SSL=true
 
 # Scripts para iniciar a aplicação e verificar PostgreSQL
