@@ -1,878 +1,147 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-bs-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Viajey - Explorar Balneário Camboriú</title>
-  
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-  
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/static/css/desktop-style.css">
-  <link rel="stylesheet" href="/static/css/preference-chips.css">
-  
-  <!-- Favicon -->
-  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
-  
-  <style>
-    /* Destination Explorer Styles */
-    .destination-header {
-      padding: 50px 0 40px;
-      text-align: center;
-      background-color: rgba(5, 91, 130, 0.05);
-      border-radius: 0 0 16px 16px;
-      margin-bottom: 30px;
-    }
-    
-    .destination-title {
-      font-size: 3rem;
-      font-weight: 700;
-      margin-bottom: 15px;
-      color: var(--text-color);
-    }
-    
-    .destination-preferences {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
-    .preference-tag {
-      padding: 5px 15px;
-      background-color: rgba(5, 91, 130, 0.15);
-      border-radius: 50px;
-      font-size: 0.9rem;
-      color: var(--primary-light);
-    }
-    
-    .categories-nav {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    
-    .category-selector {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .category-btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 500;
-      background-color: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-color);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .category-btn.active {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      color: white;
-    }
-    
-    .category-btn:hover:not(.active) {
-      border-color: var(--primary-color);
-    }
-    
-    .filter-actions {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 0;
-    }
-    
-    .section-link {
-      color: var(--primary-color);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      text-decoration: none;
-    }
-    
-    .section-link:hover {
-      text-decoration: underline;
-    }
-    
-    .places-carousel {
-      display: flex;
-      gap: 20px;
-      overflow-x: auto;
-      padding: 5px 0 15px;
-      margin-bottom: 30px;
-      scroll-behavior: smooth;
-      scrollbar-width: thin;
-      scrollbar-color: var(--card-border) transparent;
-    }
-    
-    .places-carousel::-webkit-scrollbar {
-      height: 8px;
-    }
-    
-    .places-carousel::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    
-    .places-carousel::-webkit-scrollbar-thumb {
-      background-color: var(--card-border);
-      border-radius: 8px;
-    }
-    
-    .place-card {
-      min-width: 300px;
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: var(--box-shadow);
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-    
-    .place-card:hover {
-      transform: translateY(-5px);
-    }
-    
-    .place-image {
-      height: 180px;
-      overflow: hidden;
-    }
-    
-    .place-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-    
-    .place-card:hover .place-image img {
-      transform: scale(1.05);
-    }
-    
-    .place-details {
-      padding: 16px;
-    }
-    
-    .place-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin: 0 0 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    
-    .place-type {
-      font-size: 0.8rem;
-      background-color: rgba(5, 91, 130, 0.15);
-      color: var(--primary-light);
-      padding: 3px 8px;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-    
-    .place-rating {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .place-rating i {
-      color: #f1c40f;
-      font-size: 0.9rem;
-      margin-right: 5px;
-    }
-    
-    .place-rating span {
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    
-    .place-price {
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-      color: #adb5bd;
-    }
-    
-    .place-address {
-      font-size: 0.85rem;
-      color: #adb5bd;
-      margin-bottom: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .place-actions {
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    .show-all-btn {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      background-color: var(--card-bg);
-      border: 2px dashed var(--card-border);
-      border-radius: 12px;
-      color: var(--text-color);
-      font-weight: 500;
-      text-align: center;
-      margin: 20px 0 40px;
-      transition: all 0.2s ease;
-    }
-    
-    .show-all-btn:hover {
-      border-color: var(--primary-color);
-      background-color: rgba(13, 110, 253, 0.05);
-    }
-    
-    @media (max-width: 768px) {
-      .destination-title {
-        font-size: 2.2rem;
-      }
-      
-      .categories-nav {
-        flex-direction: column;
-      }
-      
-      .category-selector, .filter-actions {
-        width: 100%;
-        justify-content: center;
-      }
-      
-      .place-card {
-        min-width: 260px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viajey - Explorar Destinos</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="/static/css/desktop-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <!-- Header (Fixed) -->
-  <header class="main-header">
-    <div class="container">
-      <div class="header-content">
-        <div class="logo">
-          <a href="/">
-            <h1>Viajey</h1>
-          </a>
+    <!-- Header / Navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/static/img/logo-viajey.svg" alt="Viajey" height="30" class="d-inline-block align-text-top">
+                Viajey
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/explorar">Explorar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/itinerary-kanban">Meus Roteiros</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile">Meu Perfil</a></li>
+                            <li><a class="dropdown-item" href="/settings">Configurações</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">Sair</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="search-bar">
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-search"></i></span>
-            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
-          </div>
-        </div>
-        
-        <div class="user-actions">
-          <button class="btn btn-primary new-trip-btn">
-            <i class="fas fa-plus me-2"></i>Novo Roteiro
-          </button>
-          <div class="user-avatar" id="user-avatar-dropdown">
-            <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
-            <span class="user-name">Oi, Roberta</span>
-            <i class="fas fa-chevron-down"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- User Dropdown Menu -->
-    <div class="user-dropdown" id="user-dropdown">
-      <ul class="dropdown-menu">
-        <li><a href="#profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
-        <li><a href="#favorites"><i class="fas fa-heart me-2"></i>Favoritos</a></li>
-        <li><a href="/itinerary"><i class="fas fa-map-marked-alt me-2"></i>Roteiros</a></li>
-        <li><a href="#create-itinerary"><i class="fas fa-plus-circle me-2"></i>Criar roteiro</a></li>
-        <li class="divider"></li>
-        <li><a href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
-      </ul>
-    </div>
-  </header>
+    </nav>
 
-  <!-- Main Content -->
-  <main>
-    <!-- Destination Header -->
-    <div class="destination-header">
-      <div class="container">
-        <h1 class="destination-title">Balneário Camboriú</h1>
-        <div class="destination-preferences">
-          <div class="preference-tag">Relaxamento</div>
-          <div class="preference-tag">Praias</div>
-          <div class="preference-tag">Luxo</div>
+    <!-- Main Content -->
+    <main class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="mb-0" id="destination-title">Explorando destinos</h1>
+                    <div class="d-flex gap-2">
+                        <button id="show-map-btn" class="btn btn-outline-info">
+                            <i class="fas fa-map-marked-alt"></i> Ver Mapa
+                        </button>
+                        <button id="show-list-btn" class="btn btn-outline-info active">
+                            <i class="fas fa-list"></i> Ver Lista
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p class="text-muted">Adicionando locais ao seu roteiro: 12-20 Jan 2026</p>
-      </div>
-    </div>
 
-    <div class="container">
-      <!-- Categories Navigation -->
-      <div class="categories-nav">
-        <div class="category-selector">
-          <button class="category-btn active">Hotel</button>
-          <button class="category-btn">Restaurante</button>
-          <button class="category-btn">Atrações</button>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="input-group">
+                    <input type="text" id="search-destination" class="form-control" placeholder="Digite um destino...">
+                    <button class="btn btn-primary" id="search-btn">Pesquisar</button>
+                </div>
+            </div>
         </div>
-        
-        <div class="filter-actions">
-          <button class="btn btn-outline-secondary">
-            <i class="fas fa-filter me-2"></i>Filtros
-          </button>
-          <button class="btn btn-outline-secondary">
-            <i class="fas fa-sort me-2"></i>Organizar
-          </button>
-        </div>
-      </div>
-      
-      <!-- Most Popular Places Section -->
-      <section>
-        <div class="section-header">
-          <h2 class="section-title">Locais mais visitados</h2>
-          <a href="#" class="section-link">Ver todos <i class="fas fa-chevron-right"></i></a>
-        </div>
-        
-        <div class="places-carousel">
-          <div class="place-card" onclick="window.location.href='/detail'">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Hotel Sibara Flat
-                <span class="place-type">Hotel</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.8 (2120 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">A partir de R$520/noite</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Av. Brasil, 1500, Centro
-              </div>
-              <div class="place-actions">
-                <a href="/detail" class="btn btn-sm btn-outline-secondary">Ver detalhes</a>
-                <button class="btn btn-sm btn-primary add-to-itinerary" data-place="Hotel Sibara Flat">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Infinity Blue Resort">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Infinity Blue Resort
-                <span class="place-type">Hotel</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.7 (1876 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">A partir de R$890/noite</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Rodovia Oswaldo Reis, 5000
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Marambaia">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Hotel Marambaia
-                <span class="place-type">Hotel</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.5 (1230 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">A partir de R$610/noite</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Av. Atlântica, 2290
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Mercure">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Hotel Mercure
-                <span class="place-type">Hotel</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.3 (958 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">A partir de R$390/noite</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Av. Atlântica, 1001
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Show All Button -->
-      <a href="#" class="show-all-btn">
-        <i class="fas fa-th-large me-2"></i>Veja tudo o que tem para explorar
-      </a>
-      
-      <!-- Nearby Places Section -->
-      <section>
-        <div class="section-header">
-          <h2 class="section-title">O que fazer próximo</h2>
-          <a href="#" class="section-link">Ver todos <i class="fas fa-chevron-right"></i></a>
-        </div>
-        
-        <div class="places-carousel">
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Praia do Estaleiro">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Praia do Estaleiro
-                <span class="place-type">Praia</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.9 (3210 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">Acesso gratuito</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>15 km do centro
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Teleférico Unipraias">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Teleférico Unipraias
-                <span class="place-type">Atração</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.8 (2987 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">R$95 por pessoa</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Av. Atlântica, 6006
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Parque Unipraias">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Parque Unipraias
-                <span class="place-type">Parque</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.7 (2455 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i><i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">R$75 por pessoa</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Av. Atlântica, s/n
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="place-card">
-            <div class="place-image">
-              <img src="/static/img/destinations/barcelona.jpg" alt="Molhe de Barra Sul">
-            </div>
-            <div class="place-details">
-              <h3 class="place-name">
-                Molhe de Barra Sul
-                <span class="place-type">Ponto turístico</span>
-              </h3>
-              <div class="place-rating">
-                <i class="fas fa-star"></i>
-                <span>4.5 (1980 avaliações)</span>
-              </div>
-              <div class="place-price">
-                <i class="fas fa-dollar-sign me-1"></i>
-                <span class="ms-1">Acesso gratuito</span>
-              </div>
-              <div class="place-address">
-                <i class="fas fa-map-marker-alt me-1"></i>Barra Sul
-              </div>
-              <div class="place-actions">
-                <button class="btn btn-sm btn-outline-secondary">Ver detalhes</button>
-                <button class="btn btn-sm btn-primary">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="main-footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-3">
-          <h5>Sobre o Viajey</h5>
-          <ul class="footer-links">
-            <li><a href="#">Quem somos</a></li>
-            <li><a href="#">Missão</a></li>
-            <li><a href="#">Contato</a></li>
-          </ul>
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-filter="all">Todos</button>
+                    <button type="button" class="btn btn-outline-secondary" data-filter="lodging">Hotéis</button>
+                    <button type="button" class="btn btn-outline-secondary" data-filter="restaurant">Restaurantes</button>
+                    <button type="button" class="btn btn-outline-secondary" data-filter="tourist_attraction">Atrações</button>
+                </div>
+            </div>
         </div>
-        
-        <div class="col-md-3">
-          <h5>Comunidade</h5>
-          <ul class="footer-links">
-            <li><a href="#">Roteiros em destaque</a></li>
-            <li><a href="#">Enviar roteiro</a></li>
-            <li><a href="#">Avaliações</a></li>
-          </ul>
-        </div>
-        
-        <div class="col-md-3">
-          <h5>Preferências</h5>
-          <ul class="footer-links">
-            <li><a href="#">Idioma</a></li>
-            <li><a href="#">Moeda</a></li>
-          </ul>
-        </div>
-        
-        <div class="col-md-3">
-          <h5>Sociais</h5>
-          <div class="social-links">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-          </div>
-        </div>
-      </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
-      </div>
-    </div>
-  </footer>
 
-  <!-- Bootstrap Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Custom JS -->
-  <script src="/static/js/desktop.js"></script>
-  <script>
-    // Storage functions for saving and retrieving itinerary data
-    const saveToLocalStorage = (key, data) => {
-      localStorage.setItem(key, JSON.stringify(data));
-    };
+        <!-- Container for list/map views -->
+        <div class="row">
+            <!-- List View (default) -->
+            <div class="col-12 col-lg-7" id="list-view">
+                <div id="places-container" class="row g-3">
+                    <!-- Places will be loaded here dynamically -->
+                    <div class="col-12 text-center py-5" id="loading-places">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2">Carregando lugares...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map View -->
+            <div class="col-12 col-lg-5" id="map-container">
+                <div id="map" style="height: 600px; width: 100%;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-body-tertiary py-3 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Viajey. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    const getFromLocalStorage = (key) => {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
-    };
-    
-    // Function to get URL parameters
-    const getUrlParam = (param) => {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    };
-    
-    // Function to initialize or get current itinerary
-    const getCurrentItinerary = () => {
-      // Check if there's a roteiroId in the URL
-      const roteiroId = getUrlParam('roteiroId');
-      
-      // Get the stored itinerary
-      let itinerary = getFromLocalStorage('currentItinerary');
-      
-      // If we have an ID in the URL and it doesn't match the stored one, 
-      // we might need to load a different itinerary (in a real app)
-      if (roteiroId && itinerary && roteiroId != itinerary.id) {
-        console.log(`URL has roteiroId ${roteiroId}, but loaded itinerary has id ${itinerary.id}`);
-        // In a real app with a database, we would load the correct itinerary here
-      }
-      
-      if (!itinerary) {
-        // Create a default itinerary if none exists
-        itinerary = {
-          id: roteiroId || Date.now(),
-          name: 'Roteiro Balneário Camboriú',
-          destination: 'Balneário Camboriú',
-          startDate: '2026-01-12',
-          endDate: '2026-01-20',
-          preferences: ['Relaxamento', 'Praias', 'Luxo'],
-          places: []
-        };
-        saveToLocalStorage('currentItinerary', itinerary);
-      }
-      
-      return itinerary;
-    };
-    
-    // Function to add a place to the current itinerary
-    const addPlaceToItinerary = (placeName, placeType, price, address) => {
-      const itinerary = getCurrentItinerary();
-      
-      // Check if this place is already in the itinerary
-      if (itinerary.places.some(place => place.name === placeName)) {
-        return false; // Place already exists
-      }
-      
-      // Add the place
-      itinerary.places.push({
-        id: Date.now(),
-        name: placeName,
-        type: placeType,
-        price: price,
-        address: address,
-        addedAt: new Date().toISOString()
-      });
-      
-      // Save the updated itinerary
-      saveToLocalStorage('currentItinerary', itinerary);
-      return true;
-    };
-    
-    // Function to update the UI with itinerary data
-    const updateExplorerUI = (itinerary) => {
-      // Update the destination title
-      const destinationTitle = document.querySelector('.destination-title');
-      if (destinationTitle) {
-        destinationTitle.textContent = itinerary.destination;
-      }
-      
-      // Update preferences tags
-      const preferencesContainer = document.querySelector('.destination-preferences');
-      if (preferencesContainer && itinerary.preferences && itinerary.preferences.length > 0) {
-        // Clear current tags
-        preferencesContainer.innerHTML = '';
-        
-        // Add preference tags
-        itinerary.preferences.forEach(pref => {
-          const prefTag = document.createElement('div');
-          prefTag.className = 'preference-tag';
-          prefTag.textContent = pref;
-          preferencesContainer.appendChild(prefTag);
-        });
-      }
-      
-      // Update date information
-      const dateInfo = document.querySelector('.text-muted');
-      if (dateInfo && itinerary.startDate && itinerary.endDate) {
-        // Format dates
-        const startDate = new Date(itinerary.startDate);
-        const endDate = new Date(itinerary.endDate);
-        
-        const formatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-        const formattedStart = startDate.toLocaleDateString('pt-BR', formatOptions);
-        const formattedEnd = endDate.toLocaleDateString('pt-BR', formatOptions);
-        
-        dateInfo.textContent = `Adicionando locais ao seu roteiro: ${formattedStart} - ${formattedEnd}`;
-      }
-    };
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      // Setup user dropdown
-      if (typeof setupUserDropdown === 'function') {
-        setupUserDropdown();
-      }
-      
-      // Get the current itinerary and update the UI
-      const itinerary = getCurrentItinerary();
-      updateExplorerUI(itinerary);
-      
-      // Setup category buttons
-      const categoryButtons = document.querySelectorAll('.category-btn');
-      categoryButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          // Remove active class from all buttons
-          categoryButtons.forEach(btn => btn.classList.remove('active'));
-          
-          // Add active class to clicked button
-          this.classList.add('active');
-          
-          // Filter places based on category
-          const category = this.textContent.trim().toLowerCase();
-          console.log('Selected category:', category);
-          
-          // Implementation would filter the displayed places
-          // Here we would typically make an API call to get places for this category
-        });
-      });
-      
-      // Setup add buttons for all places
-      const addButtons = document.querySelectorAll('.place-actions .btn-primary');
-      addButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.stopPropagation(); // Prevent card click event
-          
-          // Get place information from parent card
-          const card = this.closest('.place-card');
-          const placeName = card.querySelector('.place-name').childNodes[0].textContent.trim();
-          const placeType = card.querySelector('.place-type').textContent.trim();
-          const priceElement = card.querySelector('.place-price span.ms-1');
-          const price = priceElement ? priceElement.textContent.trim() : 'Não informado';
-          const addressElement = card.querySelector('.place-address');
-          const address = addressElement ? addressElement.textContent.trim() : 'Não informado';
-          
-          // Add to itinerary in local storage
-          const added = addPlaceToItinerary(placeName, placeType, price, address);
-          
-          if (added) {
-            // Change button state
-            this.innerHTML = '<i class="fas fa-check me-1"></i>Adicionado';
-            this.classList.remove('btn-primary');
-            this.classList.add('btn-success');
-            this.disabled = true;
-            
-            console.log('Added to itinerary:', placeName);
-            
-            // Show a toast or notification
-            alert(`${placeName} adicionado ao seu roteiro!`);
-          } else {
-            alert(`${placeName} já está no seu roteiro!`);
-          }
-        });
-      });
-      
-      // Check which places are already in the itinerary and update their buttons
-      if (itinerary && itinerary.places.length > 0) {
-        const placeCards = document.querySelectorAll('.place-card');
-        placeCards.forEach(card => {
-          const placeName = card.querySelector('.place-name').childNodes[0].textContent.trim();
-          const addButton = card.querySelector('.place-actions .btn-primary');
-          
-          // If this place is already in the itinerary, update the button
-          if (itinerary.places.some(place => place.name === placeName) && addButton) {
-            addButton.innerHTML = '<i class="fas fa-check me-1"></i>Adicionado';
-            addButton.classList.remove('btn-primary');
-            addButton.classList.add('btn-success');
-            addButton.disabled = true;
-          }
-        });
-      }
-      
-      // Add event listener to all "Ver detalhes" buttons/links
-      document.querySelectorAll('.place-actions .btn-outline-secondary').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation(); // Prevent card click event if inside a clickable card
-          
-          // Get the place name
-          const card = this.closest('.place-card');
-          const placeName = card.querySelector('.place-name').childNodes[0].textContent.trim();
-          
-          // In a real app, we would pass a place ID in the URL
-          // For now, we'll just redirect to the detail page
-          window.location.href = `/detail?place=${encodeURIComponent(placeName)}`;
-        });
-      });
-      
-      // Make all cards clickable to go to detail page
-      document.querySelectorAll('.place-card').forEach(card => {
-        card.addEventListener('click', function() {
-          const placeName = this.querySelector('.place-name').childNodes[0].textContent.trim();
-          window.location.href = `/detail?place=${encodeURIComponent(placeName)}`;
-        });
-      });
-    });
-  </script>
+    <!-- Google Maps JS -->
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/explorar.js"></script>
+
+    <!-- Load Google Maps API with API Key (will be set via server) -->
+    <script>
+        // Fetch API key from the server
+        fetch('/api/maps/key')
+            .then(response => response.json())
+            .then(data => {
+                const apiKey = data.key;
+                // Load Google Maps API with the retrieved key
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar chave da API:', error);
+                // Fallback: show error message in map container
+                document.getElementById('map').innerHTML = 
+                    '<div class="alert alert-danger">Erro ao carregar o mapa. Por favor, tente novamente mais tarde.</div>';
+            });
+    </script>
 </body>
 </html>

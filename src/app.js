@@ -89,6 +89,19 @@ const initDatabase = async () => {
       )
     `);
 
+    // Tabela para cache de resultados da API Google Maps
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS places_cache (
+        id SERIAL PRIMARY KEY,
+        place_id VARCHAR(255) NOT NULL UNIQUE,
+        destination VARCHAR(255) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        data JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP DEFAULT (NOW() + INTERVAL '7 days')
+      )
+    `);
+
     console.log('Banco de dados inicializado com sucesso.');
   } catch (error) {
     console.error('Erro ao inicializar banco de dados:', error);
@@ -132,6 +145,16 @@ app.get('/google-maps-example', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'google-maps-example.html'));
 });
 
+// Página de exploração de destinos
+app.get('/explorar', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'explorar.html'));
+});
+
+// Página de detalhes do local
+app.get('/local/:placeId', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'local.html'));
+});
+
 // API Endpoints
 // Usuários
 app.post('/api/users', async (req, res) => {
@@ -150,6 +173,86 @@ app.post('/api/users', async (req, res) => {
 // Endpoint para Google Maps API Key
 app.get('/api/maps/key', (req, res) => {
   res.json({ key: process.env.GOOGLE_MAPS_API_KEY });
+});
+
+// Cache de lugares
+app.post('/api/places/cache', async (req, res) => {
+  try {
+    const { place_id, destination, type, data } = req.body;
+    
+    // Verificar se o lugar já está em cache
+    const existingPlace = await pool.query(
+      'SELECT id FROM places_cache WHERE place_id = $1',
+      [place_id]
+    );
+    
+    if (existingPlace.rows.length > 0) {
+      // Atualizar cache existente
+      await pool.query(
+        `UPDATE places_cache 
+         SET data = $1, destination = $2, type = $3, expires_at = NOW() + INTERVAL '7 days' 
+         WHERE place_id = $4`,
+        [data, destination, type, place_id]
+      );
+    } else {
+      // Inserir novo cache
+      await pool.query(
+        `INSERT INTO places_cache (place_id, destination, type, data) 
+         VALUES ($1, $2, $3, $4)`,
+        [place_id, destination, type, data]
+      );
+    }
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Erro ao cache de lugar:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Obter lugar do cache
+app.get('/api/places/cache/:placeId', async (req, res) => {
+  try {
+    const { placeId } = req.params;
+    
+    const result = await pool.query(
+      'SELECT * FROM places_cache WHERE place_id = $1 AND expires_at > NOW()',
+      [placeId]
+    );
+    
+    if (result.rows.length > 0) {
+      res.json(result.rows[0].data);
+    } else {
+      res.status(404).json({ error: 'Lugar não encontrado em cache ou cache expirado' });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar cache de lugar:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Obter lugares por destino
+app.get('/api/places/destination/:destination/:type?', async (req, res) => {
+  try {
+    const { destination, type } = req.params;
+    
+    let query = 'SELECT * FROM places_cache WHERE destination ILIKE $1 AND expires_at > NOW()';
+    let params = [`%${destination}%`];
+    
+    if (type && type !== 'all') {
+      query += ' AND type = $2';
+      params.push(type);
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const result = await pool.query(query, params);
+    
+    res.json(result.rows.map(row => row.data));
+  } catch (error) {
+    console.error('Erro ao buscar lugares por destino:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Endpoint de ping para verificação de status

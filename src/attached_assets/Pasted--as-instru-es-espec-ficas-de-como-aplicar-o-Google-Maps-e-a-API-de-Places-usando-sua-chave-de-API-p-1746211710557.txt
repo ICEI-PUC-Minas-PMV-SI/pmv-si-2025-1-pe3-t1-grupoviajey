@@ -1,0 +1,129 @@
+ as instruções específicas de como aplicar o Google Maps e a API de Places usando sua chave de API pública, explicando: 
+
+Onde o mapa será exibido 
+
+Como os cards serão gerados automaticamente a partir da busca da API 
+
+Como o destino será pesquisado dinamicamente após o preenchimento do roteiro 
+
+ 
+
+📍 Prompt Replit — Integração Google Maps e Geração Dinâmica de Locais 
+
+Objetivo: Adicionar Google Maps com Places API ao projeto Viajey, para que ao criar um novo roteiro, o sistema gere automaticamente cards de locais reais (hotéis, restaurantes, atrações) com base no destino informado pelo usuário, e exiba os locais também no mapa. 
+
+ 
+
+🔐 Chave da API do Google Maps 
+
+AIzaSyD7M0OUg3wzN6p1J5Onzix7o3KmsBQRMAo 
+  
+
+ 
+
+🔧 O que deve ser implementado: 
+
+1. Ao criar um novo roteiro 
+
+O usuário preenche o nome do roteiro e a cidade de destino no modal “Criar Roteiro”. 
+
+Quando ele clicar em “Criar Roteiro”: 
+
+Os dados do roteiro são salvos no PostgreSQL (conforme já definido). 
+
+Em seguida, o sistema deve usar a API do Google Maps Places para fazer uma busca dinâmica com base no nome da cidade. 
+
+A busca não é pré-definida; deve usar o campo destino informado pelo usuário. 
+
+ 
+
+2. Página /explorar 
+
+Essa página será carregada com base na cidade informada pelo usuário. 
+
+O sistema fará chamadas à Places API, usando textSearch ou nearbySearch, para os seguintes tipos: 
+
+lodging (hotéis) 
+
+restaurant 
+
+tourist_attraction 
+
+Para cada resultado, criar cards automáticos com: 
+
+Nome do local 
+
+Categoria (tipo) 
+
+Avaliação ⭐ 
+
+Endereço 
+
+Foto 
+
+Botão: “Ver detalhes” (leva para /local/:place_id) 
+
+ 
+
+3. Exibição do mapa 
+
+Na página /explorar, abaixo ou ao lado dos cards, incluir um mapa interativo do Google Maps com: 
+
+Marcadores para todos os locais exibidos nos cards. 
+
+Quando o usuário passar o mouse ou clicar em um card, o mapa deve destacar ou centralizar o marcador correspondente. 
+
+O mapa deve estar centrado na cidade do roteiro. 
+
+ 
+
+4. Página /local/:place_id 
+
+Essa página deve utilizar a Place Details API, passando o place_id do local clicado. 
+
+Exibir: 
+
+Galeria de fotos 
+
+Descrição 
+
+Endereço 
+
+Avaliação 
+
+Horário de funcionamento 
+
+Botão: “Adicionar ao meu roteiro” 
+
+Abaixo ou ao lado das informações, mostrar o mapa com o marcador do local selecionado. 
+
+Incluir um botão: “Ver no Google Maps” com link direto. 
+
+ 
+
+💡 Extras e boas práticas 
+
+Otimize o uso da API para evitar custos desnecessários: carregue os detalhes apenas quando realmente necessário. 
+
+Cacheie os resultados localmente após a primeira busca (armazenar no PostgreSQL). 
+
+No mapa, utilize ícones diferentes por tipo (ex: cama para hotel, garfo para restaurante, pin para atração). 
+
+ 
+
+🔗 Banco de dados PostgreSQL já configurado 
+
+Use a URL de conexão: 
+
+postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable 
+  
+
+Guarde os roteiros e os locais adicionados manualmente pelo usuário. 
+
+ 
+
+Essa integração vai transformar o Viajey em uma plataforma com experiência internacional, semelhante ao Google Travel, com dados dinâmicos e reais. 
+
+ 
+
+ 
