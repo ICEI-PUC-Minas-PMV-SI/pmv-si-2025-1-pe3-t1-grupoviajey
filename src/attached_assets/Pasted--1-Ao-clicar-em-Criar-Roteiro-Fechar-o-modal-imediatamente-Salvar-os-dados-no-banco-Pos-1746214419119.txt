@@ -1,0 +1,159 @@
+✅ 1. Ao clicar em "Criar Roteiro" 
+
+Fechar o modal imediatamente. 
+
+Salvar os dados no banco PostgreSQL (conexão): 
+
+postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable 
+  
+
+Dados que devem ser armazenados: 
+
+nome_do_roteiro (texto livre) 
+
+destino (campo digitado, nao é dorpdown) 
+
+data_ida 
+
+data_volta 
+
+preferencias[] (array de strings) 
+
+faixa_preco (string) 
+
+Após salvar, redirecionar para a página /explorar, carregando os dados do roteiro recém-criado a partir do banco. 
+
+ 
+
+🌍 2. Página /explorar 
+
+Objetivo: explorar locais reais com base no destino digitado pelo usuário, usando a Google Maps API. 
+
+🔹 Topo da Página 
+
+Exibir: “Explorando [DESTINO]” 
+
+Mostrar chips com as preferências selecionadas (ex: Relaxamento, Luxo, Cultura) 
+
+🔹 Google Maps API (usar a key fornecida) 
+
+Para o destino armazenado, fazer requisição para a API: 
+
+Tipos: lodging, restaurant, tourist_attraction 
+
+Exemplo de endpoint para cada tipo: 
+
+https://maps.googleapis.com/maps/api/place/textsearch/json?query=[DESTINO]+[TIPO]&key=AIzaSyD7M0OUg3wzN6p1J5Onzix7o3KmsBQRMAo 
+  
+
+🔹 Divisão por Categoria (sem aba “Todos”) 
+
+Botões: Hotéis, Restaurantes, Atrações 
+
+Cada clique faz nova requisição com tipo específico 
+
+🔹 Cards automáticos 
+
+Para cada resultado da API: 
+
+Imagem de capa (usando photo_reference da API) 
+
+Nome do local 
+
+Endereço 
+
+Avaliação 
+
+Faixa de preço (se disponível) 
+
+Botão “Ver detalhes” → /local/:place_id 
+
+Botão “+ Adicionar ao roteiro” → Salva no banco vinculado ao ID do roteiro 
+
+🔹 Mapa à direita 
+
+Mostrar Google Maps com todos os locais plotados 
+
+Clicar em marcador → mostra nome e botão “Ver detalhes” 
+
+ 
+
+📍 3. Página /local/:place_id 
+
+Ao clicar em qualquer card, redirecionar para /local/:place_id 
+
+Elementos da página: 
+
+Galeria de fotos (images do Google) 
+
+Nome da atração 
+
+Descrição (se disponível pela API) 
+
+Horário de funcionamento 
+
+Avaliações 
+
+Endereço 
+
+Clima (caixa mock, por enquanto) 
+
+Botão “Adicionar ao meu roteiro” → vincula ao roteiro ativo no banco 
+
+Mapa centralizado no local (Google Maps com marcador único) 
+
+ 
+
+🗂️ 4. Página /roteiro/:id/kanban – Organização diária por Kanban 
+
+Objetivo: 
+
+Visualizar e organizar o roteiro por dias e horários 
+
+Estrutura: 
+
+Para cada dia da viagem: 
+
+Criar uma coluna vertical com o título “Dia X – [Data]” 
+
+Dentro da coluna, criar três subcolunas horizontais: 
+
+Manhã 
+
+Tarde 
+
+Noite 
+
+Cada atração adicionada no roteiro pode ser arrastada entre: 
+
+Dias diferentes 
+
+Períodos do dia (manhã/tarde/noite) 
+
+Ordem dentro de cada período (drag and drop) 
+
+Funcionalidade: 
+
+Drag & drop com persistência (atualiza posição no banco) 
+
+Cards devem mostrar: 
+
+Nome 
+
+Mini foto 
+
+Endereço 
+
+Duração estimada (opcional futuramente) 
+
+Conexões: 
+
+A página de Kanban deve estar acessível a partir de botão “Editar Roteiro” nos detalhes e na home 
+
+Toda reorganização salva via PostgreSQL com: 
+
+Dia 
+
+Período (manhã/tarde/noite) 
+
+Ordem 

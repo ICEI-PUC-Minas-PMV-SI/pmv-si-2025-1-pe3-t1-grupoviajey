@@ -292,17 +292,7 @@
             
             <div class="mb-3">
               <label for="destination" class="form-label">Destino</label>
-              <select class="form-select" id="destination" required>
-                <option value="" selected disabled>Selecione um destino</option>
-                <option value="Balneário Camboriú">Balneário Camboriú</option>
-                <option value="Porto Seguro">Porto Seguro</option>
-                <option value="Rio de Janeiro">Rio de Janeiro</option>
-                <option value="São Paulo">São Paulo</option>
-                <option value="Salvador">Salvador</option>
-                <option value="Florianópolis">Florianópolis</option>
-                <option value="Lisboa">Lisboa</option>
-                <option value="Barcelona">Barcelona</option>
-              </select>
+              <input type="text" class="form-control" id="destination" placeholder="Ex: São Paulo, Barcelona, Londres" required>
             </div>
             
             <div class="row">
@@ -402,12 +392,12 @@
       // Handle form submission
       const saveItineraryBtn = document.getElementById('saveItineraryBtn');
       if (saveItineraryBtn) {
-        saveItineraryBtn.addEventListener('click', function() {
+        saveItineraryBtn.addEventListener('click', async function() {
           // Get form values
-          const name = document.getElementById('itineraryName').value;
+          const title = document.getElementById('itineraryName').value;
           const destination = document.getElementById('destination').value;
-          const startDate = document.getElementById('startDate').value;
-          const endDate = document.getElementById('endDate').value;
+          const start_date = document.getElementById('startDate').value;
+          const end_date = document.getElementById('endDate').value;
           
           // Get preferences
           const preferences = [];
@@ -415,7 +405,7 @@
             preferences.push(checkbox.value);
           });
           
-          const priceRange = document.getElementById('priceRange').value;
+          const price_range = document.getElementById('priceRange').value;
           
           // Validate form
           const form = document.getElementById('newItineraryForm');
@@ -424,26 +414,61 @@
             return;
           }
           
-          // Create itinerary object
-          const itinerary = {
-            id: Date.now(), // Generate unique ID
-            name: name,
-            destination: destination,
-            startDate: startDate,
-            endDate: endDate,
-            preferences: preferences,
-            priceRange: priceRange,
-            places: [] // Empty places array to start with
-          };
+          // Desabilitar botão para prevenir múltiplos envios
+          saveItineraryBtn.disabled = true;
+          saveItineraryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
           
-          // Save to localStorage
-          saveToLocalStorage('currentItinerary', itinerary);
-          
-          // Close the modal
-          createItineraryModal.hide();
-          
-          // Redirect to explorar page
-          window.location.href = `/explorar?roteiroId=${itinerary.id}`;
+          try {
+            // Criar objeto com os dados do roteiro
+            const itineraryData = {
+              user_id: 1, // ID temporário do usuário (será implementado autenticação completa depois)
+              title,
+              destination,
+              start_date,
+              end_date,
+              preferences: JSON.stringify(preferences),
+              price_range
+            };
+            
+            // Enviar para o backend via POST request
+            const response = await fetch('/api/itineraries', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(itineraryData)
+            });
+            
+            if (!response.ok) {
+              throw new Error('Erro ao salvar roteiro');
+            }
+            
+            // Receber os dados do roteiro criado no backend, incluindo o ID gerado
+            const savedItinerary = await response.json();
+            
+            // Salvar uma cópia no localStorage (opcional, para uso offline ou melhor performance)
+            saveToLocalStorage('currentItinerary', savedItinerary);
+            
+            // Fechar o modal imediatamente
+            createItineraryModal.hide();
+            
+            // Redirecionar para a página de exploração
+            window.location.href = `/explorar?roteiroId=${savedItinerary.id}`;
+          } catch (error) {
+            console.error('Erro ao salvar roteiro:', error);
+            
+            // Mostrar mensagem de erro
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger mt-3';
+            errorDiv.textContent = 'Erro ao salvar o roteiro. Por favor, tente novamente.';
+            
+            const modalBody = document.querySelector('.modal-body');
+            modalBody.appendChild(errorDiv);
+            
+            // Reativar o botão
+            saveItineraryBtn.disabled = false;
+            saveItineraryBtn.textContent = 'Criar Roteiro';
+          }
         });
       }
       
