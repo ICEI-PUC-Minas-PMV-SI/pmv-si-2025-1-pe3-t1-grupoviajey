@@ -1,7 +1,19 @@
 FROM node:20-slim
 
 # Instalar ferramentas necessárias
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    python3 \
+    python3-pip \
+    gunicorn \
+    curl \
+    netcat-openbsd \
+    procps \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar dependências do Python para o script de inicialização
+RUN pip3 install flask psycopg2-binary
 
 # Criar diretório da aplicação
 WORKDIR /app
@@ -33,9 +45,9 @@ ENV DB_NAME=viajey
 # Opcional: desativar SSL para ambientes que não precisam de conexão segura
 ENV DISABLE_SSL=true
 
-# Script para iniciar a aplicação
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+# Scripts para iniciar a aplicação e verificar PostgreSQL
+COPY docker-entrypoint.sh wait-for-postgres.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh /app/wait-for-postgres.sh
 
 # Executar o script de entrada em vez de iniciar a aplicação diretamente
 CMD ["/app/docker-entrypoint.sh"]

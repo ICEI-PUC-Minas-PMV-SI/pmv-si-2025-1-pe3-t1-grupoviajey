@@ -168,5 +168,14 @@ if [[ "$DATABASE_URL" != *"sslmode=disable"* && "$DISABLE_SSL" == "true" ]]; the
     echo "Modo SSL desativado para a conexão com o banco de dados"
 fi
 
-# Iniciar a aplicação
-exec node server.js
+# Tornar o script de espera executável
+chmod +x wait-for-postgres.sh
+
+# Verificar se o PostgreSQL está disponível antes de iniciar
+if [ -n "$PGHOST" ] && [ -n "$PGUSER" ] && [ -n "$PGPASSWORD" ] && [ -n "$PGDATABASE" ]; then
+    echo "Aguardando o PostgreSQL ficar disponível..."
+    ./wait-for-postgres.sh "$PGHOST" "${PGPORT:-5432}" "$PGUSER" "$PGPASSWORD" "$PGDATABASE" "node server.js"
+else
+    echo "Variáveis de ambiente PostgreSQL não definidas completamente, tentando iniciar mesmo assim..."
+    exec node server.js
+fi

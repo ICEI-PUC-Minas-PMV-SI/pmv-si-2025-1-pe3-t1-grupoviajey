@@ -119,7 +119,38 @@ const initDatabase = async () => {
 };
 
 // Inicializar banco de dados na inicialização do servidor
-initDatabase();
+(async () => {
+  let retries = 5;
+  let connected = false;
+  
+  while (retries > 0 && !connected) {
+    try {
+      console.log(`Tentando inicializar o banco de dados (tentativas restantes: ${retries})...`);
+      await initDatabase();
+      connected = true;
+      console.log('Banco de dados inicializado com sucesso.');
+    } catch (error) {
+      console.error('Erro ao conectar com o banco de dados:', error.message);
+      retries--;
+      
+      if (retries > 0) {
+        const waitTime = 5000; // 5 segundos
+        console.log(`Tentando novamente em ${waitTime/1000} segundos...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        console.error('Número máximo de tentativas atingido. Verifique a conexão com o banco de dados.');
+      }
+    }
+  }
+  
+  // Imprimir informações de diagnóstico (sem expor credenciais)
+  console.log('Informações de conexão com o banco de dados:');
+  console.log(`- Host: ${process.env.PGHOST || 'não definido'}`);
+  console.log(`- Porta: ${process.env.PGPORT || '5432 (padrão)'}`);
+  console.log(`- Banco: ${process.env.PGDATABASE || 'não definido'}`);
+  console.log(`- Usuário: ${process.env.PGUSER || 'não definido'}`);
+  console.log(`- SSL: ${dbConfig.ssl ? 'Ativado' : 'Desativado'}`);
+})();
 
 // Middlewares
 app.use(cors());
@@ -155,6 +186,10 @@ app.get('/google-maps-example', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'google-maps-example.html'));
 });
 
+app.get('/status', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'status.html'));
+});
+
 // API Endpoints
 // Usuários
 app.post('/api/users', async (req, res) => {
@@ -173,6 +208,48 @@ app.post('/api/users', async (req, res) => {
 // Endpoint de ping para verificação de status
 app.get('/ping', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Servidor funcionando!' });
+});
+
+// Endpoint para verificar conexão com o banco de dados
+app.get('/api/healthcheck', async (req, res) => {
+  try {
+    // Tentar executar uma query simples para verificar o banco
+    const result = await pool.query('SELECT NOW() as time');
+    
+    const dbInfo = {
+      host: process.env.PGHOST || 'não definido',
+      port: process.env.PGPORT || '5432 (padrão)',
+      database: process.env.PGDATABASE || 'não definido',
+      user: process.env.PGUSER || 'não definido',
+      ssl: dbConfig.ssl ? 'Ativado' : 'Desativado',
+      // Adicionar timestamp do banco para confirmar comunicação
+      serverTime: result.rows[0].time,
+      connectionPool: {
+        totalCount: pool.totalCount,
+        idleCount: pool.idleCount,
+        waitingCount: pool.waitingCount
+      }
+    };
+    
+    res.status(200).json({
+      status: 'ok',
+      message: 'Conexão com o banco de dados estabelecida',
+      dbInfo
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha na conexão com o banco de dados',
+      error: error.message,
+      config: {
+        host: process.env.PGHOST || 'não definido',
+        port: process.env.PGPORT || '5432 (padrão)',
+        database: process.env.PGDATABASE || 'não definido',
+        user: process.env.PGUSER || 'não definido',
+        ssl: dbConfig.ssl ? 'Ativado' : 'Desativado'
+      }
+    });
+  }
 });
 
 // Itinerários
