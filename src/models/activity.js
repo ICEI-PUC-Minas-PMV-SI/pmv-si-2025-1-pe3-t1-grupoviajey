@@ -2,70 +2,77 @@
  * Modelo para gerenciar atividades dos itinerários
  */
 
-const db = require('../db');
+const db = require('../shared/db');
 
 /**
  * Obtém todas as atividades de um dia específico
+ * @param {number} dayId - ID do dia do itinerário
+ * @returns {Promise<Array>} Lista de atividades
  */
-const getActivitiesByDay = async (itineraryDayId) => {
+async function getByDay(dayId) {
   try {
     const result = await db.query(
-      'SELECT * FROM activities WHERE itinerary_day_id = $1 ORDER BY period, position',
-      [itineraryDayId]
+      `SELECT * FROM activities 
+       WHERE itinerary_day_id = $1
+       ORDER BY period, position`,
+      [dayId]
     );
+    
     return result.rows;
   } catch (error) {
-    console.error('Erro ao obter atividades por dia:', error);
+    console.error('Erro ao buscar atividades do dia:', error);
     throw error;
   }
-};
+}
+
+/**
+ * Obtém uma atividade pelo ID
+ * @param {number} id - ID da atividade
+ * @returns {Promise<Object>} Atividade encontrada ou null
+ */
+async function getById(id) {
+  try {
+    const result = await db.query(
+      'SELECT * FROM activities WHERE id = $1',
+      [id]
+    );
+    
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error('Erro ao buscar atividade:', error);
+    throw error;
+  }
+}
 
 /**
  * Cria uma nova atividade
+ * @param {Object} activityData - Dados da atividade
+ * @returns {Promise<Object>} Atividade criada
  */
-const createActivity = async (activityData) => {
-  const {
-    itinerary_day_id,
-    name,
-    type,
-    location,
-    address,
-    latitude,
-    longitude,
-    period,
-    start_time,
-    end_time,
-    notes,
-    position,
-    price,
-    rating,
-    image_url,
-    place_id
-  } = activityData;
-  
+async function create(activityData) {
   try {
-    // Determinar a próxima posição se não for fornecida
-    let activityPosition = position;
-    if (activityPosition === undefined) {
+    // Verificar se precisamos ajustar a posição para ser a última do período
+    if (activityData.position === undefined) {
       const result = await db.query(
-        'SELECT MAX(position) as max_position FROM activities WHERE itinerary_day_id = $1 AND period = $2',
-        [itinerary_day_id, period]
+        `SELECT COALESCE(MAX(position), -1) + 1 as next_position 
+         FROM activities 
+         WHERE itinerary_day_id = $1 AND period = $2`,
+        [activityData.itinerary_day_id, activityData.period]
       );
       
-      const maxPosition = result.rows[0].max_position || 0;
-      activityPosition = maxPosition + 1;
+      activityData.position = result.rows[0].next_position;
     }
     
+    // Construir query dinâmica para inserção
+    const keys = Object.keys(activityData);
+    const values = keys.map(key => activityData[key]);
+    const placeholders = keys.map((_, index) => `$${index + 1}`);
+    
     const result = await db.query(
-      `INSERT INTO activities 
-        (itinerary_day_id, name, type, location, address, latitude, longitude, 
-         period, start_time, end_time, notes, position, price, rating, image_url, place_id) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+      `INSERT INTO activities (${keys.join(', ')})
+       VALUES (${placeholders.join(', ')})
        RETURNING *`,
-      [
-        itinerary_day_id, name, type, location, address, latitude, longitude,
-        period, start_time, end_time, notes, activityPosition, price, rating, image_url, place_id
-      ]
+      values
     );
     
     return result.rows[0];
@@ -73,123 +80,163 @@ const createActivity = async (activityData) => {
     console.error('Erro ao criar atividade:', error);
     throw error;
   }
-};
+}
 
 /**
  * Atualiza uma atividade existente
+ * @param {number} id - ID da atividade
+ * @param {Object} activityData - Dados atualizados da atividade
+ * @returns {Promise<Object>} Atividade atualizada ou null
  */
-const updateActivity = async (id, updates) => {
+async function update(id, activityData) {
   try {
-    // Construir query dinamicamente baseada nos campos atualizados
-    const fields = Object.keys(updates);
-    const values = Object.values(updates);
+    // Remover campos nulos ou undefined
+    Object.keys(activityData).forEach(key => {
+      if (activityData[key] === null || activityData[key] === undefined) {
+        delete activityData[key];
+      }
+    });
     
-    if (fields.length === 0) {
-      throw new Error('Nenhum campo fornecido para atualização');
+    // Se não houver campos para atualizar, retorna atividade atual
+    if (Object.keys(activityData).length === 0) {
+      return getById(id);
     }
     
-    // Criar a parte SET da query
-    const setClause = fields
-      .map((field, index) => `${field} = $${index + 1}`)
-      .join(', ');
+    // Construir query dinâmica para atualização
+    const keys = Object.keys(activityData);
+    const values = keys.map(key => activityData[key]);
+    const placeholders = keys.map((key, index) => `${key} = $${index + 1}`);
     
-    // Adicionar id como último parâmetro
-    values.push(id);
+    // Adicionar updated_at
+    placeholders.push(`updated_at = CURRENT_TIMESTAMP`);
     
-    const query = `
-      UPDATE activities 
-      SET ${setClause}, updated_at = CURRENT_TIMESTAMP 
-      WHERE id = $${values.length} 
-      RETURNING *
-    `;
+    const result = await db.query(
+      `UPDATE activities
+       SET ${placeholders.join(', ')}
+       WHERE id = $${values.length + 1}
+       RETURNING *`,
+      [...values, id]
+    );
     
-    const result = await db.query(query, values);
-    
-    if (result.rows.length === 0) {
-      throw new Error('Atividade não encontrada');
-    }
-    
-    return result.rows[0];
+    return result.rows.length > 0 ? result.rows[0] : null;
   } catch (error) {
     console.error('Erro ao atualizar atividade:', error);
     throw error;
   }
-};
+}
 
 /**
  * Reordena atividades em um dia/período
+ * @param {number} dayId - ID do dia do itinerário
+ * @param {string} period - Período (manhã, tarde, noite)
+ * @param {Array<number>} activityIds - IDs das atividades na nova ordem
+ * @returns {Promise<Array>} Lista atualizada de atividades
  */
-const reorderActivities = async (itineraryDayId, period, activityOrder) => {
+async function reorder(dayId, period, activityIds) {
   try {
-    return await db.transaction(async (client) => {
-      for (let i = 0; i < activityOrder.length; i++) {
+    // Executar a reordenação em uma transação
+    return await db.transaction(async client => {
+      // Para cada ID de atividade, atualizar sua posição
+      for (let i = 0; i < activityIds.length; i++) {
         await client.query(
-          'UPDATE activities SET position = $1 WHERE id = $2',
-          [i, activityOrder[i]]
+          `UPDATE activities
+           SET position = $1, updated_at = CURRENT_TIMESTAMP
+           WHERE id = $2 AND itinerary_day_id = $3 AND period = $4`,
+          [i, activityIds[i], dayId, period]
         );
       }
       
-      return { success: true, message: 'Atividades reordenadas com sucesso' };
+      // Buscar atividades atualizadas
+      const result = await client.query(
+        `SELECT * FROM activities
+         WHERE itinerary_day_id = $1 AND period = $2
+         ORDER BY position`,
+        [dayId, period]
+      );
+      
+      return result.rows;
     });
   } catch (error) {
     console.error('Erro ao reordenar atividades:', error);
     throw error;
   }
-};
+}
 
 /**
  * Mover atividade para outro dia/período
+ * @param {number} id - ID da atividade
+ * @param {number} newDayId - ID do novo dia
+ * @param {string} newPeriod - Novo período
+ * @param {number} newPosition - Nova posição (opcional)
+ * @returns {Promise<Object>} Atividade movida
  */
-const moveActivity = async (activityId, targetDayId, targetPeriod) => {
+async function move(id, newDayId, newPeriod, newPosition) {
   try {
-    // Determinar a próxima posição no dia/período de destino
-    const positionResult = await db.query(
-      'SELECT MAX(position) as max_position FROM activities WHERE itinerary_day_id = $1 AND period = $2',
-      [targetDayId, targetPeriod]
-    );
-    
-    const newPosition = (positionResult.rows[0].max_position || 0) + 1;
-    
-    // Atualizar a atividade
-    const result = await db.query(
-      'UPDATE activities SET itinerary_day_id = $1, period = $2, position = $3 WHERE id = $4 RETURNING *',
-      [targetDayId, targetPeriod, newPosition, activityId]
-    );
-    
-    if (result.rows.length === 0) {
-      throw new Error('Atividade não encontrada');
-    }
-    
-    return result.rows[0];
+    // Executar a movimentação em uma transação
+    return await db.transaction(async client => {
+      // Se a posição não foi especificada, calcular a última posição + 1
+      if (newPosition === undefined) {
+        const posResult = await client.query(
+          `SELECT COALESCE(MAX(position), -1) + 1 as next_position
+           FROM activities
+           WHERE itinerary_day_id = $1 AND period = $2`,
+          [newDayId, newPeriod]
+        );
+        
+        newPosition = posResult.rows[0].next_position;
+      }
+      
+      // Atualizar atividade para o novo dia/período/posição
+      const result = await client.query(
+        `UPDATE activities
+         SET itinerary_day_id = $1, period = $2, position = $3, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $4
+         RETURNING *`,
+        [newDayId, newPeriod, newPosition, id]
+      );
+      
+      // Reordenar as atividades no destino
+      await client.query(
+        `UPDATE activities
+         SET position = position + 1, updated_at = CURRENT_TIMESTAMP
+         WHERE itinerary_day_id = $1 AND period = $2 AND id != $3 AND position >= $4`,
+        [newDayId, newPeriod, id, newPosition]
+      );
+      
+      return result.rows.length > 0 ? result.rows[0] : null;
+    });
   } catch (error) {
     console.error('Erro ao mover atividade:', error);
     throw error;
   }
-};
+}
 
 /**
  * Exclui uma atividade
+ * @param {number} id - ID da atividade
+ * @returns {Promise<boolean>} True se sucesso, false se não encontrada
  */
-const deleteActivity = async (id) => {
+async function deleteActivity(id) {
   try {
-    const result = await db.query('DELETE FROM activities WHERE id = $1 RETURNING *', [id]);
+    const result = await db.query(
+      'DELETE FROM activities WHERE id = $1 RETURNING id',
+      [id]
+    );
     
-    if (result.rows.length === 0) {
-      throw new Error('Atividade não encontrada');
-    }
-    
-    return { success: true, message: 'Atividade excluída com sucesso' };
+    return result.rows.length > 0;
   } catch (error) {
     console.error('Erro ao excluir atividade:', error);
     throw error;
   }
-};
+}
 
+// Exportar funções do modelo
 module.exports = {
-  getActivitiesByDay,
-  createActivity,
-  updateActivity,
-  reorderActivities,
-  moveActivity,
-  deleteActivity
+  getByDay,
+  getById,
+  create,
+  update,
+  reorder,
+  move,
+  delete: deleteActivity // Alias para evitar conflito com palavra reservada
 };

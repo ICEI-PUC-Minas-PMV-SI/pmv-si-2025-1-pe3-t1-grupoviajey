@@ -160,67 +160,16 @@ app.get('/api/healthcheck', async (req, res) => {
 // Usar as rotas da API
 app.use('/api', apiRoutes);
 
-app.post('/api/activities', async (req, res) => {
-  try {
-    const { 
-      itinerary_day_id, name, type, location, period, 
-      start_time, end_time, notes, position 
-    } = req.body;
-    
-    const result = await db.query(
-      `INSERT INTO activities (
-        itinerary_day_id, name, type, location, period, 
-        start_time, end_time, notes, position
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [itinerary_day_id, name, type, location, period, start_time, end_time, notes, position]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// As rotas específicas abaixo serão movidas para os controladores e rotas API
+// Mantemos apenas para compatibilidade temporária durante a migração
 
-app.put('/api/activities/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { 
-      name, type, location, period, 
-      start_time, end_time, notes, position 
-    } = req.body;
-    
-    const result = await db.query(
-      `UPDATE activities SET 
-        name = $1, type = $2, location = $3, period = $4,
-        start_time = $5, end_time = $6, notes = $7, position = $8,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9 RETURNING *`,
-      [name, type, location, period, start_time, end_time, notes, position, id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Atividade não encontrada' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Importar controllers de atividades
+const activityController = require('./controllers/activityController');
 
-app.delete('/api/activities/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await db.query('DELETE FROM activities WHERE id = $1 RETURNING *', [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Atividade não encontrada' });
-    }
-    
-    res.json({ message: 'Atividade excluída com sucesso' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Rotas diretas para atividades (compatibilidade)
+app.post('/api/activities', activityController.createActivity);
+app.put('/api/activities/:id', activityController.updateActivity);
+app.delete('/api/activities/:id', activityController.deleteActivity);
 
 // Fallback para rotas não encontradas
 app.get('*', (req, res) => {

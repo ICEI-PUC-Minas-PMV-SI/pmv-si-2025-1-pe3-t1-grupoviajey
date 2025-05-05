@@ -1,17 +1,20 @@
 #!/bin/bash
 
-# Script para iniciar o servidor Node.js do Viajey
-# Substitui a antiga configuração Python
+# Script para iniciar o servidor com inicialização do banco de dados
 
-echo "Iniciando Viajey em modo Node.js..."
+# Inicializar banco de dados
+echo "Inicializando banco de dados..."
+node init-db.js
 
-# Definir variáveis de ambiente se não estiverem definidas
-export PORT=${PORT:-5000}
-export NODE_ENV=${NODE_ENV:-development}
+# Status de saída do comando anterior
+DB_INIT_STATUS=$?
 
-# Encerrar qualquer processo Node.js em execução
-pkill -f "node server.js" || true
-pkill -f "node main.js" || true
+if [ $DB_INIT_STATUS -ne 0 ]; then
+  echo "Aviso: Inicialização do banco de dados falhou (código $DB_INIT_STATUS), mas tentando iniciar servidor mesmo assim..."
+else
+  echo "Banco de dados inicializado com sucesso!"
+fi
 
-# Iniciar o servidor
-node main.js
+# Iniciar servidor
+echo "Iniciando servidor..."
+exec node server.js
