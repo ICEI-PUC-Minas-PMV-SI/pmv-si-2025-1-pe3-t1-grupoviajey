@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     netcat-openbsd \
     procps \
+    dnsutils \
+    host \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

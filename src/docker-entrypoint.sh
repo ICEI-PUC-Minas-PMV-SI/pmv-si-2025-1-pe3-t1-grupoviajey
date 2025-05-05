@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+echo "====================================================="
+echo "VIAJEY - Script de inicialização do contêiner Docker"
+echo "====================================================="
+
 # Função para verificar a conexão com o banco de dados
 check_db_connection() {
     local db_url=$1
@@ -194,11 +198,29 @@ if [ -n "$DATABASE_URL" ]; then
     fi
 fi
 
-# Verificar se o PostgreSQL está disponível antes de iniciar
+# Inicializar banco de dados antes de iniciar aplicação
 if [ -n "$PGHOST" ] && [ -n "$PGUSER" ] && [ -n "$PGPASSWORD" ] && [ -n "$PGDATABASE" ]; then
     echo "Aguardando o PostgreSQL ficar disponível..."
-    ./wait-for-postgres.sh "$PGHOST" "${PGPORT:-5432}" "$PGUSER" "$PGPASSWORD" "$PGDATABASE" "node server.js"
+    
+    # Usar script de espera do PostgreSQL
+    ./wait-for-postgres.sh "$PGHOST" "${PGPORT:-5432}" "$PGUSER" "$PGPASSWORD" "$PGDATABASE" "node init-db.js"
+    
+    # Verificar se script de inicialização foi bem-sucedido
+    if [ $? -ne 0 ]; then
+        echo "AVISO: Inicialização do banco de dados falhou, mas tentando iniciar a aplicação mesmo assim..."
+    else
+        echo "Banco de dados inicializado com sucesso!"
+    fi
+    
+    # Iniciar aplicação após inicialização do banco
+    echo "Iniciando aplicação..."
+    exec node server.js
 else
     echo "Variáveis de ambiente PostgreSQL não definidas completamente, tentando iniciar mesmo assim..."
+    
+    # Tentativa de inicializar banco sem variáveis específicas PostgreSQL
+    echo "Tentando inicializar banco de dados usando apenas DATABASE_URL..."
+    node init-db.js || true
+    
     exec node server.js
 fi
