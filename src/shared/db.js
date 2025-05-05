@@ -25,10 +25,11 @@ function getDbConfig() {
   if (connectionString && connectionString.startsWith('postgres')) {
     console.log(`Usando string de conexão do tipo URI`);
     
-    // Verificar se SSL deve ser usado
-    const useSSL = process.env.NODE_ENV === 'production' && 
-                 !process.env.DISABLE_SSL && 
-                 !connectionString.includes('sslmode=disable');
+    // Verificar se SSL deve ser desativado explicitamente
+    const disableSSL = process.env.DISABLE_SSL === 'true';
+    
+    // Para serviços como Neon DB, sempre usar SSL com rejectUnauthorized: false
+    const useSSL = !disableSSL;
     
     // Log da decisão de SSL (sem exibir a string completa por segurança)
     console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);

@@ -33,20 +33,33 @@ async function executeSqlFile(filepath) {
 
 /**
  * Verifica se o banco de dados já foi inicializado
- * @returns {Promise<boolean>} True se já inicializado
+ * @returns {Promise<{initialized: boolean, existingSchema: boolean}>} Status de inicialização e detecção de esquema existente
  */
 async function isDatabaseInitialized() {
   try {
     // Verificar se a tabela de usuários existe
-    const result = await db.query(
+    const userTableExists = await db.query(
       "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users') as exists",
       []
     );
     
-    return result.rows[0].exists;
+    // Verificar se existem outras tabelas base
+    const result = await db.query(
+      "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'",
+      []
+    );
+    
+    // Se existem tabelas mas não é o nosso esquema, é um esquema diferente
+    const tableCount = parseInt(result.rows[0].count, 10);
+    const existingSchema = tableCount > 0 && !userTableExists.rows[0].exists;
+    
+    return {
+      initialized: userTableExists.rows[0].exists,
+      existingSchema
+    };
   } catch (error) {
     console.error('Erro ao verificar inicialização do banco de dados:', error.message);
-    return false;
+    return { initialized: false, existingSchema: false };
   }
 }
 
