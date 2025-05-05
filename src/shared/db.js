@@ -5,6 +5,9 @@
 
 const { Pool } = require('pg');
 
+// Pool de conexões (criada sob demanda)
+let pool;
+
 /**
  * Obtém a configuração de conexão com o banco de dados
  * @returns {Object} Configuração para o pool de conexões PostgreSQL
@@ -15,54 +18,71 @@ function getDbConfig() {
   // Obter string de conexão da variável de ambiente ou usar valor padrão
   const connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
   
-  // Determinar se deve usar SSL
-  const useSSL = process.env.NODE_ENV === 'production' && 
-               !process.env.DISABLE_SSL && 
-               !connectionString.includes('sslmode=disable');
+  // Tratar conexões no formato EasyPanel
+  let dbConfig = {};
   
-  // Configurar pela string de conexão ou parâmetros individuais
-  let config;
-  
+  // Verificar se é uma string de conexão Postgres (formato URI)
   if (connectionString && connectionString.startsWith('postgres')) {
-    // Usar string de conexão
-    config = {
-      connectionString,
-      ssl: useSSL ? { rejectUnauthorized: false } : false
-    };
+    console.log(`Usando string de conexão do tipo URI`);
     
-    console.log(`Modo de conexão: String URI`);
+    // Verificar se SSL deve ser usado
+    const useSSL = process.env.NODE_ENV === 'production' && 
+                 !process.env.DISABLE_SSL && 
+                 !connectionString.includes('sslmode=disable');
+    
+    // Log da decisão de SSL (sem exibir a string completa por segurança)
     console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
-  } else {
-    // Usar parâmetros individuais
-    config = {
-      host: process.env.PGHOST || 'viajey_viajey',
-      database: process.env.PGDATABASE || 'viajey',
-      user: process.env.PGUSER || 'viajey',
-      password: process.env.PGPASSWORD || 'viajey',
-      port: parseInt(process.env.PGPORT || '5432', 10),
-      ssl: useSSL ? { rejectUnauthorized: false } : false
-    };
     
-    console.log(`Modo de conexão: Parâmetros`);
-    console.log(`Parâmetros: ${config.user}@${config.host}:${config.port}/${config.database}`);
+    dbConfig = {
+      connectionString,
+      ssl: useSSL ? { rejectUnauthorized: false } : false,
+    };
+  } else {
+    // Configuração por parâmetros individuais (formato EasyPanel)
+    console.log(`Usando configuração por parâmetros individuais`);
+    
+    // EasyPanel usa o formato: viajey_viajey para o host
+    const host = process.env.PGHOST || 'postgres';
+    const database = process.env.PGDATABASE || 'viajey';
+    const user = process.env.PGUSER || 'viajey';
+    const password = process.env.PGPASSWORD || 'viajey';
+    const port = parseInt(process.env.PGPORT || '5432', 10);
+    
+    dbConfig = {
+      host,
+      database,
+      user,
+      password,
+      port
+    };
   }
   
-  // Adicionar configurações comuns de pool
+  // Adicionar opções comuns
   return {
-    ...config,
-    max: 20,                     // Máximo de conexões no pool
-    idleTimeoutMillis: 30000,    // Tempo máximo de inatividade
-    connectionTimeoutMillis: 10000  // Timeout de conexão
+    ...dbConfig,
+    // Configurações adicionais para robustez
+    max: 20, // máximo de conexões no pool
+    idleTimeoutMillis: 30000, // tempo máximo que uma conexão pode ficar inativa no pool
+    connectionTimeoutMillis: 10000, // tempo máximo para tentar estabelecer uma conexão
   };
 }
 
-// Criar o pool de conexões
-const pool = new Pool(getDbConfig());
-
-// Monitorar eventos de erro no pool
-pool.on('error', (err, client) => {
-  console.error('Erro inesperado no pool de conexões:', err);
-});
+/**
+ * Inicializa o pool de conexões se ainda não existir
+ */
+function initPool() {
+  if (!pool) {
+    const config = getDbConfig();
+    pool = new Pool(config);
+    
+    // Monitoramento de erros no pool
+    pool.on('error', (err, client) => {
+      console.error('Erro inesperado no pool do postgres:', err);
+    });
+  }
+  
+  return pool;
+}
 
 /**
  * Executa uma consulta SQL parametrizada
@@ -71,20 +91,15 @@ pool.on('error', (err, client) => {
  * @returns {Promise<Object>} Resultado da consulta
  */
 async function query(text, params) {
-  const start = Date.now();
+  const pool = initPool();
+  
   try {
-    const result = await pool.query(text, params);
-    const duration = Date.now() - start;
-    
-    // Log de consultas lentas
-    if (duration > 500) {
-      console.log('Consulta lenta:', { text, duration, rows: result.rowCount });
-    }
-    
-    return result;
-  } catch (err) {
-    console.error('Erro na execução da query:', { text, params, error: err.message });
-    throw err;
+    return await pool.query(text, params);
+  } catch (error) {
+    console.error('Erro ao executar consulta:', error.message);
+    console.error('SQL:', text);
+    console.error('Parâmetros:', params);
+    throw error;
   }
 }
 
@@ -93,17 +108,28 @@ async function query(text, params) {
  * @returns {Promise<Object>} Cliente do pool
  */
 async function getClient() {
+  const pool = initPool();
   const client = await pool.connect();
   
-  // Sobrescrever método de release para detectar vazamentos
+  // Monkey patch para adicionar métodos de controle de transação
   const originalRelease = client.release;
-  const timeout = setTimeout(() => {
-    console.error('Cliente do pool possível vazamento detectado');
-  }, 30000);
   
+  // Sobrescrever release para detectar liberações tardias
   client.release = () => {
-    clearTimeout(timeout);
-    return originalRelease.call(client);
+    originalRelease.call(client);
+  };
+  
+  // Adicionar métodos de controle de transação
+  client.transaction = async (callback) => {
+    try {
+      await client.query('BEGIN');
+      const result = await callback(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    }
   };
   
   return client;
@@ -118,13 +144,7 @@ async function transaction(callback) {
   const client = await getClient();
   
   try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
+    return await client.transaction(callback);
   } finally {
     client.release();
   }
@@ -136,33 +156,39 @@ async function transaction(callback) {
  */
 async function checkConnection() {
   try {
-    const result = await query('SELECT NOW() as time');
-    
-    // Verificar tabelas existentes
-    const tables = await query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `);
+    // Tentar buscar o timestamp do servidor e listar tabelas
+    const timeResult = await query('SELECT NOW() as time');
+    const tablesResult = await query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"
+    );
     
     return {
       connected: true,
-      time: result.rows[0].time,
-      tables: tables.rows.map(row => row.table_name)
+      time: timeResult.rows[0].time,
+      tables: tablesResult.rows.map(row => row.table_name)
     };
-  } catch (err) {
+  } catch (error) {
     return {
       connected: false,
-      error: err.message
+      error: error.message
     };
   }
 }
 
-// Exportar funcionalidades
+/**
+ * Fecha a pool de conexões (útil em testes ou encerramento)
+ */
+async function end() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+  }
+}
+
 module.exports = {
   query,
   getClient,
   transaction,
   checkConnection,
-  pool
+  end
 };

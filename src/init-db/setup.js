@@ -3,8 +3,8 @@
  * Cria o schema inicial baseado nas definições
  */
 
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 const db = require('../shared/db');
 const migrator = require('./migrator');
 
@@ -15,22 +15,18 @@ const migrator = require('./migrator');
  */
 async function executeSqlFile(filepath) {
   try {
-    console.log(`Executando arquivo SQL: ${filepath}`);
+    console.log(`Executando arquivo SQL: ${path.basename(filepath)}`);
+    
+    // Ler conteúdo do arquivo
     const sql = fs.readFileSync(filepath, 'utf8');
     
-    // Dividir o SQL por quebras de linha e filtrar comentários e linhas vazias
-    const queries = sql
-      .split('\n')
-      .filter(line => !line.trim().startsWith('--') && line.trim() !== '')
-      .join('\n');
+    // Executar o SQL como uma transação
+    await db.query(sql);
     
-    // Executar as queries
-    await db.query(queries);
-    
-    console.log(`Arquivo SQL executado com sucesso: ${filepath}`);
+    console.log(`Arquivo SQL executado com sucesso: ${path.basename(filepath)}`);
     return true;
-  } catch (err) {
-    console.error(`Erro ao executar arquivo SQL: ${filepath}`, err);
+  } catch (error) {
+    console.error(`Erro ao executar arquivo SQL: ${error.message}`);
     return false;
   }
 }
@@ -41,17 +37,15 @@ async function executeSqlFile(filepath) {
  */
 async function isDatabaseInitialized() {
   try {
-    const result = await db.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'users'
-      ) as exists
-    `);
+    // Verificar se a tabela de usuários existe
+    const result = await db.query(
+      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users') as exists",
+      []
+    );
     
     return result.rows[0].exists;
-  } catch (err) {
-    console.error('Erro ao verificar inicialização do banco de dados:', err);
+  } catch (error) {
+    console.error('Erro ao verificar inicialização do banco de dados:', error.message);
     return false;
   }
 }
@@ -61,38 +55,44 @@ async function isDatabaseInitialized() {
  * @returns {Promise<boolean>} Resultado da execução
  */
 async function runMigrations() {
+  // Diretório de migrações
   const migrationsDir = path.join(__dirname, 'migrations');
   
-  // Verificar se o diretório de migrações existe
+  // Verificar se o diretório existe
   if (!fs.existsSync(migrationsDir)) {
-    console.log('Diretório de migrações não encontrado, criando...');
+    // Criar o diretório
     fs.mkdirSync(migrationsDir, { recursive: true });
+    
+    // Não há migrações para executar ainda
+    return true;
   }
   
-  // Listar arquivos de migração
-  const migrationFiles = fs.readdirSync(migrationsDir)
+  // Listar arquivos de migração em ordem alfabética
+  const migrations = fs.readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort();
   
-  // Se não há migrações, gerar uma nova
-  if (migrationFiles.length === 0) {
-    console.log('Nenhuma migração encontrada, gerando nova migração...');
+  // Se não houver migrações, criar uma inicial
+  if (migrations.length === 0) {
+    console.log('Nenhuma migração encontrada. Gerando migração inicial...');
+    
+    // Gerar SQL
     const sql = migrator.generateFullSchemaSql();
+    
+    // Salvar migração
     const filepath = migrator.saveMigration(sql);
     
-    // Adicionar o arquivo recém-criado à lista
-    migrationFiles.push(path.basename(filepath));
+    // Adicionar à lista de migrações
+    migrations.push(path.basename(filepath));
   }
   
-  console.log(`Encontradas ${migrationFiles.length} migrações para executar.`);
-  
   // Executar cada migração
-  for (const file of migrationFiles) {
-    const filepath = path.join(migrationsDir, file);
-    const success = await executeSqlFile(filepath);
+  for (const migration of migrations) {
+    const migrationPath = path.join(migrationsDir, migration);
     
+    const success = await executeSqlFile(migrationPath);
     if (!success) {
-      console.error(`Falha ao executar migração: ${file}`);
+      console.error(`Falha ao executar migração: ${migration}`);
       return false;
     }
   }
@@ -105,87 +105,69 @@ async function runMigrations() {
  */
 async function initializeDatabase() {
   try {
-    console.log('====================================================');
-    console.log('VIAJEY - Inicialização do Banco de Dados');
-    console.log('====================================================\n');
+    // Verificar conexão
+    const status = await db.checkConnection();
     
-    // Verificar conexão com o banco
-    console.log('Verificando conexão com o banco de dados...');
-    const connectionStatus = await db.checkConnection();
-    
-    if (!connectionStatus.connected) {
-      console.error('Falha na conexão com o banco de dados:', connectionStatus.error);
+    if (!status.connected) {
+      console.error('Falha na conexão com o banco de dados:', status.error);
       return false;
     }
     
-    console.log(`Conexão com o banco de dados estabelecida em: ${connectionStatus.time}`);
+    console.log('Conexão com o banco de dados estabelecida.');
     
-    // Verificar se o banco já está inicializado
-    const isInitialized = await isDatabaseInitialized();
+    // Verificar se o banco já foi inicializado
+    const initialized = await isDatabaseInitialized();
     
-    if (isInitialized) {
-      console.log('Banco de dados já foi inicializado anteriormente.');
+    if (initialized) {
+      console.log('Banco de dados já inicializado. Verificando migrações...');
       
-      if (connectionStatus.tables && connectionStatus.tables.length > 0) {
-        console.log('Tabelas existentes:');
-        connectionStatus.tables.forEach(table => {
-          console.log(`- ${table}`);
-        });
-      }
+      // Executar migrações pendentes
+      const migrationsResult = await runMigrations();
       
-      // Perguntar se o usuário deseja executar migrações mesmo assim
-      console.log('Executando migrações pendentes...');
-      await runMigrations();
-    } else {
-      console.log('Banco de dados não inicializado, criando schema inicial...');
-      const success = await runMigrations();
-      
-      if (!success) {
-        console.error('Falha ao inicializar o banco de dados.');
+      if (!migrationsResult) {
+        console.error('Falha ao executar migrações pendentes.');
         return false;
       }
       
-      console.log('Banco de dados inicializado com sucesso!');
+      console.log('Migrações executadas com sucesso.');
+      return true;
     }
     
-    // Verificar estado final do banco
-    const finalStatus = await db.checkConnection();
-    console.log('\nVerificação final do banco de dados:');
+    console.log('Banco de dados não inicializado. Criando schema...');
     
-    if (finalStatus.tables && finalStatus.tables.length > 0) {
-      console.log('Tabelas disponíveis:');
-      finalStatus.tables.forEach(table => {
-        console.log(`- ${table}`);
-      });
-    } else {
-      console.log('Nenhuma tabela encontrada após inicialização!');
+    // Executar migrações para criar o schema
+    const result = await runMigrations();
+    
+    if (!result) {
+      console.error('Falha ao criar schema inicial.');
+      return false;
     }
     
-    console.log('\n====================================================');
-    console.log('Inicialização concluída com sucesso!');
-    console.log('====================================================');
-    
+    console.log('Schema criado com sucesso.');
     return true;
-  } catch (err) {
-    console.error('Erro fatal durante inicialização do banco de dados:', err);
+  } catch (error) {
+    console.error('Erro ao inicializar banco de dados:', error.message);
     return false;
-  } finally {
-    // Fechar pool de conexões para encerrar o script
-    await db.pool.end();
   }
 }
 
-// Executar se for chamado diretamente
+// Exportar função principal
+module.exports = initializeDatabase;
+
+// Se o script for executado diretamente
 if (require.main === module) {
   initializeDatabase()
     .then(success => {
-      process.exit(success ? 0 : 1);
+      if (success) {
+        console.log('Banco de dados inicializado com sucesso!');
+        process.exit(0);
+      } else {
+        console.error('Falha ao inicializar banco de dados. Veja os erros acima.');
+        process.exit(1);
+      }
     })
-    .catch(err => {
-      console.error('Erro não tratado:', err);
+    .catch(error => {
+      console.error('Erro fatal durante inicialização do banco de dados:', error);
       process.exit(1);
     });
 }
-
-// Exportar função para uso em outros módulos
-module.exports = initializeDatabase;

@@ -8,76 +8,13 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg');
 
 // Inicialização do app Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configurar conexão PostgreSQL
-const getDbConfig = () => {
-  console.log('Configurando conexão com PostgreSQL...');
-  
-  // Obter string de conexão da variável de ambiente ou usar valor padrão
-  const connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
-  
-  // Tratar conexões no formato EasyPanel
-  let dbConfig = {};
-  
-  // Verificar se é uma string de conexão Postgres (formato URI)
-  if (connectionString && connectionString.startsWith('postgres')) {
-    console.log(`Usando string de conexão do tipo URI`);
-    
-    // Verificar se SSL deve ser usado
-    const useSSL = process.env.NODE_ENV === 'production' && 
-                 !process.env.DISABLE_SSL && 
-                 !connectionString.includes('sslmode=disable');
-    
-    // Log da decisão de SSL (sem exibir a string completa por segurança)
-    console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
-    
-    dbConfig = {
-      connectionString,
-      ssl: useSSL ? { rejectUnauthorized: false } : false,
-    };
-  } else {
-    // Configuração por parâmetros individuais (formato EasyPanel)
-    console.log(`Usando configuração por parâmetros individuais`);
-    
-    // EasyPanel usa o formato: viajey_viajey para o host
-    const host = process.env.PGHOST || 'viajey_viajey';
-    const database = process.env.PGDATABASE || 'viajey';
-    const user = process.env.PGUSER || 'viajey';
-    const password = process.env.PGPASSWORD || 'viajey';
-    const port = parseInt(process.env.PGPORT || '5432', 10);
-    
-    dbConfig = {
-      host,
-      database,
-      user,
-      password,
-      port
-    };
-  }
-  
-  // Adicionar opções comuns
-  return {
-    ...dbConfig,
-    // Configurações adicionais para robustez
-    max: 20, // máximo de conexões no pool
-    idleTimeoutMillis: 30000, // tempo máximo que uma conexão pode ficar inativa no pool
-    connectionTimeoutMillis: 10000, // tempo máximo para tentar estabelecer uma conexão
-  };
-};
-
-// Configuração da conexão com PostgreSQL
-const dbConfig = getDbConfig();
-
-// Criar pool de conexões PostgreSQL
-const pool = new Pool(dbConfig);
-
-// Importar script de inicialização do banco de dados
-const dbInit = require('./db/init');
+// Importar configuração do banco de dados
+const db = require('./shared/db');
 
 // Inicializar banco de dados na inicialização do servidor
 (async () => {
@@ -86,29 +23,31 @@ const dbInit = require('./db/init');
   
   while (retries > 0 && !connected) {
     try {
-      console.log(`Tentando conectar e inicializar o banco de dados (tentativas restantes: ${retries})...`);
+      console.log(`Tentando conectar ao banco de dados (tentativas restantes: ${retries})...`);
       
       // Verificar conexão
-      const dbStatus = await dbInit.checkDatabaseConnection();
+      const status = await db.checkConnection();
       
-      if (!dbStatus.connected) {
-        throw new Error(`Falha na conexão: ${dbStatus.error}`);
+      if (!status.connected) {
+        throw new Error(`Falha na conexão: ${status.error}`);
       }
       
-      console.log('Conexão com o banco estabelecida, inicializando esquema...');
+      console.log('Conexão com o banco estabelecida!');
+      console.log(`Timestamp do servidor: ${status.time}`);
       
-      // Inicializar esquema
-      await dbInit.initDatabase();
+      // Verificar tabelas existentes
+      if (status.tables && status.tables.length > 0) {
+        console.log('Tabelas disponíveis:');
+        status.tables.forEach(table => {
+          console.log(`- ${table}`);
+        });
+      } else {
+        console.log('Nenhuma tabela encontrada. Execute o script init-db.js para inicializar o esquema.');
+      }
       
       connected = true;
-      console.log('Banco de dados inicializado com sucesso');
-      
-      // Mostrar tabelas disponíveis
-      const statusAfterInit = await dbInit.checkDatabaseConnection();
-      console.log('Tabelas disponíveis:', statusAfterInit.tables.join(', '));
-      
     } catch (error) {
-      console.error('Erro ao conectar/inicializar banco de dados:', error.message);
+      console.error('Erro ao conectar com o banco de dados:', error.message);
       retries--;
       
       if (retries > 0) {
@@ -117,6 +56,7 @@ const dbInit = require('./db/init');
         await new Promise(resolve => setTimeout(resolve, waitTime));
       } else {
         console.error('Número máximo de tentativas atingido. Verifique a conexão com o banco de dados.');
+        console.error('O servidor será iniciado, mas algumas funcionalidades podem não funcionar corretamente.');
       }
     }
   }
@@ -127,7 +67,7 @@ const dbInit = require('./db/init');
   console.log(`- Porta: ${process.env.PGPORT || '5432 (padrão)'}`);
   console.log(`- Banco: ${process.env.PGDATABASE || 'não definido'}`);
   console.log(`- Usuário: ${process.env.PGUSER || 'não definido'}`);
-  console.log(`- SSL: ${dbConfig.ssl ? 'Ativado' : 'Desativado'}`);
+  console.log(`- SSL: ${process.env.DISABLE_SSL === 'true' ? 'Desativado' : 'Configuração padrão'}`);
 })();
 
 // Middlewares
@@ -168,10 +108,6 @@ app.get('/status', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'status.html'));
 });
 
-// Exportar conexão do BD para ser usada pelos modelos
-const db = require('./db');
-db.pool = pool; // Adicionar pool à exportação do db
-
 // Importar rotas da API
 const apiRoutes = require('./routes/api');
 
@@ -183,22 +119,21 @@ app.get('/ping', (req, res) => {
 // Endpoint para verificar conexão com o banco de dados
 app.get('/api/healthcheck', async (req, res) => {
   try {
-    // Tentar executar uma query simples para verificar o banco
-    const result = await pool.query('SELECT NOW() as time');
+    // Usar nosso módulo de BD para verificar a conexão
+    const status = await db.checkConnection();
+    
+    if (!status.connected) {
+      throw new Error(status.error || 'Falha na conexão com o banco de dados');
+    }
     
     const dbInfo = {
       host: process.env.PGHOST || 'não definido',
       port: process.env.PGPORT || '5432 (padrão)',
       database: process.env.PGDATABASE || 'não definido',
       user: process.env.PGUSER || 'não definido',
-      ssl: dbConfig.ssl ? 'Ativado' : 'Desativado',
-      // Adicionar timestamp do banco para confirmar comunicação
-      serverTime: result.rows[0].time,
-      connectionPool: {
-        totalCount: pool.totalCount,
-        idleCount: pool.idleCount,
-        waitingCount: pool.waitingCount
-      }
+      ssl: process.env.DISABLE_SSL === 'true' ? 'Desativado' : 'Configuração padrão',
+      serverTime: status.time,
+      tables: status.tables || []
     };
     
     res.status(200).json({
@@ -216,7 +151,7 @@ app.get('/api/healthcheck', async (req, res) => {
         port: process.env.PGPORT || '5432 (padrão)',
         database: process.env.PGDATABASE || 'não definido',
         user: process.env.PGUSER || 'não definido',
-        ssl: dbConfig.ssl ? 'Ativado' : 'Desativado'
+        ssl: process.env.DISABLE_SSL === 'true' ? 'Desativado' : 'Configuração padrão'
       }
     });
   }
@@ -232,7 +167,7 @@ app.post('/api/activities', async (req, res) => {
       start_time, end_time, notes, position 
     } = req.body;
     
-    const result = await pool.query(
+    const result = await db.query(
       `INSERT INTO activities (
         itinerary_day_id, name, type, location, period, 
         start_time, end_time, notes, position
@@ -253,7 +188,7 @@ app.put('/api/activities/:id', async (req, res) => {
       start_time, end_time, notes, position 
     } = req.body;
     
-    const result = await pool.query(
+    const result = await db.query(
       `UPDATE activities SET 
         name = $1, type = $2, location = $3, period = $4,
         start_time = $5, end_time = $6, notes = $7, position = $8,
@@ -275,7 +210,7 @@ app.put('/api/activities/:id', async (req, res) => {
 app.delete('/api/activities/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM activities WHERE id = $1 RETURNING *', [id]);
+    const result = await db.query('DELETE FROM activities WHERE id = $1 RETURNING *', [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Atividade não encontrada' });
