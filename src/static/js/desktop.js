@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const modal = bootstrap.Modal.getInstance(document.getElementById('createItineraryModal'));
       if (modal) modal.hide();
       
-      // Redirecionar para a página de itinerário
-      window.location.href = `/itinerary-kanban.html?name=${encodeURIComponent(itineraryName)}&destination=${encodeURIComponent(destination)}`;
+      // Redirecionar para a página de exploração do destino
+      window.location.href = `/explorar.html?destination=${encodeURIComponent(destination)}&name=${encodeURIComponent(itineraryName)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
     });
   }
 });

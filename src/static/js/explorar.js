@@ -52,8 +52,41 @@ function initMap() {
     const urlParams = new URLSearchParams(window.location.search);
     const destination = urlParams.get('destination');
     const roteiroId = urlParams.get('roteiroId');
+    const name = urlParams.get('name');
+    const startDate = urlParams.get('startDate');
+    const endDate = urlParams.get('endDate');
     
-    if (roteiroId) {
+    // Armazenar os dados do roteiro para uso posterior
+    let roteiroDados = null;
+    
+    if (name && destination && startDate && endDate) {
+        // Se temos todos os parâmetros para um novo roteiro
+        roteiroDados = {
+            title: name,
+            destination: destination,
+            startDate: startDate,
+            endDate: endDate
+        };
+        
+        // Armazenar no localStorage para uso posterior na página kanban
+        localStorage.setItem('currentItinerary', JSON.stringify(roteiroDados));
+        
+        // Atualizar interface
+        document.getElementById('search-destination').value = destination;
+        currentDestination = destination;
+        document.getElementById('destination-title').textContent = `Explorando ${destination}`;
+        
+        // Atualizar botão de planejamento para mostrar que estamos criando um novo roteiro
+        const goToPlanningBtn = document.getElementById('go-to-planning-btn');
+        if (goToPlanningBtn) {
+            goToPlanningBtn.innerHTML = '<i class="fas fa-map-marked-alt me-1"></i> Continuar Planejamento';
+            goToPlanningBtn.classList.add('btn-success');
+        }
+        
+        // Buscar lugares para o destino
+        searchPlacesByDestination(destination);
+    }
+    else if (roteiroId) {
         // Buscar dados do roteiro a partir do ID
         fetch(`/api/itineraries/${roteiroId}`)
             .then(response => {
@@ -176,29 +209,8 @@ function setupEventListeners() {
         });
     });
     
-    // Botão para ir para a página de planejamento (kanban)
-    const goToPlanningBtn = document.getElementById('go-to-planning-btn');
-    if (goToPlanningBtn) {
-        goToPlanningBtn.addEventListener('click', function() {
-            // Obter o ID do roteiro atual
-            const urlParams = new URLSearchParams(window.location.search);
-            const roteiroId = urlParams.get('roteiroId');
-            
-            if (roteiroId) {
-                // Redirecionar para a página de planejamento com o ID do roteiro
-                window.location.href = `/itinerary-kanban?roteiroId=${roteiroId}`;
-            } else {
-                // Se não tiver roteiro, verificar se há um roteiro salvo no localStorage
-                const currentItinerary = JSON.parse(localStorage.getItem('currentItinerary') || '{}');
-                
-                if (currentItinerary && currentItinerary.id) {
-                    window.location.href = `/itinerary-kanban?roteiroId=${currentItinerary.id}`;
-                } else {
-                    alert('Você precisa criar um roteiro primeiro.');
-                }
-            }
-        });
-    }
+    // Nota: A implementação do botão "Ir para Planejamento" 
+    // está no código específico adicionado no final do arquivo
 }
 
 // Buscar lugares pelo destino
@@ -521,13 +533,23 @@ function getPlaceTypeClass(type) {
 
 // Adicionar lugar ao itinerário atual
 function addPlaceToItinerary(place) {
-    // Obter o ID do roteiro a partir da URL
+    // Obter os parâmetros da URL
     const urlParams = new URLSearchParams(window.location.search);
     const roteiroId = urlParams.get('roteiroId');
+    const name = urlParams.get('name');
+    const destination = urlParams.get('destination');
+    const startDate = urlParams.get('startDate');
+    const endDate = urlParams.get('endDate');
     
-    if (!roteiroId) {
-        alert('É necessário criar um roteiro antes de adicionar lugares.');
-        return;
+    // Verificar se temos um roteiro existente OU parâmetros para um novo roteiro
+    if (!roteiroId && !(name && destination && startDate && endDate)) {
+        // Verificar se temos dados no localStorage
+        const storedItinerary = JSON.parse(localStorage.getItem('currentItinerary') || '{}');
+        
+        if (!storedItinerary.title && !storedItinerary.destination) {
+            alert('É necessário criar um roteiro antes de adicionar lugares.');
+            return;
+        }
     }
     
     // Mostrar indicador de carregamento no botão
@@ -540,9 +562,15 @@ function addPlaceToItinerary(place) {
     // Buscar detalhes completos do lugar
     service.getDetails({ placeId: place.place_id }, (details, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
+            // Verificar se temos um roteiro com ID ou se estamos usando parâmetros da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const name = urlParams.get('name');
+            const destination = urlParams.get('destination');
+            const startDateParam = urlParams.get('startDate');
+            const endDateParam = urlParams.get('endDate');
+            
             // Converter dados para o formato esperado pelo sistema
             const placeData = {
-                itinerary_id: parseInt(roteiroId),
                 name: details.name,
                 type: place.placeType || details.types[0],
                 location: details.formatted_address || details.vicinity || '',
@@ -554,51 +582,58 @@ function addPlaceToItinerary(place) {
                 position: 0 // Será ajustado no modo Kanban
             };
             
-            // Buscar todos os dias do roteiro
-            fetch(`/api/itinerary-days?itinerary_id=${roteiroId}`)
-                .then(response => response.json())
-                .then(days => {
-                    // Restaurar estado do botão enquanto o modal é exibido
-                    if (addButton) {
-                        addButton.disabled = false;
-                        addButton.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar ao roteiro';
-                    }
-                    
-                    // Se não existem dias, criar os dias com base nas datas do roteiro
-                    if (!days || days.length === 0) {
-                        // Buscar detalhes do roteiro para saber o número de dias
-                        return fetch(`/api/itineraries/${roteiroId}`)
-                            .then(response => response.json())
-                            .then(roteiro => {
-                                const startDate = new Date(roteiro.start_date);
-                                const endDate = new Date(roteiro.end_date);
-                                
-                                // Calcular número de dias do roteiro
-                                const dayCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-                                
-                                // Criar os dias do roteiro
-                                const createDayPromises = [];
-                                for (let i = 0; i < dayCount; i++) {
-                                    const currentDate = new Date(startDate);
-                                    currentDate.setDate(startDate.getDate() + i);
+            // Se temos um ID de roteiro existente, adicioná-lo aos dados
+            if (roteiroId) {
+                placeData.itinerary_id = parseInt(roteiroId);
+            }
+            
+            // Restaurar estado do botão enquanto o modal é exibido
+            if (addButton) {
+                addButton.disabled = false;
+                addButton.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar ao roteiro';
+            }
+            
+            // Se é um roteiro existente, buscar os dias existentes
+            if (roteiroId) {
+                // Buscar todos os dias do roteiro
+                fetch(`/api/itinerary-days?itinerary_id=${roteiroId}`)
+                    .then(response => response.json())
+                    .then(days => {
+                        // Se não existem dias, criar os dias com base nas datas do roteiro
+                        if (!days || days.length === 0) {
+                            // Buscar detalhes do roteiro para saber o número de dias
+                            return fetch(`/api/itineraries/${roteiroId}`)
+                                .then(response => response.json())
+                                .then(roteiro => {
+                                    const startDate = new Date(roteiro.start_date);
+                                    const endDate = new Date(roteiro.end_date);
                                     
-                                    createDayPromises.push(
-                                        fetch('/api/itinerary-days', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: JSON.stringify({
-                                                itinerary_id: parseInt(roteiroId),
-                                                day_number: i + 1,
-                                                date: currentDate.toISOString().split('T')[0]
-                                            })
-                                        }).then(response => response.json())
-                                    );
-                                }
-                                
-                                return Promise.all(createDayPromises);
-                            })
+                                    // Calcular número de dias do roteiro
+                                    const dayCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                                    
+                                    // Criar os dias do roteiro
+                                    const createDayPromises = [];
+                                    for (let i = 0; i < dayCount; i++) {
+                                        const currentDate = new Date(startDate);
+                                        currentDate.setDate(startDate.getDate() + i);
+                                        
+                                        createDayPromises.push(
+                                            fetch('/api/itinerary-days', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    itinerary_id: parseInt(roteiroId),
+                                                    day_number: i + 1,
+                                                    date: currentDate.toISOString().split('T')[0]
+                                                })
+                                            }).then(response => response.json())
+                                        );
+                                    }
+                                    
+                                    return Promise.all(createDayPromises);
+                                })
                             .then(createdDays => {
                                 // Agora temos os dias criados, abrir modal de seleção
                                 showDaySelectionModal(createdDays, placeData, details);
@@ -622,6 +657,49 @@ function addPlaceToItinerary(place) {
                     // Mostrar erro
                     alert('Erro ao processar dias do roteiro. Por favor, tente novamente.');
                 });
+            } else if (name && destination && startDateParam && endDateParam) {
+                // Temos um novo roteiro com dados da URL
+                // Criar dias temporários para mostrar no modal
+                const startDate = new Date(startDateParam);
+                const endDate = new Date(endDateParam);
+                
+                // Calcular número de dias do roteiro
+                const dayCount = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                // Criar dias temporários (sem persistir no banco ainda)
+                const tempDays = [];
+                for (let i = 0; i < dayCount; i++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(startDate.getDate() + i);
+                    
+                    tempDays.push({
+                        id: 'temp-day-' + (i+1),
+                        day_number: i + 1,
+                        date: currentDate.toISOString().split('T')[0],
+                        activities: []
+                    });
+                }
+                
+                // Salvar no localStorage para uso posterior
+                localStorage.setItem('tempDays', JSON.stringify(tempDays));
+                
+                // Mostrar modal de seleção com os dias temporários
+                showDaySelectionModal(tempDays, placeData, details);
+            } else {
+                // Verificar se temos dias temporários no localStorage
+                const storedDays = JSON.parse(localStorage.getItem('tempDays') || '[]');
+                if (storedDays.length > 0) {
+                    showDaySelectionModal(storedDays, placeData, details);
+                } else {
+                    alert('É necessário criar um roteiro antes de adicionar lugares.');
+                    
+                    // Restaurar botão
+                    if (addButton) {
+                        addButton.disabled = false;
+                        addButton.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar ao roteiro';
+                    }
+                }
+            }
         }
     });
 }
@@ -722,11 +800,40 @@ function showDaySelectionModal(days, placeData, details) {
         // Atualizar dados da atividade com o dia e período selecionados
         const updatedPlaceData = {
             ...placeData,
-            itinerary_day_id: parseInt(selectedDayId),
             period: period
         };
         
-        // Salvar atividade
+        // Verificar se é um dia temporário ou um dia real no banco
+        const isTempDay = selectedDayId.toString().startsWith('temp-day');
+        
+        if (isTempDay) {
+            // Armazenar a atividade no localStorage para uso posterior
+            const tempActivityId = 'temp-activity-' + Date.now();
+            const tempActivity = {
+                ...updatedPlaceData,
+                id: tempActivityId,
+                day_id: selectedDayId,
+                day_number: parseInt(selectedDayId.split('-')[2]),
+                created_at: new Date().toISOString()
+            };
+            
+            // Adicionar à lista de atividades temporárias
+            let tempActivities = JSON.parse(localStorage.getItem('tempActivities') || '[]');
+            tempActivities.push(tempActivity);
+            localStorage.setItem('tempActivities', JSON.stringify(tempActivities));
+            
+            // Simular resposta de sucesso para manter a consistência da interface
+            setTimeout(() => {
+                handleActivitySuccess(tempActivity, details, period, selectedDayId, addButton);
+            }, 500);
+            
+            return; // Não fazer chamada para API
+        }
+        
+        // Se não for temporário, adicionar o ID do dia
+        updatedPlaceData.itinerary_day_id = parseInt(selectedDayId);
+        
+        // Salvar atividade no banco via API
         fetch('/api/activities', {
             method: 'POST',
             headers: {
@@ -741,59 +848,7 @@ function showDaySelectionModal(days, placeData, details) {
             return response.json();
         })
         .then(savedActivity => {
-            console.log("Added to itinerary:", details.name);
-            
-            // Armazenar cache local para uso futuro (opcional)
-            let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '[]');
-            savedPlaces.push(savedActivity);
-            localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
-            
-            // Atualizar o botão
-            if (addButton) {
-                addButton.disabled = false;
-                addButton.innerHTML = '<i class="fas fa-check"></i> Adicionado';
-                addButton.classList.remove('btn-outline-primary');
-                addButton.classList.add('btn-success');
-            }
-            
-            // Notificar usuário com um toast
-            const toastContainer = document.getElementById('toast-container') || (() => {
-                const container = document.createElement('div');
-                container.id = 'toast-container';
-                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                document.body.appendChild(container);
-                return container;
-            })();
-            
-            const selectedDay = document.querySelector(`.day-option[data-day-id="${selectedDayId}"]`);
-            const dayNumber = selectedDay ? selectedDay.getAttribute('data-day-number') : '';
-            
-            const toastElement = document.createElement('div');
-            toastElement.className = 'toast';
-            toastElement.setAttribute('role', 'alert');
-            toastElement.setAttribute('aria-live', 'assertive');
-            toastElement.setAttribute('aria-atomic', 'true');
-            
-            toastElement.innerHTML = `
-                <div class="toast-header">
-                    <strong class="me-auto">Viajey</strong>
-                    <small>Agora</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    <i class="fas fa-check-circle text-success me-2"></i>
-                    ${details.name} foi adicionado ao Dia ${dayNumber} (${period}) do seu roteiro!
-                </div>
-            `;
-            
-            toastContainer.appendChild(toastElement);
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
-            
-            // Remover toast após ser fechado
-            toastElement.addEventListener('hidden.bs.toast', () => {
-                toastElement.remove();
-            });
+            handleActivitySuccess(savedActivity, details, period, selectedDayId, addButton);
         })
         .catch(error => {
             console.error('Erro ao adicionar lugar ao roteiro:', error);
@@ -821,4 +876,295 @@ function getActivityCount(day) {
     // Na implementação real, você buscaria essa informação do banco de dados
     // Por enquanto, vamos retornar um valor aleatório entre 0 e 5
     return Math.floor(Math.random() * 5);
+}
+
+// Configurar o botão "Ir para Planejamento"
+document.addEventListener('DOMContentLoaded', function() {
+    const goToPlanningBtn = document.getElementById('go-to-planning-btn');
+    if (goToPlanningBtn) {
+        goToPlanningBtn.addEventListener('click', function() {
+            // Verificar se temos um ID de roteiro na URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const roteiroId = urlParams.get('roteiro');
+            
+            if (roteiroId) {
+                // Temos um roteiro existente, redirecionar para o kanban com este ID
+                window.location.href = `/itinerary-kanban?id=${roteiroId}`;
+            } else {
+                // Verificar se temos dias temporários
+                const tempDays = JSON.parse(localStorage.getItem('tempDays') || '[]');
+                const tempActivities = JSON.parse(localStorage.getItem('tempActivities') || '[]');
+                
+                if (tempDays.length > 0) {
+                    // Modal para confirmar criação do roteiro
+                    const destination = urlParams.get('destination') || 'Seu destino';
+                    const startDate = urlParams.get('start_date') || '';
+                    const endDate = urlParams.get('end_date') || '';
+                    const name = urlParams.get('name') || `Viagem para ${destination}`;
+                    
+                    // Se temos infos do roteiro, perguntar se deseja salvar
+                    if (destination && startDate && endDate) {
+                        showSaveItineraryModal(name, destination, startDate, endDate, tempDays, tempActivities);
+                    } else {
+                        alert('Por favor, crie um roteiro primeiro através da página inicial.');
+                        window.location.href = '/';
+                    }
+                } else {
+                    // Sem dias temporários, voltar para página inicial
+                    alert('Você ainda não tem um roteiro em andamento. Crie um na página inicial.');
+                    window.location.href = '/';
+                }
+            }
+        });
+    }
+});
+
+// Função para mostrar modal de salvamento do roteiro
+function showSaveItineraryModal(name, destination, startDate, endDate, tempDays, tempActivities) {
+    // Verificar se já existe um modal e removê-lo
+    const existingModal = document.getElementById('saveItineraryModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Criar modal para confirmação
+    const modalHtml = `
+        <div class="modal fade" id="saveItineraryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Salvar Roteiro de Viagem</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Você adicionou ${tempActivities.length} lugares ao seu roteiro para ${destination}.</p>
+                        <p>Deseja salvar este roteiro no banco de dados para poder visualizá-lo no planejador?</p>
+                        
+                        <div class="form-group mb-3">
+                            <label for="itineraryName" class="form-label">Nome do Roteiro</label>
+                            <input type="text" class="form-control" id="itineraryName" value="${name}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="confirmSaveItinerary">Salvar Roteiro</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adicionar modal ao body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Inicializar modal
+    const modal = new bootstrap.Modal(document.getElementById('saveItineraryModal'));
+    modal.show();
+    
+    // Configurar evento de confirmação
+    const confirmButton = document.getElementById('confirmSaveItinerary');
+    confirmButton.addEventListener('click', function() {
+        // Obter nome atualizado
+        const itineraryName = document.getElementById('itineraryName').value;
+        
+        // Mostrar loading no botão
+        confirmButton.disabled = true;
+        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+        
+        // Criar o roteiro no banco de dados
+        fetch('/api/itineraries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: itineraryName,
+                destination: destination,
+                start_date: startDate,
+                end_date: endDate,
+                description: `Roteiro para ${destination} de ${startDate} a ${endDate}`
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao criar roteiro');
+            }
+            return response.json();
+        })
+        .then(itinerary => {
+            // Agora criar os dias do roteiro
+            const promises = [];
+            
+            // Para cada dia temporário, criar um dia real
+            tempDays.forEach(tempDay => {
+                promises.push(
+                    fetch('/api/itinerary-days', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            itinerary_id: itinerary.id,
+                            day_number: tempDay.day_number,
+                            date: tempDay.date
+                        })
+                    }).then(response => response.json())
+                );
+            });
+            
+            // Esperar criação de todos os dias
+            return Promise.all(promises).then(createdDays => {
+                // Criar mapeamento de dias temporários para dias reais
+                const dayMapping = {};
+                tempDays.forEach((tempDay, index) => {
+                    dayMapping[tempDay.id] = createdDays[index].id;
+                });
+                
+                return { itinerary, dayMapping };
+            });
+        })
+        .then(({ itinerary, dayMapping }) => {
+            // Agora salvar as atividades
+            const activityPromises = [];
+            
+            // Para cada atividade temporária, criar uma atividade real
+            tempActivities.forEach(tempActivity => {
+                const realDayId = dayMapping[tempActivity.day_id];
+                if (realDayId) {
+                    const activityData = {
+                        ...tempActivity,
+                        itinerary_day_id: realDayId
+                    };
+                    delete activityData.id; // Remover ID temporário
+                    delete activityData.day_id; // Remover referência temporária
+                    
+                    activityPromises.push(
+                        fetch('/api/activities', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(activityData)
+                        }).then(response => response.json())
+                    );
+                }
+            });
+            
+            // Esperar criação de todas as atividades
+            return Promise.all(activityPromises).then(activities => {
+                return { itinerary, activities };
+            });
+        })
+        .then(({ itinerary }) => {
+            // Limpar dados temporários
+            localStorage.removeItem('tempDays');
+            localStorage.removeItem('tempActivities');
+            
+            // Fechar modal
+            modal.hide();
+            
+            // Mostrar toast de sucesso
+            const toastContainer = document.getElementById('toast-container') || (() => {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(container);
+                return container;
+            })();
+            
+            const toastElement = document.createElement('div');
+            toastElement.className = 'toast';
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            
+            toastElement.innerHTML = `
+                <div class="toast-header">
+                    <strong class="me-auto">Viajey</strong>
+                    <small>Agora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    Roteiro salvo com sucesso! Redirecionando para o planejador...
+                </div>
+            `;
+            
+            toastContainer.appendChild(toastElement);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Redirecionar após um breve atraso
+            setTimeout(() => {
+                window.location.href = `/itinerary-kanban?id=${itinerary.id}`;
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('Erro ao salvar roteiro:', error);
+            
+            // Restaurar botão
+            confirmButton.disabled = false;
+            confirmButton.innerHTML = 'Salvar Roteiro';
+            
+            // Mostrar erro
+            alert('Erro ao salvar roteiro. Por favor, tente novamente.');
+        });
+    });
+}
+
+// Função auxiliar para processar o sucesso ao adicionar uma atividade
+function handleActivitySuccess(activity, details, period, selectedDayId, addButton) {
+    console.log("Added to itinerary:", details.name);
+    
+    // Armazenar cache local para uso futuro (opcional)
+    let savedPlaces = JSON.parse(localStorage.getItem('savedPlaces') || '[]');
+    savedPlaces.push(activity);
+    localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
+    
+    // Atualizar o botão
+    if (addButton) {
+        addButton.disabled = false;
+        addButton.innerHTML = '<i class="fas fa-check"></i> Adicionado';
+        addButton.classList.remove('btn-outline-primary');
+        addButton.classList.add('btn-success');
+    }
+    
+    // Notificar usuário com um toast
+    const toastContainer = document.getElementById('toast-container') || (() => {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+        return container;
+    })();
+    
+    const selectedDay = document.querySelector(`.day-option[data-day-id="${selectedDayId}"]`);
+    const dayNumber = selectedDay ? selectedDay.getAttribute('data-day-number') : '';
+    
+    const toastElement = document.createElement('div');
+    toastElement.className = 'toast';
+    toastElement.setAttribute('role', 'alert');
+    toastElement.setAttribute('aria-live', 'assertive');
+    toastElement.setAttribute('aria-atomic', 'true');
+    
+    toastElement.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">Viajey</strong>
+            <small>Agora</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            ${details.name} foi adicionado ao Dia ${dayNumber} (${period}) do seu roteiro!
+        </div>
+    `;
+    
+    toastContainer.appendChild(toastElement);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Remover toast após ser fechado
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
 }
