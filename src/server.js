@@ -1,3 +1,8 @@
+/**
+ * Viajey - Servidor principal
+ * Aplicação de planejamento de viagens com Node.js e PostgreSQL
+ */
+
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -43,17 +48,31 @@ const pool = new Pool(dbConfig);
 // Inicializar banco de dados - criação de tabelas
 const initDatabase = async () => {
   try {
-    // Testar conectividade com o banco antes de continuar
-    try {
-      await pool.query('SELECT NOW()');
-      console.log('Conexão com o banco de dados estabelecida.');
-    } catch (dbError) {
-      console.error('Erro na conexão com o banco de dados:', dbError);
-      console.log('Verificando novamente em 5 segundos...');
-      // Espera 5 segundos e tenta novamente
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      await pool.query('SELECT NOW()');
+    let retryCount = 0;
+    const maxRetries = 5;
+    let connected = false;
+    
+    // Tentar conectar com retry
+    while (!connected && retryCount < maxRetries) {
+      try {
+        await pool.query('SELECT NOW()');
+        console.log('Conexão com o banco de dados estabelecida.');
+        connected = true;
+      } catch (dbError) {
+        retryCount++;
+        console.error(`Erro na conexão com o banco de dados (tentativa ${retryCount}/${maxRetries}):`, dbError);
+        
+        if (retryCount < maxRetries) {
+          console.log(`Verificando novamente em ${retryCount * 2} segundos...`);
+          // Espera com tempo crescente entre tentativas
+          await new Promise(resolve => setTimeout(resolve, retryCount * 2000));
+        } else {
+          throw new Error('Número máximo de tentativas de conexão excedido');
+        }
+      }
     }
+    
+    console.log('Criando ou verificando tabelas do banco de dados...');
     
     // Criar tabela de usuários
     await pool.query(`
@@ -63,7 +82,10 @@ const initDatabase = async () => {
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         profile_pic VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        preferences JSONB,
+        travel_style VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -78,6 +100,9 @@ const initDatabase = async () => {
         end_date DATE NOT NULL,
         preferences JSONB,
         price_range VARCHAR(50),
+        cover_image VARCHAR(255),
+        is_public BOOLEAN DEFAULT false,
+        share_code VARCHAR(20) UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -90,7 +115,10 @@ const initDatabase = async () => {
         itinerary_id INTEGER REFERENCES itineraries(id) ON DELETE CASCADE,
         day_number INTEGER NOT NULL,
         date DATE NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        title VARCHAR(100),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -102,19 +130,95 @@ const initDatabase = async () => {
         name VARCHAR(255) NOT NULL,
         type VARCHAR(50) NOT NULL,
         location VARCHAR(255),
+        address TEXT,
+        latitude DECIMAL(10, 8),
+        longitude DECIMAL(11, 8),
         period VARCHAR(50) NOT NULL,
         start_time TIME,
         end_time TIME,
         notes TEXT,
         position INTEGER,
+        price DECIMAL(10, 2),
+        rating DECIMAL(2, 1),
+        image_url VARCHAR(255),
+        place_id VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Criar tabela de lista de verificação (checklist)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS checklists (
+        id SERIAL PRIMARY KEY,
+        itinerary_id INTEGER REFERENCES itineraries(id) ON DELETE CASCADE,
+        title VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Criar tabela de itens do checklist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS checklist_items (
+        id SERIAL PRIMARY KEY,
+        checklist_id INTEGER REFERENCES checklists(id) ON DELETE CASCADE,
+        description VARCHAR(255) NOT NULL,
+        is_checked BOOLEAN DEFAULT false,
+        category VARCHAR(50),
+        priority INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Criar tabela para armazenar dados de lugares (para reduzir chamadas à API)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cached_places (
+        id SERIAL PRIMARY KEY,
+        place_id VARCHAR(255) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        type VARCHAR(50),
+        address TEXT,
+        latitude DECIMAL(10, 8),
+        longitude DECIMAL(11, 8),
+        phone VARCHAR(50),
+        website VARCHAR(255),
+        rating DECIMAL(2, 1),
+        price_level INTEGER,
+        place_data JSONB,
+        photos JSONB,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Criar tabela para comentários
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comments (
+        id SERIAL PRIMARY KEY,
+        itinerary_id INTEGER REFERENCES itineraries(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id),
+        comment TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Criar tabela para favoritos
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        itinerary_id INTEGER REFERENCES itineraries(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, itinerary_id)
       )
     `);
 
     console.log('Banco de dados inicializado com sucesso.');
   } catch (error) {
     console.error('Erro ao inicializar banco de dados:', error);
+    throw error; // Propagar erro para permitir retry em nível superior
   }
 };
 
@@ -190,20 +294,12 @@ app.get('/status', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'status.html'));
 });
 
-// API Endpoints
-// Usuários
-app.post('/api/users', async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    const result = await pool.query(
-      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id',
-      [username, email, password]
-    );
-    res.status(201).json({ id: result.rows[0].id, username, email });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Exportar conexão do BD para ser usada pelos modelos
+const db = require('./db');
+db.pool = pool; // Adicionar pool à exportação do db
+
+// Importar rotas da API
+const apiRoutes = require('./routes/api');
 
 // Endpoint de ping para verificação de status
 app.get('/ping', (req, res) => {
@@ -252,56 +348,8 @@ app.get('/api/healthcheck', async (req, res) => {
   }
 });
 
-// Itinerários
-app.get('/api/itineraries', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM itineraries ORDER BY created_at DESC');
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/itineraries', async (req, res) => {
-  try {
-    const { user_id, title, destination, start_date, end_date, preferences, price_range } = req.body;
-    const result = await pool.query(
-      'INSERT INTO itineraries (user_id, title, destination, start_date, end_date, preferences, price_range) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [user_id, title, destination, start_date, end_date, preferences, price_range]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Dias do Itinerário
-app.post('/api/itinerary-days', async (req, res) => {
-  try {
-    const { itinerary_id, day_number, date } = req.body;
-    const result = await pool.query(
-      'INSERT INTO itinerary_days (itinerary_id, day_number, date) VALUES ($1, $2, $3) RETURNING *',
-      [itinerary_id, day_number, date]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Atividades
-app.get('/api/activities/:dayId', async (req, res) => {
-  try {
-    const { dayId } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM activities WHERE itinerary_day_id = $1 ORDER BY period, position',
-      [dayId]
-    );
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Usar as rotas da API
+app.use('/api', apiRoutes);
 
 app.post('/api/activities', async (req, res) => {
   try {

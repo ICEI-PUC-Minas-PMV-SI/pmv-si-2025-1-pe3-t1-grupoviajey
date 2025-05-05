@@ -3,18 +3,11 @@ FROM node:20-slim
 # Instalar ferramentas necessárias
 RUN apt-get update && apt-get install -y \
     postgresql-client \
-    python3 \
-    python3-pip \
-    python3-flask \
-    python3-psycopg2 \
-    gunicorn \
     curl \
     netcat-openbsd \
     procps \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Não precisamos usar pip diretamente, estamos usando os pacotes do sistema
 
 # Criar diretório da aplicação
 WORKDIR /app

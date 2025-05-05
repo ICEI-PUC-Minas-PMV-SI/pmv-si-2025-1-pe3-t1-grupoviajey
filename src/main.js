@@ -1,7 +1,10 @@
-// Este arquivo serve como ponto de entrada para o Replit
+/**
+ * Arquivo main.js
+ * Ponto de entrada para o servidor Node.js do Viajey
+ * Substitui a antiga implementação em Python (main.py)
+ */
 
-// Importar e iniciar o servidor Node.js diretamente
-require('./server.js');
+console.log('Iniciando servidor Viajey...');
 
-// Note: Este arquivo foi criado para compatibilidade com o Replit
-// O servidor Node.js será executado a partir do arquivo server.js
+// Importar o servidor - toda a lógica está no server.js
+require('./server');
