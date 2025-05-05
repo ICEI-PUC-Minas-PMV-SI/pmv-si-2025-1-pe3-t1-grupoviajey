@@ -9,8 +9,8 @@ const { Pool } = require('pg');
 const getDbConfig = () => {
   console.log('Configurando conexão com PostgreSQL (db/index.js)...');
   
-  // Obter string de conexão da variável de ambiente ou usar valor padrão
-  const connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
+  // Obter string de conexão da variável de ambiente ou usar valor padrão para EasyPanel
+  const connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable';
   
   // Tratar conexões no formato EasyPanel
   let dbConfig = {};
@@ -19,13 +19,21 @@ const getDbConfig = () => {
   if (connectionString && connectionString.startsWith('postgres')) {
     console.log(`Usando string de conexão do tipo URI`);
     
-    // Verificar se SSL deve ser usado
-    const useSSL = process.env.NODE_ENV === 'production' && 
-                 !process.env.DISABLE_SSL && 
-                 !connectionString.includes('sslmode=disable');
+    // Verificar se SSL deve ser desativado explicitamente
+    // Tanto pelo parâmetro na URL quanto pela variável de ambiente
+    const disableSSL = process.env.DISABLE_SSL === 'true' || 
+                     connectionString.includes('sslmode=disable');
+    
+    // Para EasyPanel em ambiente Docker, geralmente desabilitar SSL é necessário
+    const useSSL = !disableSSL;
     
     // Log da decisão de SSL (sem exibir a string completa por segurança)
     console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
+    
+    // Suporte especial para formato EasyPanel (viajey_viajey como hostname)
+    if (connectionString.includes('viajey_viajey')) {
+      console.log('Detectada string de conexão no formato EasyPanel');
+    }
     
     dbConfig = {
       connectionString,

@@ -1,42 +1,35 @@
 FROM node:20-slim
 
-# Instalar ferramentas necessárias
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    curl \
-    netcat-openbsd \
-    procps \
-    dnsutils \
-    host \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Criar diretório da aplicação
 WORKDIR /app
 
-# Instalar dependências
-COPY package*.json ./
-RUN npm install
+# Instalar ferramentas necessárias (inclui postgresql-client para scripts de inicialização)
+RUN apt-get update && apt-get install -y postgresql-client wget curl && rm -rf /var/lib/apt/lists/*
 
-# Copiar arquivos da aplicação
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm ci
+
+# Copiar o restante dos arquivos do projeto
 COPY . .
 
-# Remover arquivos desnecessários para reduzir o tamanho da imagem
-RUN rm -rf .git .cache .vscode
+# Tornar o script de entrada executável
+RUN chmod +x docker-entrypoint.sh
+RUN chmod +x wait-for-postgres.sh
 
-# Expor porta
+# Expor a porta utilizada pelo aplicativo
 EXPOSE 5000
 
-# Definir variáveis de ambiente mínimas necessárias para o funcionamento
-# As variáveis de banco de dados não devem ser definidas no Dockerfile por questões de segurança
-# Serão fornecidas como variáveis de ambiente no EasyPanel ou via .env no desenvolvimento local
-ENV PORT=5000
-ENV NODE_ENV=production
+# Valores padrão para variáveis de ambiente
+ENV DATABASE_URL=${DATABASE_URL:-postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable}
+ENV NODE_ENV=${NODE_ENV:-production}
+ENV PORT=${PORT:-5000}
+ENV JWT_SECRET=${JWT_SECRET:-segredo123}
 ENV DISABLE_SSL=true
 
-# Scripts para iniciar a aplicação e verificar PostgreSQL
-COPY docker-entrypoint.sh wait-for-postgres.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh /app/wait-for-postgres.sh
+# Usar o script de entrada para inicialização
+ENTRYPOINT ["./docker-entrypoint.sh"]
 
-# Executar o script de entrada em vez de iniciar a aplicação diretamente
-CMD ["/app/docker-entrypoint.sh"]
+# Comando para iniciar a aplicação após o script de entrada
+CMD ["node", "server.js"]

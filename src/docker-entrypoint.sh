@@ -24,14 +24,15 @@ check_db_connection() {
         # Extração manual para este formato específico
         DB_USER="viajey"
         DB_PASS="viajey"
+        DB_HOST="viajey_viajey"
+        DB_PORT="5432"
+        DB_NAME="viajey"
         
-        # Extrair host e porta
-        host_port=$(echo "$db_url" | sed -n 's/postgres:\/\/[^@]*@\([^\/]*\)\/.*/\1/p')
-        DB_HOST=$(echo "$host_port" | cut -d':' -f1)
-        DB_PORT=$(echo "$host_port" | cut -d':' -f2)
-        
-        # Extrair nome do banco
-        DB_NAME=$(echo "$db_url" | sed -n 's/.*\/\([^?]*\).*/\1/p')
+        echo "Usando configuração fixa para EasyPanel:
+- Host: $DB_HOST
+- Porta: $DB_PORT
+- BD: $DB_NAME
+- Usuário: $DB_USER"
     else
         # Formato padrão: postgres://username:password@hostname:port/database
         regex="postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/([^?]+)"
@@ -135,16 +136,15 @@ if [[ "$DATABASE_URL" == *"viajey:viajey@viajey_viajey"* ]]; then
     # Formato EasyPanel: postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable
     export PGUSER="viajey"
     export PGPASSWORD="viajey"
-    
-    # Extrair host e porta
-    host_port=$(echo "$DATABASE_URL" | sed -n 's/postgres:\/\/[^@]*@\([^\/]*\)\/.*/\1/p')
-    export PGHOST=$(echo "$host_port" | cut -d':' -f1)
-    export PGPORT=$(echo "$host_port" | cut -d':' -f2)
-    
-    # Extrair nome do banco
-    export PGDATABASE=$(echo "$DATABASE_URL" | sed -n 's/.*\/\([^?]*\).*/\1/p')
+    export PGHOST="viajey_viajey"
+    export PGPORT="5432"
+    export PGDATABASE="viajey"
     
     echo "Variáveis de ambiente PostgreSQL definidas com sucesso (formato EasyPanel)"
+    echo "- Host: $PGHOST"
+    echo "- Porta: $PGPORT"
+    echo "- Banco: $PGDATABASE"
+    echo "- Usuário: $PGUSER"
 elif [[ $DATABASE_URL =~ postgres:\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+) ]]; then
     # Formato padrão
     export PGUSER="${BASH_REMATCH[1]}"
