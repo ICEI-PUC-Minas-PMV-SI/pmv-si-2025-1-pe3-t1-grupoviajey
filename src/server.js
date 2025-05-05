@@ -157,6 +157,29 @@ app.get('/api/healthcheck', async (req, res) => {
   }
 });
 
+// Endpoint para listar itinerários (como teste de acesso aos dados)
+app.get('/api/test/itineraries', async (req, res) => {
+  try {
+    // Obter itinerários do banco de dados
+    const result = await db.query(
+      'SELECT id, title, destination, start_date, end_date FROM itineraries LIMIT 10'
+    );
+    
+    res.status(200).json({
+      status: 'ok',
+      message: 'Itinerários obtidos com sucesso',
+      count: result.rows.length,
+      data: result.rows
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Falha ao obter itinerários',
+      error: error.message
+    });
+  }
+});
+
 // Usar as rotas da API
 app.use('/api', apiRoutes);
 

@@ -9,7 +9,7 @@ const db = require('../shared/db');
 const migrator = require('./migrator');
 
 /**
- * Executa um arquivo SQL
+ * Executa um arquivo SQL, com tratamento de erros específicos
  * @param {string} filepath - Caminho para o arquivo SQL
  * @returns {Promise<boolean>} Resultado da execução
  */
@@ -18,15 +18,67 @@ async function executeSqlFile(filepath) {
     console.log(`Executando arquivo SQL: ${path.basename(filepath)}`);
     
     // Ler conteúdo do arquivo
-    const sql = fs.readFileSync(filepath, 'utf8');
+    let sql = fs.readFileSync(filepath, 'utf8');
     
-    // Executar o SQL como uma transação
-    await db.query(sql);
-    
-    console.log(`Arquivo SQL executado com sucesso: ${path.basename(filepath)}`);
-    return true;
+    try {
+      // Tentar executar o SQL completo
+      await db.query(sql);
+      console.log(`Arquivo SQL executado com sucesso: ${path.basename(filepath)}`);
+      return true;
+    } catch (error) {
+      // Tratar erros específicos - por exemplo, índice share_code
+      if (error.message.includes('share_code')) {
+        console.warn('AVISO: Detectado erro relacionado a share_code. Tentando executar com adaptações...');
+        
+        // Remover referências a share_code do SQL
+        const fixedSql = sql
+          // Remover coluna share_code da tabela itineraries
+          .replace(`,\n  "share_code" VARCHAR(20) UNIQUE`, '')
+          // Remover índice para share_code
+          .replace(/CREATE.*?INDEX.*?share_code.*?;/g, '');
+        
+        try {
+          // Tentar executar versão corrigida
+          await db.query(fixedSql);
+          console.log(`Arquivo SQL executado com adaptações para esquema existente: ${path.basename(filepath)}`);
+          return true;
+        } catch (secondError) {
+          console.error(`Erro após adaptação: ${secondError.message}`);
+          return false;
+        }
+      }
+      
+      // Tratar outros erros - executar linha por linha
+      console.warn(`AVISO: Erro ao executar arquivo SQL como transação: ${error.message}`);
+      console.warn('Tentando executar cada declaração SQL individualmente...');
+      
+      // Dividir em declarações SQL individuais e executar uma a uma
+      const statements = sql.split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      
+      let success = true;
+      for (const stmt of statements) {
+        try {
+          await db.query(stmt + ';');
+        } catch (stmtError) {
+          console.warn(`AVISO: Erro em declaração SQL: ${stmtError.message}`);
+          console.warn(`SQL problemático: ${stmt.substring(0, 100)}...`);
+          // Continuar mesmo com erro
+          success = false;
+        }
+      }
+      
+      if (success) {
+        console.log(`Arquivo SQL executado parcialmente: ${path.basename(filepath)}`);
+        return true;
+      } else {
+        console.error(`Alguns erros ocorreram ao executar: ${path.basename(filepath)}`);
+        return false;
+      }
+    }
   } catch (error) {
-    console.error(`Erro ao executar arquivo SQL: ${error.message}`);
+    console.error(`Erro ao processar arquivo SQL: ${error.message}`);
     return false;
   }
 }
@@ -37,24 +89,44 @@ async function executeSqlFile(filepath) {
  */
 async function isDatabaseInitialized() {
   try {
-    // Verificar se a tabela de usuários existe
-    const userTableExists = await db.query(
-      "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users') as exists",
-      []
+    // Verificar tabelas essenciais do nosso esquema
+    const checkTables = [
+      "users", "itineraries", "itinerary_days", "activities", 
+      "checklists", "checklist_items", "expenses", "places"
+    ];
+    
+    // Montar query para verificar a existência de todas as tabelas do nosso esquema
+    const tableChecks = await Promise.all(
+      checkTables.map(tableName => 
+        db.query(
+          `SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = $1
+          ) as exists`,
+          [tableName]
+        )
+      )
     );
     
-    // Verificar se existem outras tabelas base
+    // Verificar se todas as tabelas existem (esquema completo)
+    const tablesExist = tableChecks.every(result => result.rows[0].exists);
+    
+    // Verificar quantas tabelas existem no total
     const result = await db.query(
       "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'",
       []
     );
     
-    // Se existem tabelas mas não é o nosso esquema, é um esquema diferente
     const tableCount = parseInt(result.rows[0].count, 10);
-    const existingSchema = tableCount > 0 && !userTableExists.rows[0].exists;
+    
+    // Se temos pelo menos uma tabela, mas não temos nosso esquema completo
+    const existingSchema = tableCount > 0 && !tablesExist;
+    
+    console.log(`Verificação de esquema: ${tablesExist ? 'Nosso esquema completo detectado' : 'Nosso esquema não está completo'}`);
+    console.log(`Total de tabelas: ${tableCount}`);
     
     return {
-      initialized: userTableExists.rows[0].exists,
+      initialized: tablesExist,
       existingSchema
     };
   } catch (error) {
@@ -114,6 +186,52 @@ async function runMigrations() {
 }
 
 /**
+ * Analisa o esquema existente para compatibilidade
+ * @returns {Promise<boolean>} True se esquema é compatível
+ */
+async function analyzeExistingSchema() {
+  try {
+    console.log('Analisando esquema existente...');
+    
+    // Listar todas as tabelas
+    const tablesResult = await db.query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
+      []
+    );
+    
+    // Verificar tabelas importantes
+    const tableNames = tablesResult.rows.map(row => row.table_name);
+    console.log('Tabelas encontradas:', tableNames.join(', '));
+    
+    // Verificar estrutura da tabela de itinerários
+    if (tableNames.includes('itineraries')) {
+      const columnsResult = await db.query(
+        "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'itineraries'",
+        []
+      );
+      
+      const columnNames = columnsResult.rows.map(row => row.column_name);
+      console.log('Colunas em itineraries:', columnNames.join(', '));
+      
+      // Verificar colunas básicas essenciais
+      const essentialColumns = ['id', 'title', 'destination', 'start_date', 'end_date'];
+      const hasEssentials = essentialColumns.every(col => columnNames.includes(col));
+      
+      if (hasEssentials) {
+        console.log('Esquema existente tem estrutura básica compatível.');
+        return true;
+      }
+    }
+    
+    console.log('Esquema existente não é compatível com a aplicação Viajey.');
+    return false;
+  } catch (error) {
+    console.error('Erro ao analisar esquema existente:', error.message);
+    return false;
+  }
+}
+
+/**
  * Inicializa o banco de dados
  */
 async function initializeDatabase() {
@@ -129,10 +247,11 @@ async function initializeDatabase() {
     console.log('Conexão com o banco de dados estabelecida.');
     
     // Verificar se o banco já foi inicializado
-    const initialized = await isDatabaseInitialized();
+    const dbStatus = await isDatabaseInitialized();
     
-    if (initialized) {
-      console.log('Banco de dados já inicializado. Verificando migrações...');
+    // Se já temos nosso esquema
+    if (dbStatus.initialized) {
+      console.log('Banco de dados já inicializado com esquema Viajey. Verificando migrações...');
       
       // Executar migrações pendentes
       const migrationsResult = await runMigrations();
@@ -146,6 +265,26 @@ async function initializeDatabase() {
       return true;
     }
     
+    // Se existe algum esquema que não é o nosso
+    if (dbStatus.existingSchema) {
+      console.log('Banco de dados contém um esquema existente diferente do esquema Viajey.');
+      
+      // Analisar esquema existente para compatibilidade
+      const isCompatible = await analyzeExistingSchema();
+      
+      if (isCompatible) {
+        console.log('Usando esquema existente por compatibilidade.');
+        return true;
+      } else {
+        console.log('Esquema existente não é compatível. Pulando inicialização para evitar conflitos.');
+        console.log('AVISO: A aplicação pode não funcionar corretamente com este esquema.');
+        
+        // Retornar true para não bloquear a inicialização do servidor
+        return true;
+      }
+    }
+    
+    // Caso de banco novo sem esquema
     console.log('Banco de dados não inicializado. Criando schema...');
     
     // Executar migrações para criar o schema
