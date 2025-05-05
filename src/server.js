@@ -16,22 +16,53 @@ const PORT = process.env.PORT || 3000;
 
 // Configurar conexão PostgreSQL
 const getDbConfig = () => {
-  // String de conexão padrão
-  let connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
   console.log('Configurando conexão com PostgreSQL...');
   
-  // Determinar se deve usar SSL
-  const useSSL = process.env.NODE_ENV === 'production' && 
-                !process.env.DISABLE_SSL && 
-                !connectionString.includes('sslmode=disable');
+  // Obter string de conexão da variável de ambiente ou usar valor padrão
+  const connectionString = process.env.DATABASE_URL || 'postgres://viajey:viajey@postgres:5432/viajey';
   
-  // Log da decisão de SSL (sem exibir a string completa por segurança)
-  console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
+  // Tratar conexões no formato EasyPanel
+  let dbConfig = {};
   
-  // Opções de conexão
+  // Verificar se é uma string de conexão Postgres (formato URI)
+  if (connectionString && connectionString.startsWith('postgres')) {
+    console.log(`Usando string de conexão do tipo URI`);
+    
+    // Verificar se SSL deve ser usado
+    const useSSL = process.env.NODE_ENV === 'production' && 
+                 !process.env.DISABLE_SSL && 
+                 !connectionString.includes('sslmode=disable');
+    
+    // Log da decisão de SSL (sem exibir a string completa por segurança)
+    console.log(`Modo SSL: ${useSSL ? 'ATIVADO' : 'DESATIVADO'}`);
+    
+    dbConfig = {
+      connectionString,
+      ssl: useSSL ? { rejectUnauthorized: false } : false,
+    };
+  } else {
+    // Configuração por parâmetros individuais (formato EasyPanel)
+    console.log(`Usando configuração por parâmetros individuais`);
+    
+    // EasyPanel usa o formato: viajey_viajey para o host
+    const host = process.env.PGHOST || 'viajey_viajey';
+    const database = process.env.PGDATABASE || 'viajey';
+    const user = process.env.PGUSER || 'viajey';
+    const password = process.env.PGPASSWORD || 'viajey';
+    const port = parseInt(process.env.PGPORT || '5432', 10);
+    
+    dbConfig = {
+      host,
+      database,
+      user,
+      password,
+      port
+    };
+  }
+  
+  // Adicionar opções comuns
   return {
-    connectionString,
-    ssl: useSSL ? { rejectUnauthorized: false } : false,
+    ...dbConfig,
     // Configurações adicionais para robustez
     max: 20, // máximo de conexões no pool
     idleTimeoutMillis: 30000, // tempo máximo que uma conexão pode ficar inativa no pool

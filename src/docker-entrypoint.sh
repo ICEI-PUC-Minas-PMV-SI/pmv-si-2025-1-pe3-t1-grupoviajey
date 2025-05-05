@@ -13,16 +13,16 @@ check_db_connection() {
     # 3. postgres://username-username@hostname.hostname:port/database
     
     # Tratar especificamente o formato do EasyPanel
-    if [[ "$db_url" == *"viajey-viajey"* ]]; then
+    if [[ "$db_url" == *"viajey:viajey@viajey_viajey"* ]]; then
         echo "Detectado formato EasyPanel!"
-        # Format: postgres://viajey-viajey@viajey_viajey:5432/viajey?sslmode=disable
+        # Format: postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable
         
         # Extração manual para este formato específico
         DB_USER="viajey"
         DB_PASS="viajey"
         
         # Extrair host e porta
-        host_port=$(echo "$db_url" | sed -n 's/postgres:\/\/viajey-viajey@\([^\/]*\)\/.*/\1/p')
+        host_port=$(echo "$db_url" | sed -n 's/postgres:\/\/[^@]*@\([^\/]*\)\/.*/\1/p')
         DB_HOST=$(echo "$host_port" | cut -d':' -f1)
         DB_PORT=$(echo "$host_port" | cut -d':' -f2)
         
@@ -127,13 +127,13 @@ echo "PORT: $PORT"
 echo "DATABASE_URL: ****** (ofuscado para segurança)"
 
 # Definir variáveis de ambiente adicionais com base na DATABASE_URL
-if [[ "$DATABASE_URL" == *"viajey-viajey"* ]]; then
-    # Formato EasyPanel: postgres://viajey-viajey@viajey_viajey:5432/viajey?sslmode=disable
+if [[ "$DATABASE_URL" == *"viajey:viajey@viajey_viajey"* ]]; then
+    # Formato EasyPanel: postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable
     export PGUSER="viajey"
     export PGPASSWORD="viajey"
     
     # Extrair host e porta
-    host_port=$(echo "$DATABASE_URL" | sed -n 's/postgres:\/\/viajey-viajey@\([^\/]*\)\/.*/\1/p')
+    host_port=$(echo "$DATABASE_URL" | sed -n 's/postgres:\/\/[^@]*@\([^\/]*\)\/.*/\1/p')
     export PGHOST=$(echo "$host_port" | cut -d':' -f1)
     export PGPORT=$(echo "$host_port" | cut -d':' -f2)
     
