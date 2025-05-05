@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y postgresql-client wget curl && rm -rf /
 # Copiar arquivos de dependências
 COPY package*.json ./
 
-# Instalar dependências
-RUN npm ci
+# Instalar dependências (usando npm install regular em vez de npm ci)
+RUN npm install
 
 # Copiar o restante dos arquivos do projeto
 COPY . .
@@ -21,11 +21,11 @@ RUN chmod +x wait-for-postgres.sh
 # Expor a porta utilizada pelo aplicativo
 EXPOSE 5000
 
-# Valores padrão para variáveis de ambiente
-ENV DATABASE_URL=${DATABASE_URL:-postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable}
-ENV NODE_ENV=${NODE_ENV:-production}
-ENV PORT=${PORT:-5000}
-ENV JWT_SECRET=${JWT_SECRET:-segredo123}
+# Valores padrão para variáveis de ambiente (sem usar interpolação ${})
+ENV DATABASE_URL=postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable
+ENV NODE_ENV=production
+ENV PORT=5000 
+ENV JWT_SECRET=segredo123
 ENV DISABLE_SSL=true
 
 # Usar o script de entrada para inicialização
