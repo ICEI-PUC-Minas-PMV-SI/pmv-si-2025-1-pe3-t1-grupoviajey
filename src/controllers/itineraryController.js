@@ -100,12 +100,27 @@ const getItineraryByShareCode = async (req, res) => {
  */
 const createItinerary = async (req, res) => {
   try {
+    // Obter dados do corpo da requisição
     const itineraryData = req.body;
     
     // Validar dados obrigatórios
     if (!itineraryData.title || !itineraryData.destination || !itineraryData.start_date || !itineraryData.end_date) {
       return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
+    
+    // Adicionar user_id do usuário autenticado ou usar user_id padrão para desenvolvimento
+    if (req.user) {
+      itineraryData.user_id = req.user.id;
+    } else if (!itineraryData.user_id) {
+      // Para desenvolvimento, usar user_id = 1 se não houver usuário autenticado nem user_id no corpo
+      itineraryData.user_id = 1;
+    }
+    
+    // Garantir que valores opcionais não causem erros
+    itineraryData.preferences = itineraryData.preferences || null;
+    itineraryData.price_range = itineraryData.price_range || 'moderado';
+    itineraryData.cover_image = itineraryData.cover_image || null;
+    itineraryData.is_public = itineraryData.is_public || false;
     
     // Criar itinerário
     const newItinerary = await ItineraryModel.createItinerary(itineraryData);

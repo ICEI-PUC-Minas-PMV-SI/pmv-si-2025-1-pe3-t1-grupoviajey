@@ -408,7 +408,9 @@
               start_date,
               end_date,
               preferences: JSON.stringify(preferences),
-              price_range
+              price_range,
+              is_public: false, // Define como não público por padrão
+              cover_image: null // Sem imagem de capa por padrão
             };
             
             // Enviar para o backend via POST request
@@ -421,7 +423,15 @@
             });
             
             if (!response.ok) {
-              throw new Error('Erro ao salvar roteiro');
+              // Tentar obter a mensagem de erro da API
+              let errorMsg = 'Erro ao salvar roteiro';
+              try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+              } catch (e) {
+                // Se não conseguir ler o JSON, usa a mensagem padrão
+              }
+              throw new Error(errorMsg);
             }
             
             // Receber os dados do roteiro criado no backend, incluindo o ID gerado
@@ -438,10 +448,13 @@
           } catch (error) {
             console.error('Erro ao salvar roteiro:', error);
             
-            // Mostrar mensagem de erro
+            // Mostrar mensagem de erro com detalhes
             const errorDiv = document.createElement('div');
             errorDiv.className = 'alert alert-danger mt-3';
-            errorDiv.textContent = 'Erro ao salvar o roteiro. Por favor, tente novamente.';
+            errorDiv.textContent = `Erro ao salvar o roteiro: ${error.message}. Por favor, tente novamente.`;
+            
+            // Remover alertas anteriores para não acumular
+            document.querySelectorAll('.alert-danger').forEach(alert => alert.remove());
             
             const modalBody = document.querySelector('.modal-body');
             modalBody.appendChild(errorDiv);
