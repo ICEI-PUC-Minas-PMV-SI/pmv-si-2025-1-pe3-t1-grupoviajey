@@ -190,7 +190,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <!-- Authentication JS -->
-  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/auth_frontend.js" defer></script>
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -198,14 +198,10 @@
       const loginBtn = document.getElementById('loginBtn');
       const alertContainer = document.getElementById('alert-container');
       
-      // Inicializar AuthManager
-      if (window.AuthManager) {
-        window.AuthManager.init();
-        
-        // Se já estiver autenticado, redirecionar para a página inicial
-        if (window.AuthManager.isAuthenticated()) {
-          window.location.href = '/desktop.html';
-        }
+      // Verificar se usuário já está logado e redirecionar se estiver
+      if (window.AUTH && AUTH.isUserLoggedIn()) {
+        window.location.href = '/desktop.html';
+        return;
       }
       
       // Mostrar alerta
@@ -236,16 +232,24 @@
         loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
         
         try {
-          // Tentar fazer login
-          const result = await window.AuthManager.login(email, password);
-          
-          // Mostrar mensagem de sucesso
-          showAlert('Login bem-sucedido! Redirecionando...', 'success');
-          
-          // Redirecionar para a página inicial após um breve atraso
-          setTimeout(() => {
-            window.location.href = '/desktop.html';
-          }, 1000);
+          // Tentar fazer login usando a função do auth_frontend.js
+          if (window.AUTH) {
+            const result = await AUTH.login(email, password);
+            
+            // Mostrar mensagem de sucesso
+            showAlert('Login bem-sucedido! Redirecionando...', 'success');
+            
+            // Redirecionar para a página inicial após um breve atraso
+            setTimeout(() => {
+              window.location.href = '/desktop.html';
+            }, 1000);
+          } else {
+            // AUTH não disponível, mostrar erro
+            console.warn('AUTH não disponível');
+            showAlert('Sistema de login em manutenção. Por favor, tente novamente mais tarde.');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Entrar';
+          }
         } catch (error) {
           console.error('Erro de login:', error);
           showAlert(error.message || 'Erro ao fazer login. Verifique suas credenciais.');

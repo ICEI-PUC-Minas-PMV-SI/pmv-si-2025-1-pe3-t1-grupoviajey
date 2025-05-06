@@ -1,0 +1,69 @@
+Objetivo Principal: Criar as páginas HTML de login e registro, e os scripts JavaScript do frontend necessários para que os usuários possam se registrar, fazer login, ter seus tokens JWT armazenados, e para que a aplicação possa gerenciar os fluxos de navegação relacionados à autenticação no projeto ViajeyPlanner.
+Pré-requisito Fundamental: O backend de autenticação (conforme prompt_replit_auth_backend_part1.md) DEVE estar implementado e funcionando. As rotas /api/auth/register e /api/auth/login devem estar operacionais, a tabela users criada no banco, e o JWT_SECRET configurado no Replit.
+Contexto do Projeto:
+Projeto: ViajeyPlanner
+Frontend: HTML, CSS, JavaScript (sem framework específico, manipulação direta do DOM, Bootstrap para UI).
+Backend API Endpoints: /api/auth/register (POST), /api/auth/login (POST).
+Instruções Detalhadas para o Replit Agent:
+1. Criar Páginas HTML de Autenticação:
+Local: Diretório public/
+public/register.html:
+Crie um formulário HTML com campos para: Nome de usuário (ou email), Senha e Confirmação de Senha.
+Inclua um botão "Registrar".
+Adicione um link para a página de login (ex: "Já tem uma conta? Faça login").
+Inclua um local para exibir mensagens de erro/sucesso.
+public/login.html:
+Crie um formulário HTML com campos para: Nome de usuário (ou email) e Senha.
+Inclua um botão "Login" ou "Entrar".
+Adicione um link para a página de registro (ex: "Não tem uma conta? Registre-se").
+Inclua um local para exibir mensagens de erro/sucesso.
+2. Criar Script JavaScript para Lógica de Autenticação Frontend (static/js/auth_frontend.js):
+Local: Diretório static/js/
+Crie um novo arquivo, por exemplo, static/js/auth_frontend.js.
+Este script será incluído nas páginas register.html e login.html.
+Função de Registro:
+Adicione um event listener ao formulário de registro em register.html.
+Ao submeter o formulário: previna o comportamento padrão, pegue os valores dos campos (username/email, senha, confirmação de senha).
+Valide no frontend (ex: senhas coincidem, campos não vazios).
+Faça uma requisição POST assíncrona (usando fetch) para /api/auth/register com os dados do usuário.
+Trate a resposta: Se sucesso, mostre mensagem e redirecione para login.html. Se erro, exiba a mensagem de erro retornada pela API.
+Função de Login:
+Adicione um event listener ao formulário de login em login.html.
+Ao submeter o formulário: previna o comportamento padrão, pegue os valores dos campos (username/email, senha).
+Faça uma requisição POST assíncrona (usando fetch) para /api/auth/login com as credenciais.
+Trate a resposta:
+Se sucesso (API retorna um token): Armazene o token JWT no localStorage (ex: localStorage.setItem("authToken", data.token);). Mostre mensagem de sucesso e redirecione para a página principal da área logada (ex: desktop.html ou index.html).
+Se erro, exiba a mensagem de erro retornada pela API.
+Função de Logout:
+Crie uma função logout() que remova o token do localStorage (ex: localStorage.removeItem("authToken");) e redirecione o usuário para a página de login ou para a página inicial pública.
+Você precisará de um botão/link "Logout" em algum lugar da interface para usuários logados (ex: no desktop.html ou em um menu de navegação) que chame esta função.
+Função para Verificar se o Usuário está Logado:
+Crie uma função isUserLoggedIn() que verifique se existe um token válido no localStorage. Retorna true ou false.
+Função para Obter o Token:
+Crie uma função getAuthToken() que retorne o token do localStorage.
+3. Integrar Scripts e Lógica de Navegação:
+Incluir auth_frontend.js: Adicione <script src="../static/js/auth_frontend.js" defer></script> nas suas páginas register.html e login.html (ajuste o caminho se necessário).
+Links de Login/Registro na Página Principal:
+Na sua página principal pública (ex: index.html ou desktop.html, se ela for acessível sem login inicialmente), adicione links/botões "Login" e "Registrar-se" que levem para public/login.html e public/register.html respectivamente. Esses links devem ser visíveis apenas se o usuário NÃO estiver logado.
+Se o usuário JÁ estiver logado (verifique usando isUserLoggedIn()), esses links podem ser ocultados ou substituídos por um link "Logout" e informações do usuário.
+Proteger Rotas/Funcionalidades no Frontend:
+Em páginas ou ao tentar executar ações que exigem login (ex: carregar desktop.html se for uma área logada, ou ao clicar em "Criar Novo Roteiro"):
+No início do script da página ou antes da ação, chame isUserLoggedIn().
+Se false, redirecione o usuário para public/login.html (ex: window.location.href = "/login.html";).
+Redirecionar Usuários Logados (Opcional):
+Nas páginas login.html e register.html, você pode adicionar uma verificação no carregamento: se isUserLoggedIn() for true, redirecione para a página principal da área logada para evitar que um usuário já logado veja as telas de login/registro novamente.
+4. Modificar Requisições para Rotas Protegidas (Exemplo: Criar Roteiro):
+Revisite o script que envia a requisição para criar um novo roteiro (conforme o prompt prompt_replit_fix_auth_token.md que você já tem).
+Certifique-se de que ele usa a função getAuthToken() (ou acessa diretamente localStorage.getItem("authToken")) para obter o token e incluí-lo no cabeçalho Authorization: Bearer ${token} de todas as requisições para APIs protegidas.
+Considerações Adicionais:
+Feedback ao Usuário: Use elementos HTML para exibir mensagens de sucesso, erro ou carregamento de forma clara.
+Validação de Formulário no Frontend: Adicione validações básicas nos formulários (campos obrigatórios, formato de email, etc.) antes de enviar para o backend.
+Segurança do Token: Lembre-se que localStorage é acessível por JavaScript no mesmo domínio. Para aplicações com requisitos de segurança mais altos, outras estratégias de armazenamento de token (como cookies HttpOnly gerenciados pelo backend) podem ser consideradas, mas localStorage é um ponto de partida comum.
+Resultado Esperado Após Esta Parte:
+Páginas public/login.html e public/register.html funcionais.
+Usuários podem se registrar e fazer login através dessas páginas.
+Um token JWT é armazenado no localStorage após o login.
+A aplicação redireciona usuários não logados para a página de login ao tentar acessar áreas protegidas.
+Um mecanismo de logout está disponível.
+Requisições para APIs protegidas (como criar roteiro) incluem o token de autenticação.
+Por favor, Replit Agent, proceda com a criação dos arquivos HTML e JavaScript do frontend e a implementação da lógica de autenticação e fluxos de navegação conforme descrito.
