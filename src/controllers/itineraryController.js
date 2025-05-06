@@ -121,6 +121,25 @@ const createItinerary = async (req, res) => {
       itineraryData.user_id = 1;
     }
     
+    // Verificar se o usuário existe (para evitar violação de chave estrangeira)
+    try {
+      const userCheck = await db.query(
+        'SELECT id FROM users WHERE id = $1',
+        [itineraryData.user_id]
+      );
+      
+      if (userCheck.rows.length === 0) {
+        console.log(`Usuário com ID ${itineraryData.user_id} não encontrado. Criando usuário de teste.`);
+        // Se não existir, criar usuário de teste
+        await db.query(
+          'INSERT INTO users (id, username, email, password, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)',
+          [itineraryData.user_id, 'testuser', 'test@example.com', 'placeholder_password']
+        );
+      }
+    } catch (err) {
+      console.error('Erro ao verificar/criar usuário:', err);
+    }
+    
     // Garantir que valores opcionais não causem erros
     itineraryData.preferences = itineraryData.preferences || null;
     itineraryData.price_range = itineraryData.price_range || 'moderado';
