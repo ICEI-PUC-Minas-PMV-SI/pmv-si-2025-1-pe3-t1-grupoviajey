@@ -408,9 +408,8 @@
               start_date,
               end_date,
               preferences: JSON.stringify(preferences),
-              price_range,
-              is_public: false, // Define como não público por padrão
-              cover_image: null // Sem imagem de capa por padrão
+              price_range
+              // Removidos campos que não existem na tabela
             };
             
             // Enviar para o backend via POST request

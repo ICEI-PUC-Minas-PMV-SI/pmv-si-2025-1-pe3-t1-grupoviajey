@@ -119,8 +119,10 @@ const createItinerary = async (req, res) => {
     // Garantir que valores opcionais não causem erros
     itineraryData.preferences = itineraryData.preferences || null;
     itineraryData.price_range = itineraryData.price_range || 'moderado';
-    itineraryData.cover_image = itineraryData.cover_image || null;
-    itineraryData.is_public = itineraryData.is_public || false;
+    
+    // Remover campos que não existem na tabela para evitar erros
+    delete itineraryData.cover_image;
+    delete itineraryData.is_public;
     
     // Criar itinerário
     const newItinerary = await ItineraryModel.createItinerary(itineraryData);
