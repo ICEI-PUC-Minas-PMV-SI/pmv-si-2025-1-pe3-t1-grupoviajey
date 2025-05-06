@@ -726,10 +726,23 @@ async function loadItineraryFromApi(itineraryId) {
     // Exibir estado de carregamento
     showLoadingState();
     
-    // Buscar dados do itinerário
-    const response = await fetch(`/api/itineraries/${itineraryId}`);
+    // Buscar dados do itinerário com autenticação
+    let response;
+    if (window.AUTH && AUTH.isUserLoggedIn()) {
+      response = await AUTH.fetchWithAuth(`/api/itineraries/${itineraryId}`);
+    } else {
+      console.warn('Usuário não autenticado ao tentar carregar itinerário');
+      window.location.href = '/login.html';
+      return null;
+    }
     
     if (!response.ok) {
+      // Se receber 401 ou 403, redirecionar para login
+      if (response.status === 401 || response.status === 403) {
+        console.warn('Sessão expirada ou usuário sem permissão');
+        window.location.href = '/login.html';
+        return null;
+      }
       throw new Error(`Erro ao buscar itinerário: ${response.status}`);
     }
     
@@ -738,6 +751,18 @@ async function loadItineraryFromApi(itineraryId) {
     
     // Atualizar o estado da aplicação
     appState.currentItinerary = itineraryData;
+    
+    // Atualizar título e informações do itinerário na interface
+    if (itineraryData.title) {
+      document.getElementById('itinerary-title').textContent = `Planejando: ${itineraryData.title}`;
+    }
+    
+    if (itineraryData.start_date && itineraryData.end_date) {
+      const startDate = new Date(itineraryData.start_date);
+      const endDate = new Date(itineraryData.end_date);
+      document.getElementById('itinerary-date').textContent = 
+        `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`;
+    }
     
     // Esconder estado de carregamento
     hideLoadingState();

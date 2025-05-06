@@ -51,12 +51,13 @@
           <div class="dropdown">
             <button class="btn btn-sm user-avatar dropdown-toggle" type="button" data-bs-toggle="dropdown">
               <img src="https://ui-avatars.com/api/?name=R&background=0D8ABC&color=fff" alt="Avatar" class="rounded-circle">
+              <span class="user-name ms-1">Usuário</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
               <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configurações</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+              <li><a class="dropdown-item" href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
             </ul>
           </div>
         </div>
@@ -431,7 +432,27 @@
         return;
       }
       
-      // Configurar botão de logout (se existir)
+      // Atualizar a interface com informações do usuário
+      if (window.AUTH && AUTH.isUserLoggedIn()) {
+        const userData = AUTH.getUserData();
+        if (userData && userData.username) {
+          // Atualizar o nome do usuário no dropdown do avatar
+          const userNameElement = document.querySelector('.user-name');
+          if (userNameElement) {
+            userNameElement.textContent = userData.username;
+          }
+          
+          // Atualizar avatar com as iniciais do usuário
+          const avatarImg = document.querySelector('.user-avatar img');
+          if (avatarImg) {
+            const initials = userData.username.charAt(0).toUpperCase();
+            avatarImg.src = `https://ui-avatars.com/api/?name=${initials}&background=0D8ABC&color=fff`;
+            avatarImg.alt = `Avatar de ${userData.username}`;
+          }
+        }
+      }
+      
+      // Configurar botão de logout
       const logoutLink = document.querySelector('a[href="#logout"]');
       if (logoutLink) {
         logoutLink.addEventListener('click', function(e) {
@@ -441,6 +462,14 @@
           } else {
             window.location.href = '/login.html';
           }
+        });
+      }
+      
+      // Configurar o link de voltar para Explorar
+      const backToExploreBtn = document.getElementById('back-to-explore-btn');
+      if (backToExploreBtn) {
+        backToExploreBtn.addEventListener('click', function() {
+          window.location.href = '/desktop.html';
         });
       }
     });
