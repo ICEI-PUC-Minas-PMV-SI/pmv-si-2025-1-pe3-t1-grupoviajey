@@ -347,40 +347,53 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Verificar autenticação - redirecionar se não estiver logado
-      if (window.AUTH && !AUTH.isUserLoggedIn()) {
-        window.location.href = '/login.html';
-        return;
-      }
-      
-      // Atualizar UI com informações do usuário
+      // Verificar autenticação e configurar UI com base no status
       if (window.AUTH) {
-        // Atualizar nome do usuário no cabeçalho
-        const userData = AUTH.getUserData();
-        if (userData && userData.username) {
-          const userNameElement = document.querySelector('.user-name');
-          if (userNameElement) {
-            userNameElement.textContent = `Olá, ${userData.username}`;
+        // Verificar se está autenticado
+        if (AUTH.isUserLoggedIn()) {
+          // Atualizar nome do usuário no cabeçalho
+          const userData = AUTH.getUserData();
+          if (userData && userData.username) {
+            const userNameElement = document.querySelector('.user-name');
+            if (userNameElement) {
+              userNameElement.textContent = `Olá, ${userData.username}!`;
+            }
           }
           
+          // Configurar opção de logout
+          const logoutLink = document.querySelector('a[href="#logout"]');
+          if (logoutLink) {
+            logoutLink.addEventListener('click', function(e) {
+              e.preventDefault();
+              AUTH.logout();
+            });
+          }
+        } else {
+          // Não está logado - mostrar UI para visitantes
+          const userNameElement = document.querySelector('.user-name');
+          if (userNameElement) {
+            userNameElement.textContent = 'Olá, visitante!';
+          }
+          
+          // Atualizar menu do usuário para mostrar opções de login/registro
+          const dropdown = document.querySelector('#user-dropdown .dropdown-menu');
+          if (dropdown) {
+            dropdown.innerHTML = `
+              <li><a href="/login.html"><i class="fas fa-sign-in-alt me-2"></i>Entrar</a></li>
+              <li><a href="/register.html"><i class="fas fa-user-plus me-2"></i>Registrar</a></li>
+            `;
+          }
+        }
+      
+      // Atualizar também o título na seção hero se o usuário estiver logado
+      if (window.AUTH && AUTH.isUserLoggedIn()) {
+        const userData = AUTH.getUserData();
+        if (userData && userData.username) {
           const heroTitleElement = document.querySelector('.hero-title');
           if (heroTitleElement) {
             heroTitleElement.textContent = `Olá, ${userData.username}! Vamos planejar sua próxima aventura?`;
           }
         }
-      }
-      
-      // Configurar botão de logout
-      const logoutLink = document.querySelector('a[href="#logout"]');
-      if (logoutLink) {
-        logoutLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          if (window.AUTH) {
-            AUTH.logout();
-          } else {
-            window.location.href = '/login.html';
-          }
-        });
       }
       
       // Setup user dropdown
