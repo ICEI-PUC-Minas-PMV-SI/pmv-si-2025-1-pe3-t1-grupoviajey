@@ -82,40 +82,21 @@
         <h3 class="section-title">Seus Roteiros</h3>
         
         <div class="itineraries-grid">
-          <div class="itinerary-card">
-            <div class="itinerary-image">
-              <img src="/static/img/destinations/japan.jpg" alt="Japão">
-            </div>
-            <div class="itinerary-details">
-              <h4>Japão Exótico</h4>
-              <p class="itinerary-dates">15 — 28 mar. 2024</p>
-              <button class="btn btn-primary btn-block">Continuar</button>
-            </div>
-          </div>
-          
-          <div class="itinerary-card">
-            <div class="itinerary-image">
-              <img src="/static/img/destinations/punta-cana.jpg" alt="Punta Cana">
-            </div>
-            <div class="itinerary-details">
-              <h4>Relaxar em Punta Cana</h4>
-              <div class="itinerary-badge">
-                <small><i class="fas fa-star me-1"></i>Roteiro colaborativo</small>
+          <!-- Os cards de itinerário serão renderizados dinamicamente pelo JavaScript -->
+          <div id="itineraries-container" class="w-100">
+            <!-- Placeholder para carregamento -->
+            <div class="text-center py-5" id="loading-itineraries">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
               </div>
-              <button class="btn btn-primary btn-block">Explorar</button>
+              <p class="mt-2">Carregando seus roteiros...</p>
             </div>
-          </div>
-          
-          <div class="itinerary-card">
-            <div class="itinerary-image">
-              <img src="/static/img/destinations/paraty.jpg" alt="Paraty">
-            </div>
-            <div class="itinerary-details">
-              <h4>Passeio de barco em Paraty</h4>
-              <div class="itinerary-badge">
-                <small><i class="fas fa-check-circle me-1"></i>Concluído</small>
-              </div>
-              <button class="btn btn-primary btn-block">Explorar</button>
+            
+            <!-- Mensagem de nenhum roteiro -->
+            <div class="text-center py-5 d-none" id="no-itineraries">
+              <i class="fas fa-route fa-3x mb-3 text-muted"></i>
+              <h5>Você ainda não tem roteiros</h5>
+              <p>Crie seu primeiro roteiro clicando no botão "Novo Roteiro"</p>
             </div>
           </div>
         </div>

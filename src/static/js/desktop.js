@@ -84,6 +84,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set up dropdown functionality
   setupUserDropdown();
   
+  // Carregar itinerários do usuário da API
+  fetchUserItineraries();
+  
   // Add current weather to hero section (would use OpenWeather API in production)
   // addCurrentWeather();
 });
@@ -258,33 +261,190 @@ function addCurrentWeather() {
   }
 }
 
+// Buscar itinerários do usuário da API
+async function fetchUserItineraries() {
+  try {
+    const loadingEl = document.getElementById('loading-itineraries');
+    const noItinerariesEl = document.getElementById('no-itineraries');
+    const containerEl = document.getElementById('itineraries-container');
+    
+    if (!containerEl) return;
+    
+    // Mostrar loading
+    if (loadingEl) loadingEl.classList.remove('d-none');
+    if (noItinerariesEl) noItinerariesEl.classList.add('d-none');
+    
+    // Fazer requisição para a API
+    const response = await fetch('/api/itineraries');
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar itinerários: ${response.status}`);
+    }
+    
+    const itineraries = await response.json();
+    
+    // Esconder loading
+    if (loadingEl) loadingEl.classList.add('d-none');
+    
+    // Verificar se há itinerários
+    if (!itineraries || itineraries.length === 0) {
+      if (noItinerariesEl) noItinerariesEl.classList.remove('d-none');
+      return;
+    }
+    
+    // Limpar o container (manter loading e no-itineraries)
+    const existingCards = containerEl.querySelectorAll('.itinerary-card');
+    existingCards.forEach(card => card.remove());
+    
+    // Criar cards para cada itinerário
+    const itinerariesGrid = document.querySelector('.itineraries-grid');
+    
+    itineraries.forEach(itinerary => {
+      const card = createItineraryCard(itinerary);
+      itinerariesGrid.appendChild(card);
+    });
+    
+  } catch (error) {
+    console.error('Erro ao buscar itinerários:', error);
+    
+    // Esconder loading e mostrar mensagem de erro
+    const loadingEl = document.getElementById('loading-itineraries');
+    if (loadingEl) loadingEl.classList.add('d-none');
+    
+    const containerEl = document.getElementById('itineraries-container');
+    if (containerEl) {
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'alert alert-danger mt-3';
+      errorMessage.textContent = 'Não foi possível carregar seus roteiros. Tente novamente mais tarde.';
+      containerEl.appendChild(errorMessage);
+    }
+  }
+}
+
+// Criar card de itinerário
+function createItineraryCard(itinerary) {
+  // Criar o elemento do card
+  const card = document.createElement('div');
+  card.className = 'itinerary-card';
+  
+  // Formatar datas para exibição
+  let dateText = '';
+  if (itinerary.start_date) {
+    const startFormatted = formatDate(itinerary.start_date);
+    const endFormatted = itinerary.end_date ? formatDate(itinerary.end_date) : '';
+    
+    dateText = endFormatted ? `${startFormatted} — ${endFormatted}` : startFormatted;
+  }
+  
+  // Determinar imagem (com fallback)
+  const imageUrl = itinerary.cover_image || '/static/img/destinations/default.jpg';
+  
+  // Status de badges para o itinerário
+  let badgeHtml = '';
+  if (itinerary.is_collaborative) {
+    badgeHtml = `
+      <div class="itinerary-badge">
+        <small><i class="fas fa-star me-1"></i>Roteiro colaborativo</small>
+      </div>
+    `;
+  } else if (itinerary.status === 'completed') {
+    badgeHtml = `
+      <div class="itinerary-badge">
+        <small><i class="fas fa-check-circle me-1"></i>Concluído</small>
+      </div>
+    `;
+  }
+  
+  // Construir HTML do card
+  card.innerHTML = `
+    <div class="itinerary-image">
+      <img src="${imageUrl}" alt="${itinerary.destination || 'Destino'}">
+    </div>
+    <div class="itinerary-details">
+      <h4>${itinerary.title}</h4>
+      ${dateText ? `<p class="itinerary-dates">${dateText}</p>` : ''}
+      ${badgeHtml}
+      <div class="d-flex mt-2">
+        <button class="btn btn-primary flex-grow-1 me-2" onclick="editItinerary('${itinerary.id}')">
+          <i class="fas fa-edit me-1"></i> Editar
+        </button>
+        <button class="btn btn-outline-primary" onclick="viewItinerary('${itinerary.id}')">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// Abrir o itinerário para edição no Kanban
+function editItinerary(itineraryId) {
+  window.location.href = `/itinerary-kanban.html?roteiroId=${itineraryId}`;
+}
+
+// Visualizar detalhes do itinerário
+function viewItinerary(itineraryId) {
+  window.location.href = `/itinerary.html?id=${itineraryId}`;
+}
+
 // Inicializar o formulário para o modal existente
 document.addEventListener('DOMContentLoaded', function() {
   // Adicionar event listener para o botão "Criar Roteiro" no modal fixo
   const saveItineraryBtn = document.getElementById('saveItineraryBtn');
   if (saveItineraryBtn) {
-    saveItineraryBtn.addEventListener('click', function() {
-      // Obter dados do formulário
-      const itineraryName = document.getElementById('itineraryName').value;
-      const destination = document.getElementById('destination').value;
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      
-      // Validação básica
-      if (!itineraryName || !destination || !startDate || !endDate) {
-        alert('Por favor, preencha todos os campos obrigatórios.');
-        return;
+    saveItineraryBtn.addEventListener('click', async function() {
+      try {
+        // Obter dados do formulário
+        const title = document.getElementById('itineraryName').value;
+        const destination = document.getElementById('destination').value;
+        const start_date = document.getElementById('startDate').value;
+        const end_date = document.getElementById('endDate').value;
+        
+        // Validação básica
+        if (!title || !destination || !start_date || !end_date) {
+          alert('Por favor, preencha todos os campos obrigatórios.');
+          return;
+        }
+        
+        // Criar objeto de itinerário para enviar ao backend
+        const itineraryData = {
+          title,
+          destination,
+          start_date,
+          end_date
+        };
+        
+        // Enviar dados para API
+        const response = await fetch('/api/itineraries', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(itineraryData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao criar roteiro: ${response.status}`);
+        }
+        
+        const newItinerary = await response.json();
+        
+        // Fechar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createItineraryModal'));
+        if (modal) modal.hide();
+        
+        // Duas opções possíveis:
+        // 1. Ir para o builder de itinerário (Kanban)
+        window.location.href = `/itinerary-kanban.html?roteiroId=${newItinerary.id}`;
+        
+        // 2. Ou, como estava antes, ir para a página de exploração (uncommment if needed)
+        // window.location.href = `/explorar.html?destination=${encodeURIComponent(destination)}&name=${encodeURIComponent(title)}&startDate=${encodeURIComponent(start_date)}&endDate=${encodeURIComponent(end_date)}`;
+        
+      } catch (error) {
+        console.error('Erro ao criar roteiro:', error);
+        alert('Não foi possível criar o roteiro. Tente novamente mais tarde.');
       }
-      
-      // Processar e criar itinerário
-      console.log('Criando roteiro:', { itineraryName, destination, startDate, endDate });
-      
-      // Fechar modal
-      const modal = bootstrap.Modal.getInstance(document.getElementById('createItineraryModal'));
-      if (modal) modal.hide();
-      
-      // Redirecionar para a página de exploração do destino
-      window.location.href = `/explorar.html?destination=${encodeURIComponent(destination)}&name=${encodeURIComponent(itineraryName)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
     });
   }
 });

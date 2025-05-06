@@ -1,0 +1,27 @@
+Prompt para Replit Agent (Parte 1 de 3): Implementar Seleção de Itinerário para Edição no ViajeyPlanner
+Objetivo Desta Parte: Modificar o frontend do ViajeyPlanner para permitir que o usuário veja uma lista de seus itinerários e selecione um para edição, sendo redirecionado para a página do Kanban com o ID do itinerário na URL.
+Contexto do Projeto:
+Projeto: ViajeyPlanner (aplicação de planejamento de viagens)
+Backend: Node.js com Express, API exposta em /api. O backend já possui rotas para CRUD de itinerários (/api/itineraries).
+Frontend: HTML, CSS, JavaScript (sem framework específico, manipulação direta do DOM e Bootstrap para UI).
+Página de visualização/edição Kanban: public/itinerary-kanban.html.
+Página inicial/dashboard (onde itinerários podem ser listados): public/desktop.html (script principal: static/js/desktop.js, ou static/js/app.js se for o geral).
+Requisitos Detalhados para Implementação (Parte 1):
+Local da Implementação: Idealmente na página que lista os itinerários do usuário (ex: public/desktop.html). O script a ser modificado/criado seria o associado a esta página (ex: static/js/desktop.js ou static/js/app.js).
+Listar Itinerários do Usuário:
+Ao carregar a página de listagem de itinerários (ex: desktop.html), o script deve fazer uma requisição GET assíncrona para a API /api/itineraries para buscar os itinerários do usuário logado.
+Observação: Assuma que a API /api/itineraries retorna apenas os itinerários do usuário autenticado. Se a API exigir um userId e ele estiver disponível no frontend (ex: no localStorage após o login), inclua-o na requisição se necessário.
+Para cada itinerário retornado pela API, exiba suas informações principais (ex: título, destino, datas) de forma clara na interface do usuário. Você pode criar cards ou itens de lista para cada itinerário.
+Adicionar Botão/Link "Editar" para Cada Itinerário:
+Para cada itinerário listado, adicione um botão ou link com o texto "Editar" (ou um ícone de edição apropriado).
+Quando o usuário clicar neste botão/link "Editar", ele deve ser redirecionado para a página do Kanban de edição: public/itinerary-kanban.html.
+Importante: O redirecionamento deve incluir o ID do itinerário selecionado como um parâmetro na URL. O formato da URL deve ser: itinerary-kanban.html?roteiroId=[ID_DO_ITINERARIO_SELECIONADO]. Certifique-se de que [ID_DO_ITINERARIO_SELECIONADO] seja o ID real do itinerário vindo da API.
+Considerações Adicionais para o Replit Agent:
+Tratamento de Erros: Implemente tratamento básico para erros de rede ao buscar a lista de itinerários (ex: exibir uma mensagem "Não foi possível carregar seus roteiros" na UI).
+Experiência do Usuário: Se não houver itinerários, exiba uma mensagem amigável (ex: "Você ainda não criou nenhum roteiro. Que tal começar um novo?").
+Código Limpo e Comentado: Mantenha o código organizado e adicione comentários onde necessário.
+Resultado Esperado Após Esta Parte:
+Na página desktop.html (ou similar), o usuário verá uma lista dos seus itinerários (se existirem).
+Cada itinerário na lista terá um botão "Editar".
+Clicar em "Editar" redirecionará o usuário para itinerary-kanban.html?roteiroId=ID_CORRETO.
+Por favor, Replit Agent, proceda com a análise e sugestão de modificações nos arquivos HTML e JavaScript indicados para implementar esta funcionalidade.
