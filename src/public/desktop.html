@@ -43,7 +43,7 @@
           </button>
           <div class="user-avatar" id="user-avatar-dropdown">
             <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
-            <span class="user-name">Oi, Roberta</span>
+            <span class="user-name">Olá, visitante</span>
             <i class="fas fa-chevron-down"></i>
           </div>
         </div>
@@ -69,7 +69,7 @@
     <section class="hero-section" style="background-image: url('/static/img/hero-bg.jpg');">
       <div class="container">
         <div class="hero-content">
-          <h2 class="hero-title">Olá, Roberta! Vamos planejar sua próxima aventura?</h2>
+          <h2 class="hero-title">Olá! Vamos planejar sua próxima aventura?</h2>
           <p class="hero-subtitle">Receba sugestões inteligentes com base no seu estilo de viagem.</p>
           <button class="btn btn-primary btn-lg start-trip-btn">Começar um novo roteiro</button>
         </div>
@@ -339,11 +339,26 @@
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
+  <!-- Authentication JS -->
+  <script src="/static/js/auth.js"></script>
+  
   <!-- Custom JS -->
   <script src="/static/js/desktop.js"></script>
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar autenticação e atualizar interface
+      if (window.AuthManager) {
+        window.AuthManager.init();
+        
+        // Atualizar nome do usuário no cabeçalho
+        const user = window.AuthManager.getCurrentUser();
+        if (user && user.username) {
+          document.querySelector('.user-name').textContent = `Olá, ${user.username}`;
+          document.querySelector('.hero-title').textContent = `Olá, ${user.username}! Vamos planejar sua próxima aventura?`;
+        }
+      }
+      
       // Setup user dropdown
       if (typeof setupUserDropdown === 'function') {
         setupUserDropdown();
@@ -412,12 +427,9 @@
               // Removidos campos que não existem na tabela
             };
             
-            // Enviar para o backend via POST request
-            const response = await fetch('/api/itineraries', {
+            // Enviar para o backend via POST request usando o autenticador
+            const response = await window.AuthManager.fetchWithAuth('/api/itineraries', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
               body: JSON.stringify(itineraryData)
             });
             
