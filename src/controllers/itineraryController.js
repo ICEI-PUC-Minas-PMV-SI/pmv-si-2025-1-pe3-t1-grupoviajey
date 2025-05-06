@@ -100,11 +100,16 @@ const getItineraryByShareCode = async (req, res) => {
  */
 const createItinerary = async (req, res) => {
   try {
+    console.log('=== INÍCIO DA CRIAÇÃO DE ITINERÁRIO ===');
+    console.log('Corpo da requisição:', JSON.stringify(req.body, null, 2));
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    
     // Obter dados do corpo da requisição
     const itineraryData = req.body;
     
     // Validar dados obrigatórios
     if (!itineraryData.title || !itineraryData.destination || !itineraryData.start_date || !itineraryData.end_date) {
+      console.log('Erro: campos obrigatórios ausentes', itineraryData);
       return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
     
