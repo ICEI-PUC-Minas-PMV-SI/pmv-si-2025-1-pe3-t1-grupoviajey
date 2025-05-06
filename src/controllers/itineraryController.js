@@ -124,7 +124,6 @@ const createItinerary = async (req, res) => {
     // Como estamos usando isAuthenticated, o req.user já deve existir
     // e o itineraryData.user_id já foi preenchido com o ID do usuário atual
     console.log('Usando ID do usuário autenticado:', itineraryData.user_id);
-    }
     
     // Garantir que valores opcionais não causem erros
     itineraryData.preferences = itineraryData.preferences || null;
