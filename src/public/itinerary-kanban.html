@@ -417,7 +417,33 @@
   <!-- Bootstrap and other JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   
+  <!-- Authentication JS -->
+  <script src="/static/js/auth_frontend.js"></script>
+  
   <!-- Custom JS -->
   <script src="/static/js/itinerary-kanban.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação - redirecionar se não estiver logado
+      if (window.AUTH && !AUTH.isUserLoggedIn()) {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      // Configurar botão de logout (se existir)
+      const logoutLink = document.querySelector('a[href="#logout"]');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.AUTH) {
+            AUTH.logout();
+          } else {
+            window.location.href = '/login.html';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

@@ -340,23 +340,47 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <!-- Authentication JS -->
-  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/auth_frontend.js"></script>
   
   <!-- Custom JS -->
   <script src="/static/js/desktop.js"></script>
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar autenticação e atualizar interface
-      if (window.AuthManager) {
-        window.AuthManager.init();
-        
+      // Verificar autenticação - redirecionar se não estiver logado
+      if (window.AUTH && !AUTH.isUserLoggedIn()) {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      // Atualizar UI com informações do usuário
+      if (window.AUTH) {
         // Atualizar nome do usuário no cabeçalho
-        const user = window.AuthManager.getCurrentUser();
-        if (user && user.username) {
-          document.querySelector('.user-name').textContent = `Olá, ${user.username}`;
-          document.querySelector('.hero-title').textContent = `Olá, ${user.username}! Vamos planejar sua próxima aventura?`;
+        const userData = AUTH.getUserData();
+        if (userData && userData.username) {
+          const userNameElement = document.querySelector('.user-name');
+          if (userNameElement) {
+            userNameElement.textContent = `Olá, ${userData.username}`;
+          }
+          
+          const heroTitleElement = document.querySelector('.hero-title');
+          if (heroTitleElement) {
+            heroTitleElement.textContent = `Olá, ${userData.username}! Vamos planejar sua próxima aventura?`;
+          }
         }
+      }
+      
+      // Configurar botão de logout
+      const logoutLink = document.querySelector('a[href="#logout"]');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.AUTH) {
+            AUTH.logout();
+          } else {
+            window.location.href = '/login.html';
+          }
+        });
       }
       
       // Setup user dropdown
@@ -417,7 +441,7 @@
           try {
             // Criar objeto com os dados do roteiro
             const itineraryData = {
-              user_id: 1, // ID temporário do usuário (será implementado autenticação completa depois)
+              // user_id será extraído do token no backend
               title,
               destination,
               start_date,
@@ -428,10 +452,23 @@
             };
             
             // Enviar para o backend via POST request usando o autenticador
-            const response = await window.AuthManager.fetchWithAuth('/api/itineraries', {
-              method: 'POST',
-              body: JSON.stringify(itineraryData)
-            });
+            let response;
+            if (window.AUTH) {
+              response = await AUTH.fetchWithAuth('/api/itineraries', {
+                method: 'POST',
+                body: JSON.stringify(itineraryData)
+              });
+            } else {
+              // Fallback para quando AUTH não estiver disponível (não deve acontecer)
+              console.warn('Sistema AUTH não disponível. Tentando requisição sem autenticação.');
+              response = await fetch('/api/itineraries', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(itineraryData)
+              });
+            }
             
             if (!response.ok) {
               // Tentar obter a mensagem de erro da API
