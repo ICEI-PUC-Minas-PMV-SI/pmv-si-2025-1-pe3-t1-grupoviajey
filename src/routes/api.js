@@ -21,7 +21,8 @@ router.post('/auth/verify', authController.verify);
 router.get('/itineraries', optionalAuth, itineraryController.getAllItineraries);
 router.get('/itineraries/:id', optionalAuth, itineraryController.getItineraryById);
 router.get('/itineraries/share/:shareCode', itineraryController.getItineraryByShareCode);
-router.post('/itineraries', isAuthenticated, itineraryController.createItinerary);
+// Temporariamente permitindo criação de roteiros sem autenticação para facilitar o desenvolvimento
+router.post('/itineraries', optionalAuth, itineraryController.createItinerary);
 router.put('/itineraries/:id', isAuthenticated, itineraryController.updateItinerary);
 router.delete('/itineraries/:id', isAuthenticated, itineraryController.deleteItinerary);
 

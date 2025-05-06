@@ -433,8 +433,8 @@
             // Fechar o modal imediatamente
             createItineraryModal.hide();
             
-            // Redirecionar para a página de exploração com os parâmetros necessários
-            window.location.href = `/explorar?destination=${encodeURIComponent(destination)}&roteiro=${savedItinerary.id}&start_date=${start_date}&end_date=${end_date}&name=${encodeURIComponent(title)}`;
+            // Redirecionar para a página do Kanban para editar o roteiro
+            window.location.href = `/itinerary-kanban.html?roteiroId=${savedItinerary.id}`;
           } catch (error) {
             console.error('Erro ao salvar roteiro:', error);
             
