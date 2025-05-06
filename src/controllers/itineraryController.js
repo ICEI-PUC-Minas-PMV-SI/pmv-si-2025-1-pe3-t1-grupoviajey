@@ -5,6 +5,7 @@
 
 const ItineraryModel = require('../models/itinerary');
 const ItineraryDayModel = require('../models/itineraryDay');
+const ActivityModel = require('../models/activity');
 
 /**
  * Obtém todos os itinerários

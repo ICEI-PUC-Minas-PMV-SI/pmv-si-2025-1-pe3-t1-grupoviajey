@@ -1,0 +1,71 @@
+Prompt para Replit Agent (Parte 2 de 3): Carregar e Exibir Itinerário Selecionado no Kanban do ViajeyPlanner
+Objetivo Desta Parte: Modificar o frontend do ViajeyPlanner (public/itinerary-kanban.html e seu script static/js/itinerary-kanban.js) para que, ao receber um roteiroId na URL, ele busque os dados completos deste itinerário da API backend e os exiba corretamente no quadro Kanban.
+Contexto do Projeto (Relembrando):
+Projeto: ViajeyPlanner
+Backend: Node.js com Express, API em /api/itineraries/:id para buscar um itinerário específico.
+Frontend: HTML, CSS, JavaScript, Bootstrap.
+Arquivo a ser modificado: static/js/itinerary-kanban.js
+Página HTML relacionada: public/itinerary-kanban.html
+Pré-requisito: Esta parte assume que a Parte 1 (Seleção de Itinerário) já foi implementada, ou seja, a página itinerary-kanban.html pode ser chamada com um parâmetro roteiroId na URL (ex: itinerary-kanban.html?roteiroId=ALGUM_ID).
+Requisitos Detalhados para Implementação (Parte 2):
+Detectar ID do Itinerário na URL:
+No script static/js/itinerary-kanban.js, ao carregar a página itinerary-kanban.html, verifique se existe um parâmetro roteiroId na URL.
+Se o roteiroId não estiver presente, você pode exibir uma mensagem como "Nenhum roteiro selecionado. Por favor, selecione um roteiro para editar." e talvez oferecer um link para a página de listagem de roteiros. Não prossiga com o carregamento se não houver ID.
+Buscar Dados Completos do Itinerário da API:
+Se o roteiroId estiver presente na URL:
+Faça uma requisição GET assíncrona para o endpoint da API: /api/itineraries/:id (substitua :id pelo roteiroId obtido da URL).
+Utilize fetch para a requisição. Implemente tratamento de erros (ex: try...catch ou .then().catch()). Se a API retornar um erro 404 (itinerário não encontrado) ou outro erro, informe o usuário adequadamente (ex: "Roteiro não encontrado" ou "Erro ao carregar o roteiro").
+Atualizar o Estado da Aplicação (appState.currentItinerary):
+O arquivo static/js/itinerary-kanban.js já deve ter uma variável appState (ex: let appState = { currentItinerary: null };).
+Após receber os dados do itinerário da API com sucesso, popule appState.currentItinerary com os dados completos. A API (conforme itineraryController.js) deve retornar um objeto com a estrutura similar a:
+javascript
+// Exemplo da estrutura esperada em appState.currentItinerary
+{
+  id: "ID_DO_ROTEIRO_DA_API",
+  title: "Título do Roteiro",
+  destination: "Destino do Roteiro",
+  start_date: "YYYY-MM-DD",
+  end_date: "YYYY-MM-DD",
+  cover_image: "URL_da_imagem_de_capa_ou_null",
+  // ... outros campos do itinerário base
+  days: [
+    {
+      id: "ID_DO_DIA_DA_API",
+      day_number: 1,
+      date: "YYYY-MM-DD",
+      title: "Dia 1: Chegada e Exploração Inicial",
+      activities: [
+        {
+          id: "ID_DA_ATIVIDADE_DA_API",
+          name: "Check-in no Hotel",
+          type: "accommodation", // ex: 'attraction', 'food', 'transport', 'accommodation', 'meal', 'ticket', 'other'
+          location: "Nome do Hotel",
+          start_time: "14:00", // ou null
+          end_time: "15:00",   // ou null
+          notes: "Pegar chave e deixar malas.", // ou null
+          // ... outros campos relevantes da atividade que a API retornar
+        }
+        // ... mais atividades para este dia
+      ]
+    }
+    // ... mais dias
+  ]
+}
+Renderizar Dinamicamente o Itinerário Carregado no Kanban:
+Com appState.currentItinerary populado com os dados reais da API, chame ou crie funções JavaScript para renderizar dinamicamente o conteúdo na página itinerary-kanban.html:
+Informações Gerais do Roteiro: Atualize os elementos HTML correspondentes para exibir o title, destination, start_date, end_date e cover_image (se existir) do itinerário.
+Abas dos Dias: Limpe quaisquer abas de dias de exemplo e gere dinamicamente as abas na seção #days-tabs (ou similar) com base no array appState.currentItinerary.days. Cada aba deve corresponder a um dia do itinerário (ex: "Dia 1: [Data]").
+Conteúdo do Kanban para Cada Dia: Para cada dia, gere o conteúdo correspondente na seção #days-content (ou similar). Isso inclui as colunas do Kanban (Manhã, Tarde, Noite, Não Agendado).
+Cards de Atividades: Para cada atividade dentro de cada dia em appState.currentItinerary.days.activities, utilize a função createActivityCard (você pode precisar adaptá-la para usar os dados da API, como activity.name, activity.type, activity.location, activity.start_time, etc.) para criar o card HTML da atividade. Insira este card na coluna correta do Kanban (Manhã, Tarde, Noite, Não Agendado – você precisará de uma lógica para mapear o período da atividade para a coluna correta, ou assumir um padrão se o período não vier da API) e no dia correspondente.
+Ajustar loadFromLocalStorage(): A função loadFromLocalStorage() (ou a lógica de inicialização) deve ser modificada para que, se um roteiroId estiver presente na URL, ela dispare o processo de carregamento via API descrito acima, em vez de carregar dados de exemplo ou do localStorage.
+Considerações Adicionais para o Replit Agent:
+Limpeza da UI: Antes de renderizar os novos dados, garanta que qualquer conteúdo de exemplo ou de um itinerário carregado anteriormente seja limpo da interface para evitar duplicidade.
+Feedback Visual: Considere adicionar um indicador de carregamento (spinner) enquanto os dados estão sendo buscados da API.
+Modularidade: Crie funções JavaScript bem definidas para cada parte da renderização (ex: renderItineraryDetails(), renderDayTabs(), renderDayActivities(day)).
+Resultado Esperado Após Esta Parte:
+Ao acessar itinerary-kanban.html?roteiroId=ID_VALIDO_EXISTENTE:
+A página fará uma chamada à API /api/itineraries/ID_VALIDO_EXISTENTE.
+As informações gerais do itinerário (título, destino, datas) serão exibidas.
+As abas dos dias serão criadas dinamicamente com base nos dados do itinerário.
+Dentro de cada dia, os cards das atividades correspondentes serão exibidos nas colunas corretas do Kanban.
+Por favor, Replit Agent, proceda com a análise e sugestão de modificações no arquivo static/js/itinerary-kanban.js para implementar esta funcionalidade
