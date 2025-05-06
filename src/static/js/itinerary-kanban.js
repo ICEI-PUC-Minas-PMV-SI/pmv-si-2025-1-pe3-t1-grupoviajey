@@ -334,14 +334,18 @@ async function saveNewActivity() {
       console.log('Enviando nova atividade para API');
       showLoadingState();
       
-      // Enviar para API
-      const response = await fetch(`/api/itineraries/${appState.currentItinerary.id}/days/${newActivity.day_number}/activities`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newActivity)
-      });
+      // Enviar para API com autenticação
+      let response;
+      if (window.AUTH && AUTH.isUserLoggedIn()) {
+        response = await AUTH.fetchWithAuth(`/api/itineraries/${appState.currentItinerary.id}/days/${newActivity.day_number}/activities`, {
+          method: 'POST',
+          body: JSON.stringify(newActivity)
+        });
+      } else {
+        console.warn('Usuário não autenticado ao tentar criar atividade');
+        window.location.href = '/login.html';
+        return;
+      }
       
       hideLoadingState();
       
@@ -560,10 +564,17 @@ async function removeActivity(activityId) {
           throw new Error('Não foi possível encontrar o dia da atividade');
         }
         
-        // Fazer requisição DELETE para a API
-        const response = await fetch(`/api/activities/${id}`, {
-          method: 'DELETE'
-        });
+        // Fazer requisição DELETE para a API com autenticação
+        let response;
+        if (window.AUTH && AUTH.isUserLoggedIn()) {
+          response = await AUTH.fetchWithAuth(`/api/activities/${id}`, {
+            method: 'DELETE'
+          });
+        } else {
+          console.warn('Usuário não autenticado ao tentar remover atividade');
+          window.location.href = '/login.html';
+          return;
+        }
         
         hideLoadingState();
         
