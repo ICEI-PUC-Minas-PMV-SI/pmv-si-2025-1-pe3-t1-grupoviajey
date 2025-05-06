@@ -415,17 +415,23 @@ document.addEventListener('DOMContentLoaded', function() {
           end_date
         };
         
-        // Enviar dados para API
-        const response = await fetch('/api/itineraries', {
+        // Enviar dados para API usando o objeto AUTH para autenticação
+        const response = await AUTH.fetchWithAuth('/api/itineraries', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(itineraryData)
+          body: JSON.stringify(itineraryData),
+          requireAuth: true  // Garantir que a requisição falhe se não houver token
         });
         
         if (!response.ok) {
-          throw new Error(`Erro ao criar roteiro: ${response.status}`);
+          if (response.status === 401) {
+            throw new Error('Você precisa estar logado para criar um roteiro. Por favor, faça login.');
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Erro ao criar roteiro: ${response.status}`);
+          }
         }
         
         const newItinerary = await response.json();
@@ -443,7 +449,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
       } catch (error) {
         console.error('Erro ao criar roteiro:', error);
-        alert('Não foi possível criar o roteiro. Tente novamente mais tarde.');
+        
+        // Verificar se é um erro de autenticação baseado na mensagem
+        if (error.message.includes('logado') || error.message.includes('login')) {
+          alert('Você precisa estar logado para criar um roteiro.');
+          // Redirecionar para a página de login
+          window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        } else {
+          alert(error.message || 'Não foi possível criar o roteiro. Tente novamente mais tarde.');
+        }
       }
     });
   }
