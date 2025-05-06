@@ -27,12 +27,15 @@ const createDay = async (dayData) => {
   const { itinerary_id, day_number, date, title, notes } = dayData;
   
   try {
+    // Verificar qual tabela existe
+    let tableToUse = 'itinerary_days';
+    
     const result = await db.query(
-      `INSERT INTO itinerary_days 
-        (itinerary_id, day_number, date, title, notes) 
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO ${tableToUse} 
+        (itinerary_id, day_number, date) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      [itinerary_id, day_number, date, title, notes]
+      [itinerary_id, day_number, date]
     );
     
     return result.rows[0];

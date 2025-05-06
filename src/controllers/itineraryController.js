@@ -142,8 +142,8 @@ const createItinerary = async (req, res) => {
       const dayData = {
         itinerary_id: newItinerary.id,
         day_number: i + 1,
-        date: currentDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
-        title: `Dia ${i + 1}`
+        date: currentDate.toISOString().split('T')[0] // Formato YYYY-MM-DD
+        // Removido campo 'title' que não existe na tabela 'itinerary_days'
       };
       
       const newDay = await ItineraryDayModel.createDay(dayData);
