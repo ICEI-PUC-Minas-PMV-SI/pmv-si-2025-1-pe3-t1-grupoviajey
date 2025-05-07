@@ -28,10 +28,16 @@ const AUTH = {
   },
   
   // Fazer logout (remover token e dados)
-  logout: function() {
+  logout: function(redirectPath = '') {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    window.location.href = '/login.html';
+    
+    // Se tiver um caminho de redirecionamento, usá-lo após o login
+    if (redirectPath) {
+      window.location.href = `/login.html?redirect=${encodeURIComponent(redirectPath)}`;
+    } else {
+      window.location.href = '/login.html';
+    }
   },
   
   // Adicionar token a requisições fetch
@@ -40,6 +46,32 @@ const AUTH = {
     
     if (!token && options.requireAuth) {
       throw new Error('Token de autenticação não fornecido. Por favor, faça login.');
+    }
+    
+    // Verificar se o token é válido - apenas para operações que exigem autenticação
+    if (token && options.requireAuth) {
+      try {
+        // Verificar silenciosamente o token antes de prosseguir
+        const verifyResponse = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+
+        if (!verifyResponse.ok) {
+          // Token inválido, fazer logout e forçar login
+          console.warn('Token inválido ou expirado, redirecionando para login');
+          this.logout();
+          throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+        }
+      } catch (err) {
+        if (err.message.includes('sessão expirou') || err.message.includes('login novamente')) {
+          throw err;
+        }
+        console.error('Erro ao verificar token:', err);
+      }
     }
     
     // Configurar headers com o token de autenticação
