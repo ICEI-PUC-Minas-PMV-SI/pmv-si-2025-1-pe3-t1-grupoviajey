@@ -222,22 +222,42 @@ function formatDate(dateStr) {
 
 // Set up the user dropdown menu functionality
 function setupUserDropdown() {
-  const avatarDropdown = document.getElementById('user-avatar-dropdown');
-  const dropdownMenu = document.getElementById('user-dropdown');
+  // O Bootstrap agora gerencia o dropdown, então não precisamos de código personalizado para abrir/fechar
+  // O logout já é gerenciado pelo auth_frontend.js
   
-  if (avatarDropdown && dropdownMenu) {
-    // Toggle dropdown when avatar is clicked
-    avatarDropdown.addEventListener('click', function(e) {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle('show');
+  // Atualizar a interface baseada no status de autenticação
+  updateUserInterface();
+}
+
+// Atualiza a interface do usuário com base no status de autenticação
+function updateUserInterface() {
+  const isUserLoggedIn = window.AUTH && window.AUTH.isUserLoggedIn();
+  const userData = isUserLoggedIn ? window.AUTH.getUserData() : null;
+  
+  // Atualizar estados de visualização com base na autenticação
+  const loggedInElements = document.querySelectorAll('.auth-logged-in');
+  const loggedOutElements = document.querySelectorAll('.auth-logged-out');
+  
+  loggedInElements.forEach(el => {
+    el.style.display = isUserLoggedIn ? '' : 'none';
+  });
+  
+  loggedOutElements.forEach(el => {
+    el.style.display = isUserLoggedIn ? 'none' : '';
+  });
+  
+  // Atualizar o nome do usuário no dropdown se estiver logado
+  if (isUserLoggedIn && userData) {
+    const userNameElements = document.querySelectorAll('.user-name');
+    userNameElements.forEach(el => {
+      el.textContent = `Olá, ${userData.username}`;
     });
     
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!avatarDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
-        dropdownMenu.classList.remove('show');
-      }
-    });
+    // Atualizar texto da hero section com o nome do usuário
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle) {
+      heroTitle.textContent = `Olá, ${userData.username}! Vamos planejar sua próxima aventura?`;
+    }
   }
 }
 

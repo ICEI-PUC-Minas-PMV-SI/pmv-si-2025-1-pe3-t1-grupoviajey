@@ -41,25 +41,28 @@
           <button class="btn btn-primary new-trip-btn">
             <i class="fas fa-plus me-2"></i>Novo Roteiro
           </button>
-          <div class="user-avatar" id="user-avatar-dropdown">
-            <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
-            <span class="user-name">Olá, visitante</span>
-            <i class="fas fa-chevron-down"></i>
+          
+          <!-- Usuário Logado - Dropdown Bootstrap -->
+          <div class="dropdown auth-logged-in">
+            <button class="btn btn-link dropdown-toggle user-avatar p-0" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              <img id="user-avatar-img" src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+              <span class="user-name">Olá, visitante</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownBtn">
+              <li><a class="dropdown-item" href="/meus-roteiros.html"><i class="fas fa-map-marked-alt me-2"></i>Meus Roteiros</a></li>
+              <li><a class="dropdown-item" href="/minha-conta.html"><i class="fas fa-user me-2"></i>Minha Conta</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+            </ul>
+          </div>
+          
+          <!-- Botões para Usuário Não Logado -->
+          <div class="auth-logged-out">
+            <a href="/login.html" class="btn btn-outline-light me-2">Entrar</a>
+            <a href="/register.html" class="btn btn-outline-primary">Registrar</a>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- User Dropdown Menu -->
-    <div class="user-dropdown" id="user-dropdown">
-      <ul class="dropdown-menu">
-        <li><a href="#profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
-        <li><a href="#favorites"><i class="fas fa-heart me-2"></i>Favoritos</a></li>
-        <li><a href="#itineraries"><i class="fas fa-map-marked-alt me-2"></i>Roteiros</a></li>
-        <li><a href="#create-itinerary"><i class="fas fa-plus-circle me-2"></i>Criar roteiro</a></li>
-        <li class="divider"></li>
-        <li><a href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
-      </ul>
     </div>
   </header>
 
