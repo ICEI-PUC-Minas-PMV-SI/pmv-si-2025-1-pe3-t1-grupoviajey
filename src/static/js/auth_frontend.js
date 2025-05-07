@@ -62,8 +62,12 @@ const AUTH = {
   // Adicionar token a requisições fetch
   fetchWithAuth: async function(url, options = {}) {
     const token = this.getAuthToken();
+    const actionType = options.method || 'GET';
+    
+    console.log(`${actionType === 'POST' ? 'Criando' : 'Buscando'} ${url.split('/').pop()} com token:`, token ? 'Token presente' : 'Sem token');
     
     if (!token && options.requireAuth) {
+      console.error('Autenticação requerida mas nenhum token encontrado');
       throw new Error('Token de autenticação não fornecido. Por favor, faça login.');
     }
     
@@ -71,6 +75,7 @@ const AUTH = {
     const headers = options.headers || {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      console.log('Adicionando token à requisição para:', url);
     }
     
     // Se tiver body e não tiver Content-Type, adicionar
@@ -79,20 +84,36 @@ const AUTH = {
     }
     
     // Fazer a requisição
-    const response = await fetch(url, {
-      ...options,
-      headers
-    });
-    
-    // Verificação de autenticação após a resposta (mais simples, sem verificação dupla)
-    if (response.status === 401 && options.requireAuth) {
-      console.warn('Token de autenticação inválido ou expirado');
-      // Limpar o token apenas, sem redirecionamento automático
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers
+      });
+      
+      // Verificação de autenticação após a resposta
+      if (response.status === 401) {
+        const responseText = await response.clone().text();
+        console.error('Erro de autenticação 401:', responseText);
+        
+        if (options.requireAuth) {
+          console.warn('Token de autenticação inválido ou expirado. Limpando dados de autenticação.');
+          // Limpar o token e dados do usuário
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userData');
+          
+          if (options.redirectOnAuthFailure) {
+            // Redirecionar para a página de login se a flag estiver ativa
+            console.warn('Redirecionando para página de login devido a falha de autenticação');
+            window.location.href = '/login.html';
+          }
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      console.error(`Erro na requisição para ${url}:`, error);
+      throw error;
     }
-    
-    return response;
   },
   
   // Função para mostrar mensagem de erro/sucesso
