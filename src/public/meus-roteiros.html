@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Roteiros - Viajey</title>
+  <meta name="description" content="Viajey - Gerenciamento de roteiros de viagem">
+  
+  <!-- Bootstrap CSS (Replit Theme) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- Header (Fixed) -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="/">
+            <h1>Viajey</h1>
+          </a>
+        </div>
+        
+        <div class="search-bar">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <button class="btn btn-primary new-trip-btn">
+            <i class="fas fa-plus me-2"></i>Novo Roteiro
+          </button>
+          
+          <!-- Usuário Logado - Dropdown Bootstrap -->
+          <div class="dropdown auth-logged-in">
+            <button class="btn btn-link dropdown-toggle user-avatar p-0" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              <img id="user-avatar-img" src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+              <span class="user-name">Olá, visitante</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownBtn">
+              <li><a class="dropdown-item" href="/meus-roteiros.html"><i class="fas fa-map-marked-alt me-2"></i>Meus Roteiros</a></li>
+              <li><a class="dropdown-item" href="/minha-conta.html"><i class="fas fa-user me-2"></i>Minha Conta</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+            </ul>
+          </div>
+          
+          <!-- Botões para Usuário Não Logado -->
+          <div class="auth-logged-out">
+            <a href="/login.html" class="btn btn-outline-light me-2">Entrar</a>
+            <a href="/register.html" class="btn btn-outline-primary">Registrar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="container mt-5 pt-4">
+      <div class="row">
+        <div class="col-12">
+          <h2 class="mb-4">Meus Roteiros</h2>
+          
+          <!-- Filtros e Ordenação -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="filters">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" data-filter="all">Todos</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="active">Em Planejamento</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="completed">Concluídos</button>
+              </div>
+            </div>
+            
+            <div class="sorting">
+              <select class="form-select form-select-sm" id="sort-itineraries">
+                <option value="date-desc">Mais recentes</option>
+                <option value="date-asc">Mais antigos</option>
+                <option value="name-asc">Nome (A-Z)</option>
+                <option value="name-desc">Nome (Z-A)</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Lista de Roteiros -->
+          <div class="itineraries-grid">
+            <!-- Placeholder para carregamento -->
+            <div class="text-center py-5 w-100" id="loading-itineraries">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
+              <p class="mt-2">Carregando seus roteiros...</p>
+            </div>
+            
+            <!-- Mensagem de nenhum roteiro -->
+            <div class="text-center py-5 w-100 d-none" id="no-itineraries">
+              <i class="fas fa-route fa-3x mb-3 text-muted"></i>
+              <h5>Você ainda não tem roteiros</h5>
+              <p>Crie seu primeiro roteiro clicando no botão "Novo Roteiro"</p>
+              <button class="btn btn-primary mt-3" id="create-first-itinerary">
+                <i class="fas fa-plus me-2"></i>Criar meu primeiro roteiro
+              </button>
+            </div>
+            
+            <!-- Os cards de itinerário serão renderizados aqui dinamicamente -->
+            <div id="itineraries-container"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal Criar Novo Roteiro -->
+    <div class="modal fade" id="createItineraryModal" tabindex="-1" aria-labelledby="createItineraryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createItineraryModalLabel">Criar Novo Roteiro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="newItineraryForm">
+              <div class="mb-3">
+                <label for="itineraryName" class="form-label">Nome do roteiro</label>
+                <input type="text" class="form-control" id="itineraryName" placeholder="Ex: Férias em Balneário Camboriú" required>
+              </div>
+              
+              <div class="mb-3">
+                <label for="destination" class="form-label">Destino</label>
+                <input type="text" class="form-control" id="destination" placeholder="Ex: São Paulo, Barcelona, Londres" required>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="form-label">Data de ida</label>
+                  <input type="date" class="form-control" id="startDate" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="endDate" class="form-label">Data de volta</label>
+                  <input type="date" class="form-control" id="endDate" required>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Preferências de viagem</label>
+                <div class="preference-options">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefRelaxamento" value="Relaxamento">
+                    <label class="form-check-label" for="prefRelaxamento">Relaxamento</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefPraias" value="Praias">
+                    <label class="form-check-label" for="prefPraias">Praias</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefAventura" value="Aventura">
+                    <label class="form-check-label" for="prefAventura">Aventura</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefCultura" value="Cultura">
+                    <label class="form-check-label" for="prefCultura">Cultura</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefGastronomia" value="Gastronomia">
+                    <label class="form-check-label" for="prefGastronomia">Gastronomia</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefLuxo" value="Luxo">
+                    <label class="form-check-label" for="prefLuxo">Luxo</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="priceRange" class="form-label">Faixa de preço</label>
+                <select class="form-select" id="priceRange">
+                  <option value="econômico">Econômico</option>
+                  <option value="moderado" selected>Moderado</option>
+                  <option value="luxo">Luxo</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="saveItineraryBtn">Criar Roteiro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="main-footer mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <h5>Sobre o Viajey</h5>
+          <ul class="footer-links">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Missão</a></li>
+            <li><a href="#">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Comunidade</h5>
+          <ul class="footer-links">
+            <li><a href="#">Roteiros em destaque</a></li>
+            <li><a href="#">Enviar roteiro</a></li>
+            <li><a href="#">Avaliações</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Preferências</h5>
+          <ul class="footer-links">
+            <li><a href="#">Idioma</a></li>
+            <li><a href="#">Moeda</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Sociais</h5>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Authentication JS -->
+  <script src="/static/js/auth_frontend.js"></script>
+  
+  <!-- Scripts para a página Meus Roteiros -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação
+      if (!AUTH.isUserLoggedIn()) {
+        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      
+      // Referências para os elementos da página
+      const loadingElement = document.getElementById('loading-itineraries');
+      const noItinerariesElement = document.getElementById('no-itineraries');
+      const itinerariesContainer = document.getElementById('itineraries-container');
+      const createFirstItineraryBtn = document.getElementById('create-first-itinerary');
+      const newTripBtn = document.querySelector('.new-trip-btn');
+      const filterButtons = document.querySelectorAll('.filters .btn');
+      const sortSelect = document.getElementById('sort-itineraries');
+      
+      // Configurar o botão de logout
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          AUTH.logout();
+        });
+      }
+      
+      // Atualizar nome do usuário
+      const userData = AUTH.getUserData();
+      if (userData && userData.username) {
+        document.querySelectorAll('.user-name').forEach(el => {
+          el.textContent = `Olá, ${userData.username}`;
+        });
+      }
+      
+      // Configurar o modal de criar roteiro
+      const createItineraryModal = new bootstrap.Modal(document.getElementById('createItineraryModal'));
+      
+      // Configurar botões para abrir o modal
+      [newTripBtn, createFirstItineraryBtn].forEach(btn => {
+        if (btn) {
+          btn.addEventListener('click', function() {
+            createItineraryModal.show();
+          });
+        }
+      });
+      
+      // Função para carregar roteiros do servidor
+      async function loadItineraries() {
+        try {
+          // Mostrar loading
+          loadingElement.classList.remove('d-none');
+          noItinerariesElement.classList.add('d-none');
+          itinerariesContainer.innerHTML = '';
+          
+          // Buscar roteiros do servidor
+          const response = await AUTH.fetchWithAuth('/api/itineraries', {
+            requireAuth: true
+          });
+          
+          // Esconder loading
+          loadingElement.classList.add('d-none');
+          
+          if (!response.ok) {
+            throw new Error('Erro ao carregar roteiros');
+          }
+          
+          const itineraries = await response.json();
+          
+          // Verificar se há roteiros
+          if (itineraries.length === 0) {
+            noItinerariesElement.classList.remove('d-none');
+            return;
+          }
+          
+          // Aplicar filtro atual
+          const activeFilter = document.querySelector('.filters .btn.active').dataset.filter;
+          // Aplicar ordenação atual
+          const sortValue = sortSelect.value;
+          
+          // Filtrar e ordenar os itinerários
+          const filteredItineraries = filterItineraries(itineraries, activeFilter);
+          const sortedItineraries = sortItineraries(filteredItineraries, sortValue);
+          
+          // Renderizar os itinerários
+          renderItineraries(sortedItineraries);
+        } catch (error) {
+          console.error('Erro ao carregar roteiros:', error);
+          loadingElement.classList.add('d-none');
+          itinerariesContainer.innerHTML = `
+            <div class="alert alert-danger w-100">
+              Não foi possível carregar seus roteiros. ${error.message}
+            </div>
+          `;
+        }
+      }
+      
+      // Função para filtrar itinerários
+      function filterItineraries(itineraries, filter) {
+        if (filter === 'all') return itineraries;
+        
+        return itineraries.filter(itinerary => {
+          if (filter === 'active') return itinerary.status !== 'completed';
+          if (filter === 'completed') return itinerary.status === 'completed';
+          return true;
+        });
+      }
+      
+      // Função para ordenar itinerários
+      function sortItineraries(itineraries, sortBy) {
+        const sorted = [...itineraries];
+        
+        switch (sortBy) {
+          case 'date-desc':
+            return sorted.sort((a, b) => new Date(b.created_at || b.start_date) - new Date(a.created_at || a.start_date));
+          case 'date-asc':
+            return sorted.sort((a, b) => new Date(a.created_at || a.start_date) - new Date(b.created_at || b.start_date));
+          case 'name-asc':
+            return sorted.sort((a, b) => a.title.localeCompare(b.title));
+          case 'name-desc':
+            return sorted.sort((a, b) => b.title.localeCompare(a.title));
+          default:
+            return sorted;
+        }
+      }
+      
+      // Função para renderizar os itinerários
+      function renderItineraries(itineraries) {
+        if (itineraries.length === 0) {
+          noItinerariesElement.classList.remove('d-none');
+          return;
+        }
+        
+        const html = itineraries.map(itinerary => {
+          // Formatação de datas
+          const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
+          };
+          
+          const startDate = formatDate(itinerary.start_date);
+          const endDate = formatDate(itinerary.end_date);
+          const dateRange = startDate && endDate ? `${startDate} — ${endDate}` : startDate || endDate || '';
+          
+          // Imagem de capa com fallback
+          const coverImage = itinerary.cover_image || '/static/img/destinations/default.jpg';
+          
+          // Status do itinerário
+          let statusBadge = '';
+          if (itinerary.status === 'completed') {
+            statusBadge = '<span class="badge bg-success">Concluído</span>';
+          } else if (itinerary.is_collaborative) {
+            statusBadge = '<span class="badge bg-info">Colaborativo</span>';
+          }
+          
+          return `
+            <div class="itinerary-card">
+              <div class="itinerary-image">
+                <img src="${coverImage}" alt="${itinerary.destination || 'Destino'}">
+              </div>
+              <div class="itinerary-details">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h4>${itinerary.title}</h4>
+                  ${statusBadge}
+                </div>
+                ${dateRange ? `<p class="itinerary-dates">${dateRange}</p>` : ''}
+                <p class="itinerary-destination">${itinerary.destination || ''}</p>
+                
+                <div class="d-flex mt-auto">
+                  <button class="btn btn-primary flex-grow-1 me-2" onclick="editItinerary('${itinerary.id}')">
+                    <i class="fas fa-edit me-1"></i> Editar
+                  </button>
+                  <button class="btn btn-outline-primary" onclick="viewItinerary('${itinerary.id}')">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        itinerariesContainer.innerHTML = html;
+      }
+      
+      // Configurar o botão salvar do modal
+      const saveItineraryBtn = document.getElementById('saveItineraryBtn');
+      if (saveItineraryBtn) {
+        saveItineraryBtn.addEventListener('click', async function() {
+          try {
+            // Obter dados do formulário
+            const title = document.getElementById('itineraryName').value;
+            const destination = document.getElementById('destination').value;
+            const start_date = document.getElementById('startDate').value;
+            const end_date = document.getElementById('endDate').value;
+            
+            // Validação básica
+            if (!title || !destination || !start_date || !end_date) {
+              alert('Por favor, preencha todos os campos obrigatórios.');
+              return;
+            }
+            
+            // Obter preferências
+            const preferences = [];
+            document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
+              preferences.push(checkbox.value);
+            });
+            
+            const price_range = document.getElementById('priceRange').value;
+            
+            // Dados do itinerário
+            const itineraryData = {
+              title,
+              destination,
+              start_date,
+              end_date,
+              preferences: JSON.stringify(preferences),
+              price_range
+            };
+            
+            // Desabilitar botão
+            saveItineraryBtn.disabled = true;
+            saveItineraryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+            
+            // Enviar para API
+            const response = await AUTH.fetchWithAuth('/api/itineraries', {
+              method: 'POST',
+              body: JSON.stringify(itineraryData),
+              requireAuth: true
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Erro ao criar roteiro');
+            }
+            
+            const newItinerary = await response.json();
+            
+            // Fechar modal
+            createItineraryModal.hide();
+            
+            // Redirecionar para edição do novo itinerário
+            window.location.href = `/itinerary-kanban.html?roteiroId=${newItinerary.id}`;
+          } catch (error) {
+            console.error('Erro ao criar roteiro:', error);
+            
+            // Mostrar erro
+            alert(error.message || 'Não foi possível criar o roteiro. Tente novamente.');
+            
+            // Reativar botão
+            saveItineraryBtn.disabled = false;
+            saveItineraryBtn.textContent = 'Criar Roteiro';
+          }
+        });
+      }
+      
+      // Configurar filtros
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Remover classe ativa de todos os botões
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          // Adicionar classe ativa ao botão clicado
+          this.classList.add('active');
+          // Recarregar itinerários com o novo filtro
+          loadItineraries();
+        });
+      });
+      
+      // Configurar ordenação
+      sortSelect.addEventListener('change', function() {
+        loadItineraries();
+      });
+      
+      // Configurar datas padrão para o formulário
+      const setupDateInputs = () => {
+        const today = new Date();
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        
+        const formatDate = (date) => {
+          return date.toISOString().split('T')[0];
+        };
+        
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        if (startDateInput && endDateInput) {
+          startDateInput.value = formatDate(today);
+          endDateInput.value = formatDate(nextWeek);
+          
+          startDateInput.addEventListener('change', function() {
+            const newStartDate = new Date(this.value);
+            const currentEndDate = new Date(endDateInput.value);
+            
+            if (newStartDate > currentEndDate) {
+              const newEndDate = new Date(newStartDate);
+              newEndDate.setDate(newStartDate.getDate() + 7);
+              endDateInput.value = formatDate(newEndDate);
+            }
+          });
+        }
+      };
+      
+      // Funções para navegação
+      window.editItinerary = function(itineraryId) {
+        window.location.href = `/itinerary-kanban.html?roteiroId=${itineraryId}`;
+      };
+      
+      window.viewItinerary = function(itineraryId) {
+        window.location.href = `/itinerary.html?id=${itineraryId}`;
+      };
+      
+      // Inicializar a página
+      setupDateInputs();
+      loadItineraries();
+    });
+  </script>
+</body>
+</html>

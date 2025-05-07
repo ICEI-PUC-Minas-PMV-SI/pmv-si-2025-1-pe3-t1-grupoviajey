@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Conta - Viajey</title>
+  <meta name="description" content="Viajey - Gerenciamento de conta de usuário">
+  
+  <!-- Bootstrap CSS (Replit Theme) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    .profile-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .profile-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      object-fit: cover;
+    }
+    
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--primary-light);
+    }
+    
+    .stat-label {
+      font-size: 0.85rem;
+      color: #adb5bd;
+    }
+    
+    .nav-tabs {
+      border-bottom-color: var(--card-border);
+      margin-bottom: 20px;
+    }
+    
+    .nav-tabs .nav-link {
+      color: var(--text-color);
+      border: none;
+      padding: 10px 15px;
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: var(--primary-light);
+      background-color: transparent;
+      border-bottom: 2px solid var(--primary-color);
+    }
+    
+    .nav-tabs .nav-link:hover:not(.active) {
+      border-bottom: 2px solid var(--card-border);
+    }
+    
+    .preferences-section .form-label {
+      font-weight: 500;
+    }
+    
+    .security-section .form-control {
+      background-color: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (Fixed) -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="/">
+            <h1>Viajey</h1>
+          </a>
+        </div>
+        
+        <div class="search-bar">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <button class="btn btn-primary new-trip-btn">
+            <i class="fas fa-plus me-2"></i>Novo Roteiro
+          </button>
+          
+          <!-- Usuário Logado - Dropdown Bootstrap -->
+          <div class="dropdown auth-logged-in">
+            <button class="btn btn-link dropdown-toggle user-avatar p-0" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              <img id="user-avatar-img" src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+              <span class="user-name">Olá, visitante</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownBtn">
+              <li><a class="dropdown-item" href="/meus-roteiros.html"><i class="fas fa-map-marked-alt me-2"></i>Meus Roteiros</a></li>
+              <li><a class="dropdown-item" href="/minha-conta.html"><i class="fas fa-user me-2"></i>Minha Conta</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+            </ul>
+          </div>
+          
+          <!-- Botões para Usuário Não Logado -->
+          <div class="auth-logged-out">
+            <a href="/login.html" class="btn btn-outline-light me-2">Entrar</a>
+            <a href="/register.html" class="btn btn-outline-primary">Registrar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="container mt-5 pt-4">
+      <div class="row">
+        <!-- Perfil e Estatísticas -->
+        <div class="col-lg-4 mb-4">
+          <div class="profile-card">
+            <div class="profile-header">
+              <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário" class="profile-avatar" id="profile-avatar">
+              <h3 id="profile-name">Carregando...</h3>
+              <p id="profile-email" class="text-muted">carregando@example.com</p>
+              
+              <button class="btn btn-outline-primary btn-sm mt-2">
+                <i class="fas fa-camera me-1"></i>Alterar foto
+              </button>
+            </div>
+            
+            <div class="profile-stats">
+              <div class="stat-card">
+                <div class="stat-value" id="stats-itineraries">0</div>
+                <div class="stat-label">Roteiros</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="stats-trips">0</div>
+                <div class="stat-label">Viagens</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" id="stats-countries">0</div>
+                <div class="stat-label">Países</div>
+              </div>
+            </div>
+            
+            <div class="d-grid">
+              <a href="/meus-roteiros.html" class="btn btn-primary">
+                <i class="fas fa-map-marked-alt me-2"></i>Ver meus roteiros
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Configurações da Conta -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title mb-4">Configurações da Conta</h2>
+              
+              <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">Perfil</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false">Preferências</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">Segurança</button>
+                </li>
+              </ul>
+              
+              <!-- Conteúdo das abas -->
+              <div class="tab-content" id="accountTabsContent">
+                <!-- Perfil -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                  <form id="profileForm" class="mt-4">
+                    <div class="alert alert-info mb-4">
+                      <i class="fas fa-info-circle me-2"></i>Atualize suas informações pessoais abaixo
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="profileName" class="form-label">Nome</label>
+                      <input type="text" class="form-control" id="profileName" placeholder="Seu nome">
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="profileUsername" class="form-label">Nome de usuário</label>
+                      <input type="text" class="form-control" id="profileUsername" placeholder="Seu nome de usuário">
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="profileEmail" class="form-label">Email</label>
+                      <input type="email" class="form-control" id="profileEmail" placeholder="Seu email">
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="profileBio" class="form-label">Biografia</label>
+                      <textarea class="form-control" id="profileBio" rows="3" placeholder="Conte um pouco sobre você..."></textarea>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" id="saveProfileBtn">Salvar alterações</button>
+                  </form>
+                </div>
+                
+                <!-- Preferências -->
+                <div class="tab-pane fade" id="preferences" role="tabpanel" aria-labelledby="preferences-tab">
+                  <div class="preferences-section mt-4">
+                    <div class="alert alert-info mb-4">
+                      <i class="fas fa-info-circle me-2"></i>Personalize suas preferências de viagem para receber recomendações melhores
+                    </div>
+                    
+                    <form id="preferencesForm">
+                      <div class="mb-4">
+                        <label class="form-label">Estilo de viagem preferido</label>
+                        <div class="row">
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="relaxar" id="prefRelaxar">
+                              <label class="form-check-label" for="prefRelaxar">Relaxar</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="aventura" id="prefAventura">
+                              <label class="form-check-label" for="prefAventura">Aventura</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="cultura" id="prefCultura">
+                              <label class="form-check-label" for="prefCultura">Cultura</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="gastronomia" id="prefGastronomia">
+                              <label class="form-check-label" for="prefGastronomia">Gastronomia</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="natureza" id="prefNatureza">
+                              <label class="form-check-label" for="prefNatureza">Natureza</label>
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="luxo" id="prefLuxo">
+                              <label class="form-check-label" for="prefLuxo">Luxo</label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="prefCurrency" class="form-label">Moeda preferida</label>
+                        <select class="form-select" id="prefCurrency">
+                          <option value="BRL">Real Brasileiro (R$)</option>
+                          <option value="USD">Dólar Americano ($)</option>
+                          <option value="EUR">Euro (€)</option>
+                        </select>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="prefLanguage" class="form-label">Idioma</label>
+                        <select class="form-select" id="prefLanguage">
+                          <option value="pt-BR">Português (Brasil)</option>
+                          <option value="en-US">English (US)</option>
+                          <option value="es">Español</option>
+                        </select>
+                      </div>
+                      
+                      <button type="button" class="btn btn-primary" id="savePreferencesBtn">Salvar preferências</button>
+                    </form>
+                  </div>
+                </div>
+                
+                <!-- Segurança -->
+                <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                  <div class="security-section mt-4">
+                    <div class="alert alert-warning mb-4">
+                      <i class="fas fa-shield-alt me-2"></i>Altere sua senha regularmente para manter sua conta segura
+                    </div>
+                    
+                    <form id="securityForm">
+                      <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Senha atual</label>
+                        <input type="password" class="form-control" id="currentPassword" placeholder="Digite sua senha atual">
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="newPassword" class="form-label">Nova senha</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="Digite sua nova senha">
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirmar nova senha</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirme sua nova senha">
+                      </div>
+                      
+                      <button type="button" class="btn btn-primary" id="changePasswordBtn">Alterar senha</button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5>Sessões ativas</h5>
+                      <button class="btn btn-outline-danger btn-sm" id="logoutAllBtn">Encerrar todas</button>
+                    </div>
+                    
+                    <div class="list-group mb-4">
+                      <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 class="mb-1">Chrome - Windows</h6>
+                          <small class="text-muted">Último acesso: Hoje, 15:30</small>
+                        </div>
+                        <span class="badge bg-success">Atual</span>
+                      </div>
+                      <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 class="mb-1">Safari - iPhone</h6>
+                          <small class="text-muted">Último acesso: Ontem, 19:45</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger">Encerrar</button>
+                      </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                      <button class="btn btn-outline-danger" id="deleteAccountBtn">Excluir minha conta</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal Criar Novo Roteiro -->
+    <div class="modal fade" id="createItineraryModal" tabindex="-1" aria-labelledby="createItineraryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createItineraryModalLabel">Criar Novo Roteiro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="newItineraryForm">
+              <div class="mb-3">
+                <label for="itineraryName" class="form-label">Nome do roteiro</label>
+                <input type="text" class="form-control" id="itineraryName" placeholder="Ex: Férias em Balneário Camboriú" required>
+              </div>
+              
+              <div class="mb-3">
+                <label for="destination" class="form-label">Destino</label>
+                <input type="text" class="form-control" id="destination" placeholder="Ex: São Paulo, Barcelona, Londres" required>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="form-label">Data de ida</label>
+                  <input type="date" class="form-control" id="startDate" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="endDate" class="form-label">Data de volta</label>
+                  <input type="date" class="form-control" id="endDate" required>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Preferências de viagem</label>
+                <div class="preference-options">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefRelaxamento" value="Relaxamento">
+                    <label class="form-check-label" for="prefRelaxamento">Relaxamento</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefPraias" value="Praias">
+                    <label class="form-check-label" for="prefPraias">Praias</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefAventura" value="Aventura">
+                    <label class="form-check-label" for="prefAventura">Aventura</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefCultura" value="Cultura">
+                    <label class="form-check-label" for="prefCultura">Cultura</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefGastronomia" value="Gastronomia">
+                    <label class="form-check-label" for="prefGastronomia">Gastronomia</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="prefLuxo" value="Luxo">
+                    <label class="form-check-label" for="prefLuxo">Luxo</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label for="priceRange" class="form-label">Faixa de preço</label>
+                <select class="form-select" id="priceRange">
+                  <option value="econômico">Econômico</option>
+                  <option value="moderado" selected>Moderado</option>
+                  <option value="luxo">Luxo</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="saveItineraryBtn">Criar Roteiro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="main-footer mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <h5>Sobre o Viajey</h5>
+          <ul class="footer-links">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Missão</a></li>
+            <li><a href="#">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Comunidade</h5>
+          <ul class="footer-links">
+            <li><a href="#">Roteiros em destaque</a></li>
+            <li><a href="#">Enviar roteiro</a></li>
+            <li><a href="#">Avaliações</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Preferências</h5>
+          <ul class="footer-links">
+            <li><a href="#">Idioma</a></li>
+            <li><a href="#">Moeda</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Sociais</h5>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Authentication JS -->
+  <script src="/static/js/auth_frontend.js"></script>
+  
+  <!-- Scripts para a página Minha Conta -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar autenticação
+      if (!AUTH.isUserLoggedIn()) {
+        window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      
+      // Referências para os elementos da página
+      const profileName = document.getElementById('profile-name');
+      const profileEmail = document.getElementById('profile-email');
+      const profileAvatar = document.getElementById('profile-avatar');
+      const statsItineraries = document.getElementById('stats-itineraries');
+      const statsTrips = document.getElementById('stats-trips');
+      const statsCountries = document.getElementById('stats-countries');
+      
+      // Formulários
+      const profileForm = document.getElementById('profileForm');
+      const profileNameInput = document.getElementById('profileName');
+      const profileUsernameInput = document.getElementById('profileUsername');
+      const profileEmailInput = document.getElementById('profileEmail');
+      const profileBioInput = document.getElementById('profileBio');
+      
+      // Configurar o botão de logout
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          AUTH.logout();
+        });
+      }
+      
+      // Obter dados do usuário atual
+      const userData = AUTH.getUserData();
+      if (userData) {
+        // Atualizar elementos da UI com dados do usuário
+        if (profileName) profileName.textContent = userData.username || userData.name || 'Usuário';
+        if (profileEmail) profileEmail.textContent = userData.email || '';
+        
+        // Atualizar formulário de perfil
+        if (profileNameInput) profileNameInput.value = userData.name || '';
+        if (profileUsernameInput) profileUsernameInput.value = userData.username || '';
+        if (profileEmailInput) profileEmailInput.value = userData.email || '';
+        if (profileBioInput) profileBioInput.value = userData.bio || '';
+        
+        // Atualizar saudação no dropdown
+        document.querySelectorAll('.user-name').forEach(el => {
+          el.textContent = `Olá, ${userData.username || 'usuário'}`;
+        });
+      }
+      
+      // Carregar estatísticas do usuário
+      async function loadUserStats() {
+        try {
+          // Aqui faríamos uma chamada à API para obter estatísticas do usuário
+          // Por enquanto, vamos usar dados fictícios para demonstração
+          
+          // Em produção, substituir por chamada real à API:
+          // const response = await AUTH.fetchWithAuth('/api/users/stats');
+          // const stats = await response.json();
+          
+          // Dados de demonstração
+          const stats = {
+            itineraries: 5,
+            trips: 3,
+            countries: 7
+          };
+          
+          // Atualizar UI com as estatísticas
+          if (statsItineraries) statsItineraries.textContent = stats.itineraries;
+          if (statsTrips) statsTrips.textContent = stats.trips;
+          if (statsCountries) statsCountries.textContent = stats.countries;
+        } catch (error) {
+          console.error('Erro ao carregar estatísticas:', error);
+        }
+      }
+      
+      // Configurar o modal de criar roteiro
+      const createItineraryModal = new bootstrap.Modal(document.getElementById('createItineraryModal'));
+      const newTripBtn = document.querySelector('.new-trip-btn');
+      
+      if (newTripBtn) {
+        newTripBtn.addEventListener('click', function() {
+          createItineraryModal.show();
+        });
+      }
+      
+      // Salvar alterações no perfil
+      const saveProfileBtn = document.getElementById('saveProfileBtn');
+      if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', async function() {
+          try {
+            const profileData = {
+              name: profileNameInput.value,
+              username: profileUsernameInput.value,
+              email: profileEmailInput.value,
+              bio: profileBioInput.value
+            };
+            
+            // Desabilitar botão e mostrar feedback
+            saveProfileBtn.disabled = true;
+            saveProfileBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+            
+            // Simular chamada à API (em produção, substituir por chamada real)
+            // const response = await AUTH.fetchWithAuth('/api/users/profile', {
+            //   method: 'PUT',
+            //   body: JSON.stringify(profileData)
+            // });
+            
+            // Simulação de delay para demonstração
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Atualizar dados exibidos na página
+            profileName.textContent = profileData.username || profileData.name;
+            profileEmail.textContent = profileData.email;
+            
+            // Atualizar dados no userData
+            const updatedUserData = { ...userData, ...profileData };
+            localStorage.setItem('userData', JSON.stringify(updatedUserData));
+            
+            // Atualizar saudação no dropdown
+            document.querySelectorAll('.user-name').forEach(el => {
+              el.textContent = `Olá, ${updatedUserData.username || 'usuário'}`;
+            });
+            
+            // Mostrar mensagem de sucesso
+            alert('Perfil atualizado com sucesso!');
+            
+            // Reativar botão
+            saveProfileBtn.disabled = false;
+            saveProfileBtn.textContent = 'Salvar alterações';
+          } catch (error) {
+            console.error('Erro ao atualizar perfil:', error);
+            alert('Erro ao atualizar perfil. Por favor, tente novamente.');
+            
+            // Reativar botão
+            saveProfileBtn.disabled = false;
+            saveProfileBtn.textContent = 'Salvar alterações';
+          }
+        });
+      }
+      
+      // Salvar preferências
+      const savePreferencesBtn = document.getElementById('savePreferencesBtn');
+      if (savePreferencesBtn) {
+        savePreferencesBtn.addEventListener('click', function() {
+          // Obter preferências selecionadas
+          const travelStyles = [];
+          document.querySelectorAll('#preferencesForm input[type="checkbox"]:checked').forEach(checkbox => {
+            travelStyles.push(checkbox.value);
+          });
+          
+          const currency = document.getElementById('prefCurrency').value;
+          const language = document.getElementById('prefLanguage').value;
+          
+          // Salvar preferências (simulado)
+          alert('Preferências salvas com sucesso!');
+        });
+      }
+      
+      // Alterar senha
+      const changePasswordBtn = document.getElementById('changePasswordBtn');
+      if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', function() {
+          const currentPassword = document.getElementById('currentPassword').value;
+          const newPassword = document.getElementById('newPassword').value;
+          const confirmPassword = document.getElementById('confirmPassword').value;
+          
+          // Validação básica
+          if (!currentPassword || !newPassword || !confirmPassword) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+          }
+          
+          if (newPassword !== confirmPassword) {
+            alert('As senhas não conferem.');
+            return;
+          }
+          
+          // Simular alteração de senha
+          alert('Senha alterada com sucesso!');
+          
+          // Limpar campos
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmPassword').value = '';
+        });
+      }
+      
+      // Excluir conta
+      const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+      if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', function() {
+          const confirmed = confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+          
+          if (confirmed) {
+            alert('Funcionalidade não implementada: Conta excluída com sucesso!');
+            AUTH.logout();
+          }
+        });
+      }
+      
+      // Encerrar todas as sessões
+      const logoutAllBtn = document.getElementById('logoutAllBtn');
+      if (logoutAllBtn) {
+        logoutAllBtn.addEventListener('click', function() {
+          const confirmed = confirm('Tem certeza que deseja encerrar todas as sessões?');
+          
+          if (confirmed) {
+            alert('Todas as sessões foram encerradas. Você será redirecionado para a página de login.');
+            AUTH.logout();
+          }
+        });
+      }
+      
+      // Configurar o botão salvar do modal de criar roteiro
+      const saveItineraryBtn = document.getElementById('saveItineraryBtn');
+      if (saveItineraryBtn) {
+        saveItineraryBtn.addEventListener('click', async function() {
+          try {
+            // Obter dados do formulário
+            const title = document.getElementById('itineraryName').value;
+            const destination = document.getElementById('destination').value;
+            const start_date = document.getElementById('startDate').value;
+            const end_date = document.getElementById('endDate').value;
+            
+            // Validação básica
+            if (!title || !destination || !start_date || !end_date) {
+              alert('Por favor, preencha todos os campos obrigatórios.');
+              return;
+            }
+            
+            // Obter preferências
+            const preferences = [];
+            document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
+              preferences.push(checkbox.value);
+            });
+            
+            const price_range = document.getElementById('priceRange').value;
+            
+            // Dados do itinerário
+            const itineraryData = {
+              title,
+              destination,
+              start_date,
+              end_date,
+              preferences: JSON.stringify(preferences),
+              price_range
+            };
+            
+            // Desabilitar botão
+            saveItineraryBtn.disabled = true;
+            saveItineraryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+            
+            // Enviar para API
+            const response = await AUTH.fetchWithAuth('/api/itineraries', {
+              method: 'POST',
+              body: JSON.stringify(itineraryData),
+              requireAuth: true
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Erro ao criar roteiro');
+            }
+            
+            const newItinerary = await response.json();
+            
+            // Fechar modal
+            createItineraryModal.hide();
+            
+            // Redirecionar para edição do novo itinerário
+            window.location.href = `/itinerary-kanban.html?roteiroId=${newItinerary.id}`;
+          } catch (error) {
+            console.error('Erro ao criar roteiro:', error);
+            
+            // Mostrar erro
+            alert(error.message || 'Não foi possível criar o roteiro. Tente novamente.');
+            
+            // Reativar botão
+            saveItineraryBtn.disabled = false;
+            saveItineraryBtn.textContent = 'Criar Roteiro';
+          }
+        });
+      }
+      
+      // Configurar datas padrão para o formulário do modal
+      const setupDateInputs = () => {
+        const today = new Date();
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        
+        const formatDate = (date) => {
+          return date.toISOString().split('T')[0];
+        };
+        
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        if (startDateInput && endDateInput) {
+          startDateInput.value = formatDate(today);
+          endDateInput.value = formatDate(nextWeek);
+          
+          startDateInput.addEventListener('change', function() {
+            const newStartDate = new Date(this.value);
+            const currentEndDate = new Date(endDateInput.value);
+            
+            if (newStartDate > currentEndDate) {
+              const newEndDate = new Date(newStartDate);
+              newEndDate.setDate(newStartDate.getDate() + 7);
+              endDateInput.value = formatDate(newEndDate);
+            }
+          });
+        }
+      };
+      
+      // Inicializar a página
+      loadUserStats();
+      setupDateInputs();
+    });
+  </script>
+</body>
+</html>
