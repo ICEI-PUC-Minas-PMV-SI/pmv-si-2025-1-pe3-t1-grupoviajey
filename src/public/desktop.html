@@ -439,14 +439,14 @@
           
           try {
             // Criar objeto com os dados do roteiro
+            // NOTA: Removendo campo 'preferences' que não existe na tabela para evitar erros
             const itineraryData = {
               // user_id será extraído do token no backend
               title,
               destination,
               start_date,
               end_date,
-              preferences: JSON.stringify(preferences),
-              price_range
+              price_range: 'moderado' // Valor padrão para evitar inconsistências
               // Removidos campos que não existem na tabela
             };
             

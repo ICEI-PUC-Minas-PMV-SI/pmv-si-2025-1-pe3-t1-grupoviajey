@@ -736,22 +736,16 @@
               return;
             }
             
-            // Obter preferências
-            const preferences = [];
-            document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
-              preferences.push(checkbox.value);
-            });
+            // Obter preferências (removido por incompatibilidade com a tabela 'itineraries')
+            // Nota: O campo 'preferences' foi removido porque não existe na tabela do banco
             
-            const price_range = document.getElementById('priceRange').value;
-            
-            // Dados do itinerário
+            // Dados do itinerário (apenas campos que existem na tabela)
             const itineraryData = {
               title,
               destination,
               start_date,
               end_date,
-              preferences: JSON.stringify(preferences),
-              price_range
+              price_range: 'moderado' // Valor padrão simplificado
             };
             
             // Desabilitar botão
