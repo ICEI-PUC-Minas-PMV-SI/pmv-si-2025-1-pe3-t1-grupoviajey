@@ -1,0 +1,73 @@
+**Objetivo Principal:** Garantir que o token de autenticação JWT, armazenado no frontend após o login, seja corretamente incluído no cabeçalho `Authorization` de TODAS as requisições para rotas de API protegidas, especialmente ao buscar os dados para a seção "Meus Roteiros".
+
+**Contexto do Problema:**
+Mesmo após o login, ao tentar acessar funcionalidades como "Meus Roteiros", o usuário recebe a mensagem "Token de autenticação não fornecido". Isso indica que a requisição do frontend para a API do backend (ex: para `GET /api/itineraries`) não está enviando o token JWT.
+
+**Arquivos Provavelmente Envolvidos no Frontend:**
+
+*   **Script que busca "Meus Roteiros":** O arquivo JavaScript que contém a função que faz a requisição `GET` para a API para listar os itinerários do usuário (ex: `static/js/desktop.js`, `static/js/app.js`, ou um script específico para "Meus Roteiros").
+*   **Qualquer outro script que chame rotas protegidas da API.**
+*   **`static/js/auth_frontend.js` (ou similar):** Onde as funções `getAuthToken()` ou `isUserLoggedIn()` podem estar definidas.
+
+**Instruções Detalhadas para o Replit Agent:**
+
+1.  **Identificar Funções de Chamada à API Protegida:**
+    *   Analise os scripts JavaScript do frontend para encontrar todas as funções que fazem chamadas `fetch` (ou `XMLHttpRequest`) para rotas da API que exigem autenticação (ex: criar roteiro, listar roteiros do usuário, editar perfil, etc.). Preste atenção especial à função que busca os dados para "Meus Roteiros".
+
+2.  **Garantir Inclusão do Token em Cada Requisição Protegida:**
+    *   Para cada função identificada no passo anterior:
+        *   **Recuperar o Token:** Antes de fazer a chamada à API, certifique-se de que o token JWT é recuperado do `localStorage` (ex: `const token = localStorage.getItem("authToken");` ou usando uma função auxiliar como `getAuthToken()`).
+        *   **Verificar Existência do Token:** Adicione uma verificação para garantir que o token existe. Se não existir, a requisição não deve ser feita, e o usuário deve ser idealmente redirecionado para a página de login ou informado sobre a necessidade de login.
+            ```javascript
+            // Exemplo de verificação antes da chamada fetch
+            const token = localStorage.getItem("authToken");
+            if (!token) {
+              console.error("Token não encontrado. Usuário precisa fazer login.");
+              // Idealmente, redirecionar para login: window.location.href = "/login.html";
+              return; // Interrompe a execução da função se não houver token
+            }
+            ```
+        *   **Adicionar Cabeçalho `Authorization`:** Modifique a chamada `fetch` (ou `XMLHttpRequest`) para incluir o token no cabeçalho `Authorization` com o prefixo `Bearer`.
+            ```javascript
+            // Exemplo com fetch
+            fetch("/api/itineraries", { // Ou qualquer outra rota protegida
+              method: "GET", // Ou POST, PUT, DELETE, conforme a necessidade
+              headers: {
+                "Content-Type": "application/json", // Se aplicável
+                "Authorization": `Bearer ${token}` // <<< GARANTIR QUE ESTA LINHA ESTEJA PRESENTE E CORRETA
+              },
+              // body: JSON.stringify(data), // Para POST/PUT
+            })
+            .then(response => {
+              if (response.status === 401 || response.status === 403) {
+                // Token inválido ou não autorizado, redirecionar para login
+                console.error("Autenticação falhou ou token inválido. Redirecionando para login.");
+                // window.location.href = "/login.html";
+                return Promise.reject(new Error("Não autorizado"));
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Processar dados recebidos
+              console.log("Dados recebidos com sucesso:", data);
+            })
+            .catch(error => {
+              console.error("Erro ao buscar dados protegidos:", error);
+            });
+            ```
+
+3.  **Revisão Geral:**
+    *   Faça uma varredura nos principais scripts que interagem com o backend para garantir que este padrão de envio de token seja aplicado consistentemente a todas as rotas que o exigem.
+
+**Considerações Adicionais:**
+
+*   **Função Auxiliar:** Se ainda não existir, considere criar uma função auxiliar global (ex: em `auth_frontend.js`) que encapsule a lógica de adicionar o token aos cabeçalhos para chamadas `fetch`. Isso evitaria repetição de código.
+*   **Tratamento de Erros de Autenticação (401/403):** Melhore o tratamento de respostas com status 401 (Não Autorizado) ou 403 (Proibido) da API. Se esses status forem recebidos, significa que o token é inválido, expirou, ou o usuário não tem permissão. Nesses casos, o frontend deve limpar o token inválido do `localStorage` e redirecionar o usuário para a página de login.
+
+**Resultado Esperado Após Implementação:**
+
+*   Ao acessar "Meus Roteiros" (e outras seções protegidas) após o login, o token JWT será corretamente enviado nas requisições para a API.
+*   A mensagem de erro "Token de autenticação não fornecido" não deverá mais aparecer para usuários logados ao tentar acessar funcionalidades protegidas.
+*   O acesso aos dados protegidos funcionará conforme o esperado.
+
+Por favor, Replit Agent, analise os scripts do frontend e aplique as modificações necessárias para garantir o envio consistente do token JWT em todas as requisições para rotas de API protegidas.

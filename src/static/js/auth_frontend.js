@@ -12,9 +12,26 @@ const AUTH = {
     return !!token && !!userData;
   },
   
-  // Obter o token de autenticação
+  // Obter o token de autenticação com validação e logs
   getAuthToken: function() {
-    return localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      console.warn('Token de autenticação não encontrado no localStorage');
+      return null;
+    }
+    
+    if (token.length < 20) {
+      console.warn('Token de autenticação encontrado, mas parece inválido (muito curto)');
+    }
+    
+    // Verificar se o token está no formato JWT (xxx.yyy.zzz)
+    if (!token.includes('.') || token.split('.').length !== 3) {
+      console.warn('Token de autenticação encontrado, mas não está no formato JWT esperado');
+    }
+    
+    console.info('Token de autenticação recuperado com sucesso. Primeiros caracteres:', token.substring(0, 15) + '...');
+    return token;
   },
   
   // Salvar token e dados do usuário

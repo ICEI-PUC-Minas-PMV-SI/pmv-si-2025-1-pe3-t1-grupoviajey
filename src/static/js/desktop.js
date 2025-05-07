@@ -449,12 +449,23 @@ document.addEventListener('DOMContentLoaded', function() {
           saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
         }
         
-        // Enviar dados para API
+        // Obter o token e garantir sua validade
+        const token = AUTH.getAuthToken();
+        
+        if (!token) {
+          alert('Token de autenticação não encontrado. Você será redirecionado para fazer login.');
+          window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+        
+        console.log('Enviando requisição com token:', token ? 'Token presente' : 'Token ausente');
+        
+        // Enviar dados para API com token explícito
         const response = await fetch('/api/itineraries', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${AUTH.getAuthToken()}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(itineraryData)
         });
