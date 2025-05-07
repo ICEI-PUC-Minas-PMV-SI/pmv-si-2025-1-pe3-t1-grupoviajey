@@ -7,7 +7,9 @@
 const AUTH = {
   // Verificar se o usuário está logado
   isUserLoggedIn: function() {
-    return !!localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData');
+    return !!token && !!userData;
   },
   
   // Obter o token de autenticação
@@ -48,32 +50,6 @@ const AUTH = {
       throw new Error('Token de autenticação não fornecido. Por favor, faça login.');
     }
     
-    // Verificar se o token é válido - apenas para operações que exigem autenticação
-    if (token && options.requireAuth) {
-      try {
-        // Verificar silenciosamente o token antes de prosseguir
-        const verifyResponse = await fetch('/api/auth/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-        });
-
-        if (!verifyResponse.ok) {
-          // Token inválido, fazer logout e forçar login
-          console.warn('Token inválido ou expirado, redirecionando para login');
-          this.logout();
-          throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
-        }
-      } catch (err) {
-        if (err.message.includes('sessão expirou') || err.message.includes('login novamente')) {
-          throw err;
-        }
-        console.error('Erro ao verificar token:', err);
-      }
-    }
-    
     // Configurar headers com o token de autenticação
     const headers = options.headers || {};
     if (token) {
@@ -85,11 +61,21 @@ const AUTH = {
       headers['Content-Type'] = 'application/json';
     }
     
-    // Retornar fetch com headers atualizados
-    return fetch(url, {
+    // Fazer a requisição
+    const response = await fetch(url, {
       ...options,
       headers
     });
+    
+    // Verificação de autenticação após a resposta (mais simples, sem verificação dupla)
+    if (response.status === 401 && options.requireAuth) {
+      console.warn('Token de autenticação inválido ou expirado');
+      // Limpar o token apenas, sem redirecionamento automático
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+    }
+    
+    return response;
   },
   
   // Função para mostrar mensagem de erro/sucesso

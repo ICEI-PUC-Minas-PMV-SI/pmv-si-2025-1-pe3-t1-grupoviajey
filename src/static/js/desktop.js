@@ -435,19 +435,40 @@ document.addEventListener('DOMContentLoaded', function() {
           end_date
         };
         
-        // Enviar dados para API usando o objeto AUTH para autenticação
-        const response = await AUTH.fetchWithAuth('/api/itineraries', {
+        // Verificar primeiro se estamos autenticados
+        if (!AUTH.isUserLoggedIn()) {
+          alert('Você precisa estar logado para criar um roteiro. Redirecionando para a página de login...');
+          window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+        
+        // Mostrar feedback ao usuário
+        const saveButton = document.getElementById('saveItineraryBtn');
+        if (saveButton) {
+          saveButton.disabled = true;
+          saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
+        }
+        
+        // Enviar dados para API
+        const response = await fetch('/api/itineraries', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${AUTH.getAuthToken()}`
           },
-          body: JSON.stringify(itineraryData),
-          requireAuth: true  // Garantir que a requisição falhe se não houver token
+          body: JSON.stringify(itineraryData)
         });
         
         if (!response.ok) {
+          // Se houve erro de autenticação, tratar especificamente
           if (response.status === 401) {
-            throw new Error('Você precisa estar logado para criar um roteiro. Por favor, faça login.');
+            alert('Sua sessão expirou. Redirecionando para a página de login...');
+            // Limpar dados de autenticação
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            // Redirecionar para login
+            window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+            return;
           } else {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `Erro ao criar roteiro: ${response.status}`);

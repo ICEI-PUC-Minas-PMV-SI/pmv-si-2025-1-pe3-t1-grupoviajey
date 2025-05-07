@@ -239,9 +239,17 @@
             // Mostrar mensagem de sucesso
             showAlert('Login bem-sucedido! Redirecionando...', 'success');
             
-            // Redirecionar para a página inicial após um breve atraso
+            // Verificar se existe um parâmetro de redirecionamento na URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectPath = urlParams.get('redirect');
+            
+            // Redirecionar para a página solicitada ou página inicial após um breve atraso
             setTimeout(() => {
-              window.location.href = '/desktop.html';
+              if (redirectPath) {
+                window.location.href = redirectPath;
+              } else {
+                window.location.href = '/desktop.html';
+              }
             }, 1000);
           } else {
             // AUTH não disponível, mostrar erro

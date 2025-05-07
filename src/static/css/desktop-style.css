@@ -71,9 +71,47 @@ img {
   color: var(--text-color);
 }
 
+/* Menu de Navegação */
+.main-nav {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.main-nav .nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 10px;
+}
+
+.main-nav .nav-item {
+  position: relative;
+}
+
+.main-nav .nav-link {
+  color: var(--text-color);
+  padding: 10px 15px;
+  display: inline-block;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.main-nav .nav-link:hover {
+  color: var(--primary-light);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.main-nav .nav-link.active {
+  color: var(--primary-light);
+  font-weight: 600;
+}
+
 .search-bar {
-  width: 40%;
-  max-width: 500px;
+  width: 30%;
+  max-width: 400px;
 }
 
 .search-bar .input-group {
@@ -594,6 +632,12 @@ main {
   
   .itineraries-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .main-nav {
+    display: none; /* Ocultar em telas médias/pequenas - pode ser substituído por um menu hamburguer */
   }
 }
 

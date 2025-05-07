@@ -140,8 +140,8 @@ const generateToken = (user) => {
     email: user.email
   };
   
-  // Token válido por 24 horas
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  // Token válido por 30 dias para melhor experiência do usuário
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
 };
 
 module.exports = {
