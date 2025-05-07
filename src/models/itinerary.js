@@ -36,23 +36,28 @@ const createItinerary = async (itineraryData) => {
     title, 
     destination, 
     start_date, 
-    end_date, 
-    preferences, 
+    end_date,
     price_range
   } = itineraryData;
   
   try {
+    console.log('[CreateItinerary - Model] Criando novo itinerário para usuário:', user_id);
+    console.log('[CreateItinerary - Model] Dados do itinerário:', JSON.stringify(itineraryData, null, 2));
+    
+    // Remover o campo preferences antes de inserir para evitar o erro
+    // já que a tabela 'itineraries' não possui essa coluna
     const result = await db.query(
       `INSERT INTO itineraries 
-        (user_id, title, destination, start_date, end_date, preferences, price_range) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        (user_id, title, destination, start_date, end_date, price_range) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING *`,
-      [user_id, title, destination, start_date, end_date, preferences, price_range]
+      [user_id, title, destination, start_date, end_date, price_range || 'moderado']
     );
     
+    console.log('[CreateItinerary - Model] Itinerário criado com sucesso, ID:', result.rows[0].id);
     return result.rows[0];
   } catch (error) {
-    console.error('Erro ao criar itinerário:', error);
+    console.error('[CreateItinerary - Model] Erro ao criar itinerário:', error);
     throw error;
   }
 };

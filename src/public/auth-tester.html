@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Autenticação</title>
+  <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+  <style>
+    .container { max-width: 800px; margin-top: 50px; }
+    .code-block { 
+      background-color: #1e1e1e; 
+      padding: 15px; 
+      border-radius: 5px; 
+      margin-bottom: 20px;
+      overflow-x: auto;
+      font-family: monospace;
+    }
+    pre { color: #f8f9fa; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Teste de Autenticação Viajey</h1>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Status da Autenticação</h5>
+      </div>
+      <div class="card-body">
+        <div id="auth-status">Verificando...</div>
+        <div class="mt-3">
+          <button id="check-auth-btn" class="btn btn-primary">Verificar Autenticação</button>
+          <button id="check-token-btn" class="btn btn-info ms-2">Verificar Token</button>
+          <button id="logout-btn" class="btn btn-danger ms-2">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Dados do Usuário</h5>
+      </div>
+      <div class="card-body">
+        <div id="user-data" class="code-block">
+          <pre>Aguardando dados...</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Token JWT</h5>
+      </div>
+      <div class="card-body">
+        <div id="token-data" class="code-block">
+          <pre>Aguardando token...</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Resultado da Verificação</h5>
+      </div>
+      <div class="card-body">
+        <div id="check-result" class="code-block">
+          <pre>Nenhuma verificação realizada ainda.</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col">
+        <a href="/login.html" class="btn btn-outline-primary me-2">Ir para Login</a>
+        <a href="/meus-roteiros.html" class="btn btn-outline-secondary me-2">Meus Roteiros</a>
+        <a href="/desktop.html" class="btn btn-outline-secondary">Página Inicial</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/auth_frontend.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const authStatusEl = document.getElementById('auth-status');
+      const userDataEl = document.getElementById('user-data');
+      const tokenDataEl = document.getElementById('token-data');
+      const checkResultEl = document.getElementById('check-result');
+      
+      // Verificar autenticação inicial
+      checkAuthStatus();
+      
+      // Botões de ação
+      document.getElementById('check-auth-btn').addEventListener('click', checkAuth);
+      document.getElementById('check-token-btn').addEventListener('click', checkToken);
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        AUTH.logout();
+      });
+      
+      // Verificar status de autenticação
+      function checkAuthStatus() {
+        if (AUTH.isUserLoggedIn()) {
+          authStatusEl.innerHTML = '<div class="alert alert-success">Usuário autenticado</div>';
+          displayUserData();
+          displayToken();
+        } else {
+          authStatusEl.innerHTML = '<div class="alert alert-danger">Usuário não autenticado</div>';
+          userDataEl.innerHTML = '<pre>Nenhum usuário logado</pre>';
+          tokenDataEl.innerHTML = '<pre>Nenhum token disponível</pre>';
+        }
+      }
+      
+      // Mostrar dados do usuário
+      function displayUserData() {
+        const userData = AUTH.getUserData();
+        if (userData) {
+          userDataEl.innerHTML = `<pre>${JSON.stringify(userData, null, 2)}</pre>`;
+        }
+      }
+      
+      // Mostrar token
+      function displayToken() {
+        const token = AUTH.getAuthToken();
+        if (token) {
+          // Dividir o token para mostrar as 3 partes
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            try {
+              // Decodificar o payload (segunda parte)
+              const payload = JSON.parse(atob(parts[1]));
+              
+              tokenDataEl.innerHTML = `<pre>Header: ${parts[0]}\n\nPayload: ${JSON.stringify(payload, null, 2)}\n\nSignature: ${parts[2].substring(0, 10)}...</pre>`;
+            } catch (e) {
+              tokenDataEl.innerHTML = `<pre>${token}</pre>`;
+            }
+          } else {
+            tokenDataEl.innerHTML = `<pre>${token}</pre>`;
+          }
+        }
+      }
+      
+      // Verificar token no servidor
+      async function checkAuth() {
+        try {
+          checkResultEl.innerHTML = '<pre>Verificando autenticação...</pre>';
+          
+          // Testar a rota de diagnóstico
+          const response = await AUTH.fetchWithAuth('/api/auth/check', {
+            requireAuth: true
+          });
+          
+          let result;
+          try {
+            result = await response.json();
+          } catch (e) {
+            result = { error: 'Erro ao processar resposta' };
+          }
+          
+          if (response.ok) {
+            checkResultEl.innerHTML = `<pre class="text-success">Autenticação válida!\n\n${JSON.stringify(result, null, 2)}</pre>`;
+          } else {
+            checkResultEl.innerHTML = `<pre class="text-danger">Falha na autenticação: ${response.status} ${response.statusText}\n\n${JSON.stringify(result, null, 2)}</pre>`;
+          }
+        } catch (error) {
+          checkResultEl.innerHTML = `<pre class="text-danger">Erro: ${error.message}</pre>`;
+        }
+      }
+      
+      // Verificar token manual
+      async function checkToken() {
+        try {
+          checkResultEl.innerHTML = '<pre>Verificando token...</pre>';
+          
+          // Enviar token para verificação
+          const token = AUTH.getAuthToken();
+          if (!token) {
+            checkResultEl.innerHTML = '<pre class="text-danger">Nenhum token disponível</pre>';
+            return;
+          }
+          
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ token })
+          });
+          
+          let result;
+          try {
+            result = await response.json();
+          } catch (e) {
+            result = { error: 'Erro ao processar resposta' };
+          }
+          
+          if (response.ok) {
+            checkResultEl.innerHTML = `<pre class="text-success">Token válido!\n\n${JSON.stringify(result, null, 2)}</pre>`;
+          } else {
+            checkResultEl.innerHTML = `<pre class="text-danger">Token inválido: ${response.status} ${response.statusText}\n\n${JSON.stringify(result, null, 2)}</pre>`;
+          }
+        } catch (error) {
+          checkResultEl.innerHTML = `<pre class="text-danger">Erro: ${error.message}</pre>`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

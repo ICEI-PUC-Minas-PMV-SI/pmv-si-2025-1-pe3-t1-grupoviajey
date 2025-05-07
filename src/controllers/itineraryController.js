@@ -13,11 +13,20 @@ const ActivityModel = require('../models/activity');
  */
 const getAllItineraries = async (req, res) => {
   try {
-    const userId = req.query.userId;
+    console.log('[GetAllItineraries] Requisição recebida');
+    console.log('[GetAllItineraries] Usuário autenticado:', req.user ? `${req.user.username} (ID: ${req.user.id})` : 'Nenhum');
+    console.log('[GetAllItineraries] Query params:', req.query);
+    
+    // Se tiver usuário autenticado, usar seu ID (já que agora a rota é autenticada)
+    const userId = req.user ? req.user.id : null;
+    
+    console.log('[GetAllItineraries] Buscando itinerários para o usuário ID:', userId);
     const itineraries = await ItineraryModel.getAllItineraries(userId);
+    console.log(`[GetAllItineraries] Encontrados ${itineraries.length} itinerários`);
+    
     res.json(itineraries);
   } catch (error) {
-    console.error('Erro ao obter itinerários:', error);
+    console.error('[GetAllItineraries] Erro:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -100,38 +109,39 @@ const getItineraryByShareCode = async (req, res) => {
  */
 const createItinerary = async (req, res) => {
   try {
-    console.log('=== INÍCIO DA CRIAÇÃO DE ITINERÁRIO ===');
-    console.log('Corpo da requisição:', JSON.stringify(req.body, null, 2));
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('[CreateItinerary] === INÍCIO DA CRIAÇÃO DE ITINERÁRIO ===');
+    console.log('[CreateItinerary] Usuário autenticado:', req.user ? `${req.user.username} (ID: ${req.user.id})` : 'Nenhum');
+    console.log('[CreateItinerary] Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('[CreateItinerary] Corpo da requisição:', JSON.stringify(req.body, null, 2));
     
     // Obter dados do corpo da requisição
     const itineraryData = req.body;
     
     // Validar dados obrigatórios
     if (!itineraryData.title || !itineraryData.destination || !itineraryData.start_date || !itineraryData.end_date) {
-      console.log('Erro: campos obrigatórios ausentes', itineraryData);
+      console.log('[CreateItinerary] Erro: campos obrigatórios ausentes', itineraryData);
       return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
     
-    // Adicionar user_id do usuário autenticado ou usar user_id padrão para desenvolvimento
-    if (req.user) {
-      itineraryData.user_id = req.user.id;
-    } else if (!itineraryData.user_id) {
-      // Para desenvolvimento, usar user_id = 1 se não houver usuário autenticado nem user_id no corpo
-      itineraryData.user_id = 1;
+    // Verificar se o usuário está autenticado (middleware isAuthenticated deve garantir que sim)
+    if (!req.user) {
+      console.log('[CreateItinerary] Erro: usuário não autenticado');
+      return res.status(401).json({ error: 'Usuário não autenticado. Por favor, faça login novamente.' });
     }
     
-    // Como estamos usando isAuthenticated, o req.user já deve existir
-    // e o itineraryData.user_id já foi preenchido com o ID do usuário atual
-    console.log('Usando ID do usuário autenticado:', itineraryData.user_id);
+    // Adicionar user_id do usuário autenticado
+    itineraryData.user_id = req.user.id;
+    console.log('[CreateItinerary] Usando ID do usuário autenticado:', itineraryData.user_id, '(', req.user.username, ')');
     
-    // Garantir que valores opcionais não causem erros
-    itineraryData.preferences = itineraryData.preferences || null;
+    // Garantir que valores opcionais não causem erros e remover campos que não existem na tabela
     itineraryData.price_range = itineraryData.price_range || 'moderado';
     
-    // Remover campos que não existem na tabela para evitar erros
+    // Remover campos que não existem na tabela 'itineraries'
+    delete itineraryData.preferences; // Removido para evitar erro com a coluna que não existe
     delete itineraryData.cover_image;
     delete itineraryData.is_public;
+    
+    console.log('[CreateItinerary] Dados do itinerário após limpeza:', JSON.stringify(itineraryData, null, 2));
     
     // Criar itinerário
     const newItinerary = await ItineraryModel.createItinerary(itineraryData);
