@@ -100,29 +100,42 @@ const login = async (req, res) => {
  */
 const verify = async (req, res) => {
   try {
+    console.log('[Verify] Headers recebidos:', JSON.stringify(req.headers));
     const token = req.body.token || req.query.token || req.headers['authorization']?.split(' ')[1];
     
+    console.log('[Verify] Token extraído:', token ? `${token.substring(0, 15)}...` : 'Nenhum token encontrado');
+    
     if (!token) {
+      console.log('[Verify] Nenhum token fornecido na requisição');
       return res.status(401).json({ error: 'Token não fornecido' });
     }
     
     try {
       // Verificar token
+      console.log('[Verify] JWT_SECRET:', JWT_SECRET ? `${JWT_SECRET.substring(0, 3)}...${JWT_SECRET.substring(JWT_SECRET.length - 3)}` : 'Ausente');
+      console.log('[Verify] Tentando verificar token...');
+      
       const decoded = jwt.verify(token, JWT_SECRET);
+      console.log('[Verify] Token verificado com sucesso. Payload:', { id: decoded.id, username: decoded.username });
       
       // Obter usuário atual
+      console.log('[Verify] Buscando usuário com ID:', decoded.id);
       const user = await UserModel.getUserById(decoded.id);
       
       if (!user) {
+        console.error('[Verify] Usuário não encontrado para o ID:', decoded.id);
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
+      
+      console.log('[Verify] Usuário encontrado:', user.username);
       
       res.json({
         valid: true,
         user
       });
     } catch (err) {
-      return res.status(401).json({ error: 'Token inválido ou expirado' });
+      console.error('[Verify] Erro na verificação do JWT:', err.name, '-', err.message);
+      return res.status(401).json({ error: `Token inválido ou expirado - ${err.message}` });
     }
   } catch (error) {
     console.error('Erro ao verificar token:', error);
@@ -140,8 +153,15 @@ const generateToken = (user) => {
     email: user.email
   };
   
+  console.log('Gerando token JWT para usuário:', user.username, '(ID:', user.id, ')');
+  console.log('JWT_SECRET no login:', JWT_SECRET ? `${JWT_SECRET.substring(0, 3)}...${JWT_SECRET.substring(JWT_SECRET.length - 3)}` : 'Ausente');
+  console.log('Payload do token:', payload);
+  
   // Token válido por 30 dias para melhor experiência do usuário
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+  console.log('Token gerado com sucesso:', token.substring(0, 15) + '...');
+  
+  return token;
 };
 
 module.exports = {
