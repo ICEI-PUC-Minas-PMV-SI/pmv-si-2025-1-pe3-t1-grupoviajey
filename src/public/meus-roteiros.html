@@ -466,16 +466,22 @@
               return;
             }
             
-            // Obter preferências - Nota: removido temporariamente porque a coluna não existe na tabela
-            // Simplificando os dados enviados para evitar erros com colunas inexistentes
+            // Obter preferências
+            const preferences = [];
+            document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
+              preferences.push(checkbox.value);
+            });
             
-            // Dados do itinerário (apenas campos que existem na tabela)
+            const price_range = document.getElementById('priceRange').value || 'moderado';
+            
+            // Dados do itinerário
             const itineraryData = {
               title,
               destination,
               start_date,
               end_date,
-              price_range: 'moderado' // Valor padrão
+              preferences: JSON.stringify(preferences), // Passar como JSON string
+              price_range
             };
             
             // Desabilitar botão

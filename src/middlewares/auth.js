@@ -51,7 +51,15 @@ const isAuthenticated = async (req, res, next) => {
       next();
     } catch (err) {
       console.error('Erro na verificação do JWT:', err.name, '-', err.message);
-      return res.status(401).json({ error: `Token inválido ou expirado - ${err.message}` });
+      
+      // Verificar se é um erro de autenticação (JWT) ou outro tipo
+      if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+        // Erros relacionados ao JWT
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      } else {
+        // Outros erros não relacionados à autenticação
+        return res.status(500).json({ error: `Erro interno do servidor: ${err.message}` });
+      }
     }
   } catch (error) {
     console.error('Erro no middleware de autenticação:', error);

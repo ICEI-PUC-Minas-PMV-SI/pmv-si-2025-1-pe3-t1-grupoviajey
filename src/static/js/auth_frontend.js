@@ -93,19 +93,36 @@ const AUTH = {
       // Verificação de autenticação após a resposta
       if (response.status === 401) {
         const responseText = await response.clone().text();
-        console.error('Erro de autenticação 401:', responseText);
         
-        if (options.requireAuth) {
-          console.warn('Token de autenticação inválido ou expirado. Limpando dados de autenticação.');
-          // Limpar o token e dados do usuário
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('userData');
+        try {
+          // Tentar analisar o responseText como JSON para verificar a mensagem de erro
+          const responseData = JSON.parse(responseText);
+          console.error('Erro de autenticação 401:', responseData);
           
-          if (options.redirectOnAuthFailure) {
-            // Redirecionar para a página de login se a flag estiver ativa
-            console.warn('Redirecionando para página de login devido a falha de autenticação');
-            window.location.href = '/login.html';
+          // Verificar se é realmente um erro de autenticação (token inválido/expirado)
+          if (responseData.error && responseData.error.includes('Token inválido ou expirado')) {
+            if (options.requireAuth) {
+              console.warn('Token de autenticação inválido ou expirado. Limpando dados de autenticação.');
+              // Limpar o token e dados do usuário
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userData');
+              
+              // Mostrar mensagem para o usuário
+              alert('Sua sessão expirou. Redirecionando para a página de login...');
+              
+              if (options.redirectOnAuthFailure !== false) {
+                // Redirecionar para a página de login com o caminho atual para redirecionamento após login
+                console.warn('Redirecionando para página de login devido a falha de autenticação');
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+              }
+            }
+          } else {
+            // É um erro 401, mas não relacionado à autenticação (possivelmente um erro de acesso)
+            console.warn('Erro 401 não relacionado à autenticação:', responseData.error);
           }
+        } catch (e) {
+          // Não conseguiu analisar como JSON, apenas log
+          console.error('Erro 401 com resposta não-JSON:', responseText);
         }
       }
       

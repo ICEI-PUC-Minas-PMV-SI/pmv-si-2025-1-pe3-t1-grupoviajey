@@ -37,21 +37,41 @@ const createItinerary = async (itineraryData) => {
     destination, 
     start_date, 
     end_date,
-    price_range
+    price_range,
+    preferences 
   } = itineraryData;
   
   try {
     console.log('[CreateItinerary - Model] Criando novo itinerário para usuário:', user_id);
     console.log('[CreateItinerary - Model] Dados do itinerário:', JSON.stringify(itineraryData, null, 2));
     
-    // Remover o campo preferences antes de inserir para evitar o erro
-    // já que a tabela 'itineraries' não possui essa coluna
+    // Processar o campo preferences para garantir que seja um JSON válido
+    let preferenceValue = null;
+    if (preferences) {
+      // Se já for string, verificar se é JSON válido
+      if (typeof preferences === 'string') {
+        try {
+          // Verificar se é JSON válido tentando fazer parse
+          JSON.parse(preferences);
+          preferenceValue = preferences;
+        } catch (e) {
+          // Se falhar, transformar em JSON string
+          preferenceValue = JSON.stringify(preferences);
+        }
+      } else {
+        // Se for objeto, arrays, etc, converter para string JSON
+        preferenceValue = JSON.stringify(preferences);
+      }
+    }
+    
+    console.log('[CreateItinerary - Model] Valor final de preferences:', preferenceValue);
+    
     const result = await db.query(
       `INSERT INTO itineraries 
-        (user_id, title, destination, start_date, end_date, price_range) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+        (user_id, title, destination, start_date, end_date, price_range, preferences) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb) 
        RETURNING *`,
-      [user_id, title, destination, start_date, end_date, price_range || 'moderado']
+      [user_id, title, destination, start_date, end_date, price_range || 'moderado', preferenceValue]
     );
     
     console.log('[CreateItinerary - Model] Itinerário criado com sucesso, ID:', result.rows[0].id);

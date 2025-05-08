@@ -135,7 +135,14 @@ const verify = async (req, res) => {
       });
     } catch (err) {
       console.error('[Verify] Erro na verificação do JWT:', err.name, '-', err.message);
-      return res.status(401).json({ error: `Token inválido ou expirado - ${err.message}` });
+      
+      // Verificar se é um erro de autenticação ou outro tipo
+      if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token inválido ou expirado' });
+      } else {
+        // Outros erros do servidor não relacionados à autenticação
+        return res.status(500).json({ error: 'Erro interno ao verificar autenticação' });
+      }
     }
   } catch (error) {
     console.error('Erro ao verificar token:', error);

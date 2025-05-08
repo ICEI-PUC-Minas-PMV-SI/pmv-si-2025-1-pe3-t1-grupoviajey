@@ -133,15 +133,35 @@ const createItinerary = async (req, res) => {
     itineraryData.user_id = req.user.id;
     console.log('[CreateItinerary] Usando ID do usuário autenticado:', itineraryData.user_id, '(', req.user.username, ')');
     
-    // Garantir que valores opcionais não causem erros e remover campos que não existem na tabela
+    // Garantir que valores opcionais não causem erros
     itineraryData.price_range = itineraryData.price_range || 'moderado';
     
+    // Processar campo preferences para garantir formato correto
+    if (itineraryData.preferences) {
+      // Se for string e já for JSON válido, manter como está
+      if (typeof itineraryData.preferences === 'string') {
+        try {
+          // Verificar se já é JSON válido
+          JSON.parse(itineraryData.preferences);
+          // É JSON válido, não faz nada
+        } catch (e) {
+          // Não é JSON válido, converter para JSON
+          itineraryData.preferences = JSON.stringify(itineraryData.preferences);
+        }
+      } else {
+        // Se não for string (objeto, array, etc), converter para string JSON
+        itineraryData.preferences = JSON.stringify(itineraryData.preferences);
+      }
+    } else {
+      // Se não tiver preferências, usar array vazio como padrão
+      itineraryData.preferences = '[]';
+    }
+    
     // Remover campos que não existem na tabela 'itineraries'
-    delete itineraryData.preferences; // Removido para evitar erro com a coluna que não existe
     delete itineraryData.cover_image;
     delete itineraryData.is_public;
     
-    console.log('[CreateItinerary] Dados do itinerário após limpeza:', JSON.stringify(itineraryData, null, 2));
+    console.log('[CreateItinerary] Dados do itinerário após processamento:', JSON.stringify(itineraryData, null, 2));
     
     // Criar itinerário
     const newItinerary = await ItineraryModel.createItinerary(itineraryData);
