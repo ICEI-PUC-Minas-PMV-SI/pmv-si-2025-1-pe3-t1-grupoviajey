@@ -418,10 +418,10 @@
           const start_date = document.getElementById('startDate').value;
           const end_date = document.getElementById('endDate').value;
           
-          // Get preferences
-          const preferences = [];
+          // Get travel options
+          const travelOptions = [];
           document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
-            preferences.push(checkbox.value);
+            travelOptions.push(checkbox.value);
           });
           
           const price_range = document.getElementById('priceRange').value;
