@@ -2,6 +2,7 @@ modules = ["nodejs-20", "postgresql-16", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["jq"]
 
 [[ports]]
 localPort = 3000
