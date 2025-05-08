@@ -272,10 +272,12 @@ app.get('/api/itineraries', async (req, res) => {
 
 app.post('/api/itineraries', async (req, res) => {
   try {
-    const { user_id, title, destination, start_date, end_date, preferences, price_range } = req.body;
+    const { user_id, title, destination, start_date, end_date, options, preferences, price_range } = req.body;
+    // Usar options se disponível, caso contrário usar preferences (backward compatibility)
+    const optionsData = options || preferences || null;
     const result = await pool.query(
-      'INSERT INTO itineraries (user_id, title, destination, start_date, end_date, preferences, price_range) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [user_id, title, destination, start_date, end_date, preferences, price_range]
+      'INSERT INTO itineraries (user_id, title, destination, start_date, end_date, options, price_range) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [user_id, title, destination, start_date, end_date, optionsData, price_range]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
