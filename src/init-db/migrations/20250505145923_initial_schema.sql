@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS "itineraries" (
   "cover_image" VARCHAR(255),
   "budget" DECIMAL(10,2),
   "budget_currency" CHAR(3),
+  "options" JSONB,
   "status" VARCHAR(20) NOT NULL DEFAULT 'planning',
   "share_code" VARCHAR(20) UNIQUE,
   "location_lat" DECIMAL(9,6),

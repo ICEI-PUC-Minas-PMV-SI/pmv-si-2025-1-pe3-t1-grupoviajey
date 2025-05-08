@@ -78,6 +78,7 @@ const schema = {
     cover_image: { ...TYPES.VARCHAR(255), ...TYPES.NULL },
     budget: { ...TYPES.DECIMAL(10, 2), ...TYPES.NULL },
     budget_currency: { ...TYPES.CHAR(3), ...TYPES.NULL },
+    options: { ...TYPES.JSONB, ...TYPES.NULL },
     status: { ...TYPES.VARCHAR(20), ...TYPES.NOT_NULL, ...TYPES.DEFAULT("'planning'") },
     share_code: { ...TYPES.VARCHAR(20), ...TYPES.UNIQUE },
     location_lat: { ...TYPES.DECIMAL(9, 6), ...TYPES.NULL },
