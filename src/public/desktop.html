@@ -438,12 +438,6 @@
           saveItineraryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
           
           try {
-            // Obter opções dos checkboxes selecionados
-            const travelOptions = [];
-            document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
-              travelOptions.push(checkbox.value);
-            });
-            
             // Criar objeto com os dados do roteiro
             const itineraryData = {
               // user_id será extraído do token no backend

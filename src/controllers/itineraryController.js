@@ -137,8 +137,7 @@ const createItinerary = async (req, res) => {
     itineraryData.price_range = itineraryData.price_range || 'moderado';
     
     // Processar campo options para garantir formato correto
-    // Primeiro verificar se enviou options, caso contrário verificar preferences (compatibilidade)
-    const optionsData = itineraryData.options || itineraryData.preferences || [];
+    const optionsData = itineraryData.options || [];
     
     // Converter para o formato adequado para o banco de dados
     if (typeof optionsData === 'string') {
@@ -154,9 +153,6 @@ const createItinerary = async (req, res) => {
       // Se for array ou objeto, converter para string JSON
       itineraryData.options = JSON.stringify(optionsData);
     }
-    
-    // Remover o campo preferences se ele existir (vamos usar apenas options)
-    delete itineraryData.preferences;
     
     // Remover campos que não existem na tabela 'itineraries'
     delete itineraryData.cover_image;
@@ -213,9 +209,8 @@ const updateItinerary = async (req, res) => {
     }
     
     // Processar campo options para garantir formato correto
-    // Primeiro verificar se enviou options, caso contrário verificar preferences (compatibilidade)
-    if (updates.options || updates.preferences) {
-      const optionsData = updates.options || updates.preferences || [];
+    if (updates.options) {
+      const optionsData = updates.options || [];
       
       // Converter para o formato adequado para o banco de dados
       if (typeof optionsData === 'string') {
@@ -231,9 +226,6 @@ const updateItinerary = async (req, res) => {
         // Se for array ou objeto, converter para string JSON
         updates.options = JSON.stringify(optionsData);
       }
-      
-      // Remover o campo preferences se ele existir (vamos usar apenas options)
-      delete updates.preferences;
     }
     
     // Atualizar o itinerário

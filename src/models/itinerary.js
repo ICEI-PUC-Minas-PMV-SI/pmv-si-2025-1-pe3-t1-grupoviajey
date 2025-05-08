@@ -39,7 +39,7 @@ const createItinerary = async (itineraryData) => {
     end_date,
     price_range,
     options,
-    preferences  // Manter para compatibilidade com código existente
+    // Removido "preferences" - agora usamos apenas "options"
   } = itineraryData;
   
   try {
@@ -47,8 +47,7 @@ const createItinerary = async (itineraryData) => {
     console.log('[CreateItinerary - Model] Dados do itinerário:', JSON.stringify(itineraryData, null, 2));
     
     // Processar o campo options para garantir que seja um JSON válido
-    // Primeiro, dar prioridade para options (novo nome), se não existir usar preferences (compatibilidade)
-    const optionsData = options || preferences || {};
+    const optionsData = options || {};
     let optionsValue = null;
     
     // Se já for string, verificar se é JSON válido
