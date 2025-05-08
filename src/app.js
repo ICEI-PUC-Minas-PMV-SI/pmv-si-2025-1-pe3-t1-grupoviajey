@@ -55,7 +55,7 @@ const initDatabase = async () => {
         destination VARCHAR(255) NOT NULL,
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
-        preferences JSONB,
+        options JSONB,
         price_range VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
