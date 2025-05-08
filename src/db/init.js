@@ -38,7 +38,7 @@ async function initDatabase() {
         destination VARCHAR(255) NOT NULL,
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
-        preferences JSONB,
+        options JSONB,
         price_range VARCHAR(50),
         cover_image VARCHAR(255),
         is_public BOOLEAN DEFAULT false,
