@@ -136,26 +136,27 @@ const createItinerary = async (req, res) => {
     // Garantir que valores opcionais não causem erros
     itineraryData.price_range = itineraryData.price_range || 'moderado';
     
-    // Processar campo preferences para garantir formato correto
-    if (itineraryData.preferences) {
-      // Se for string e já for JSON válido, manter como está
-      if (typeof itineraryData.preferences === 'string') {
-        try {
-          // Verificar se já é JSON válido
-          JSON.parse(itineraryData.preferences);
-          // É JSON válido, não faz nada
-        } catch (e) {
-          // Não é JSON válido, converter para JSON
-          itineraryData.preferences = JSON.stringify(itineraryData.preferences);
-        }
-      } else {
-        // Se não for string (objeto, array, etc), converter para string JSON
-        itineraryData.preferences = JSON.stringify(itineraryData.preferences);
+    // Processar campo options para garantir formato correto
+    // Primeiro verificar se enviou options, caso contrário verificar preferences (compatibilidade)
+    const optionsData = itineraryData.options || itineraryData.preferences || [];
+    
+    // Converter para o formato adequado para o banco de dados
+    if (typeof optionsData === 'string') {
+      try {
+        // Verificar se já é JSON válido
+        JSON.parse(optionsData);
+        itineraryData.options = optionsData;
+      } catch (e) {
+        // Não é JSON válido, converter para JSON
+        itineraryData.options = JSON.stringify(optionsData);
       }
     } else {
-      // Se não tiver preferências, usar array vazio como padrão
-      itineraryData.preferences = '[]';
+      // Se for array ou objeto, converter para string JSON
+      itineraryData.options = JSON.stringify(optionsData);
     }
+    
+    // Remover o campo preferences se ele existir (vamos usar apenas options)
+    delete itineraryData.preferences;
     
     // Remover campos que não existem na tabela 'itineraries'
     delete itineraryData.cover_image;
@@ -209,6 +210,30 @@ const updateItinerary = async (req, res) => {
     
     if (!existingItinerary) {
       return res.status(404).json({ error: 'Itinerário não encontrado' });
+    }
+    
+    // Processar campo options para garantir formato correto
+    // Primeiro verificar se enviou options, caso contrário verificar preferences (compatibilidade)
+    if (updates.options || updates.preferences) {
+      const optionsData = updates.options || updates.preferences || [];
+      
+      // Converter para o formato adequado para o banco de dados
+      if (typeof optionsData === 'string') {
+        try {
+          // Verificar se já é JSON válido
+          JSON.parse(optionsData);
+          updates.options = optionsData;
+        } catch (e) {
+          // Não é JSON válido, converter para JSON
+          updates.options = JSON.stringify(optionsData);
+        }
+      } else {
+        // Se for array ou objeto, converter para string JSON
+        updates.options = JSON.stringify(optionsData);
+      }
+      
+      // Remover o campo preferences se ele existir (vamos usar apenas options)
+      delete updates.preferences;
     }
     
     // Atualizar o itinerário

@@ -13,10 +13,34 @@ const Activity = require('../models/activity');
  */
 async function createActivity(req, res) {
   try {
-    const { 
-      itinerary_day_id, name, type, location, period, 
-      start_time, end_time, notes, position 
+    console.log('Criando atividade. Parâmetros de URL:', req.params);
+    console.log('Corpo da requisição:', req.body);
+    
+    // Obter dados do dia e do itinerário dos parâmetros da URL ou do corpo
+    const itineraryId = req.params.itineraryId;
+    const dayNumber = req.params.dayNumber;
+    
+    let {
+      itinerary_day_id, name, type, location, period,
+      start_time, end_time, notes, position
     } = req.body;
+    
+    // Se a rota for /itineraries/:itineraryId/days/:dayNumber/activities, precisamos obter o ID do dia
+    if (itineraryId && dayNumber && !itinerary_day_id) {
+      // Importar modelo de dia do itinerário para buscar o ID
+      const ItineraryDay = require('../models/itineraryDay');
+      
+      console.log(`Buscando dia ${dayNumber} do itinerário ${itineraryId}`);
+      const days = await ItineraryDay.getDaysByItineraryId(itineraryId);
+      
+      const day = days.find(d => d.day_number === parseInt(dayNumber));
+      if (!day) {
+        return res.status(404).json({ error: `Dia ${dayNumber} não encontrado no itinerário ${itineraryId}` });
+      }
+      
+      console.log('Dia encontrado:', day);
+      itinerary_day_id = day.id;
+    }
     
     // Validar campos obrigatórios
     if (!itinerary_day_id || !name || !type || !period) {
@@ -37,6 +61,8 @@ async function createActivity(req, res) {
       notes,
       position: position || 0
     });
+    
+    console.log('Atividade criada com sucesso:', activity);
     
     // Retornar atividade criada
     res.status(201).json(activity);
@@ -167,7 +193,7 @@ async function deleteActivity(req, res) {
     }
     
     // Excluir atividade
-    const success = await Activity.delete(id);
+    const success = await Activity.deleteActivity(id);
     
     // Verificar se atividade existia
     if (!success) {
@@ -189,15 +215,19 @@ async function deleteActivity(req, res) {
  */
 async function getActivitiesByDay(req, res) {
   try {
-    const { day_id } = req.params;
+    // Suporta tanto a rota /activities/:day_id quanto /itineraries/:itineraryId/days/:dayId/activities
+    const dayId = req.params.dayId || req.params.day_id;
+    
+    console.log('Obtendo atividades para o dia:', dayId);
     
     // Validar ID do dia
-    if (!day_id || isNaN(parseInt(day_id))) {
+    if (!dayId || isNaN(parseInt(dayId))) {
       return res.status(400).json({ error: 'ID de dia inválido' });
     }
     
     // Buscar atividades
-    const activities = await Activity.getByDay(day_id);
+    const activities = await Activity.getByDay(dayId);
+    console.log(`Encontradas ${activities.length} atividades`);
     
     // Retornar atividades
     res.json(activities);

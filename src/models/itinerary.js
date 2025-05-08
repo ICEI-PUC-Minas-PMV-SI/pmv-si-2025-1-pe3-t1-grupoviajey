@@ -2,7 +2,7 @@
  * Modelo para gerenciar itinerários
  */
 
-const db = require('../db');
+const db = require('../shared/db');
 
 /**
  * Obtém todos os itinerários
@@ -38,40 +38,42 @@ const createItinerary = async (itineraryData) => {
     start_date, 
     end_date,
     price_range,
-    preferences 
+    options,
+    preferences  // Manter para compatibilidade com código existente
   } = itineraryData;
   
   try {
     console.log('[CreateItinerary - Model] Criando novo itinerário para usuário:', user_id);
     console.log('[CreateItinerary - Model] Dados do itinerário:', JSON.stringify(itineraryData, null, 2));
     
-    // Processar o campo preferences para garantir que seja um JSON válido
-    let preferenceValue = null;
-    if (preferences) {
-      // Se já for string, verificar se é JSON válido
-      if (typeof preferences === 'string') {
-        try {
-          // Verificar se é JSON válido tentando fazer parse
-          JSON.parse(preferences);
-          preferenceValue = preferences;
-        } catch (e) {
-          // Se falhar, transformar em JSON string
-          preferenceValue = JSON.stringify(preferences);
-        }
-      } else {
-        // Se for objeto, arrays, etc, converter para string JSON
-        preferenceValue = JSON.stringify(preferences);
+    // Processar o campo options para garantir que seja um JSON válido
+    // Primeiro, dar prioridade para options (novo nome), se não existir usar preferences (compatibilidade)
+    const optionsData = options || preferences || {};
+    let optionsValue = null;
+    
+    // Se já for string, verificar se é JSON válido
+    if (typeof optionsData === 'string') {
+      try {
+        // Verificar se é JSON válido tentando fazer parse
+        JSON.parse(optionsData);
+        optionsValue = optionsData;
+      } catch (e) {
+        // Se falhar, transformar em JSON string
+        optionsValue = JSON.stringify(optionsData);
       }
+    } else {
+      // Se for objeto, arrays, etc, converter para string JSON
+      optionsValue = JSON.stringify(optionsData);
     }
     
-    console.log('[CreateItinerary - Model] Valor final de preferences:', preferenceValue);
+    console.log('[CreateItinerary - Model] Valor final de options:', optionsValue);
     
     const result = await db.query(
       `INSERT INTO itineraries 
-        (user_id, title, destination, start_date, end_date, price_range, preferences) 
+        (user_id, title, destination, start_date, end_date, price_range, options) 
        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb) 
        RETURNING *`,
-      [user_id, title, destination, start_date, end_date, price_range || 'moderado', preferenceValue]
+      [user_id, title, destination, start_date, end_date, price_range || 'moderado', optionsValue]
     );
     
     console.log('[CreateItinerary - Model] Itinerário criado com sucesso, ID:', result.rows[0].id);

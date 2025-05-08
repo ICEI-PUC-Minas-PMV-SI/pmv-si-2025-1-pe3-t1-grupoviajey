@@ -30,12 +30,11 @@ const createDay = async (dayData) => {
     console.log('=== CRIANDO DIA DE ITINERÁRIO ===');
     console.log('Dados recebidos:', JSON.stringify(dayData, null, 2));
     
-    // Verificar qual tabela existe
-    let tableToUse = 'itinerary_days';
-    console.log(`Usando tabela: ${tableToUse}`);
+    // Garantir que estamos usando a tabela correta
+    console.log('Criando dia na tabela: itinerary_days');
     
     const result = await db.query(
-      `INSERT INTO ${tableToUse} 
+      `INSERT INTO itinerary_days 
         (itinerary_id, day_number, date) 
        VALUES ($1, $2, $3) 
        RETURNING *`,

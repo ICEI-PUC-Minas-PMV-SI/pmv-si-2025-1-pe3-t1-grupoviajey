@@ -100,9 +100,11 @@ function initMap() {
                 document.getElementById('search-destination').value = roteiro.destination;
                 currentDestination = roteiro.destination;
                 
-                // Mostrar destino do roteiro com preferências
-                const preferencesText = roteiro.preferences ? 
-                    JSON.parse(roteiro.preferences).join(', ') : '';
+                // Mostrar destino do roteiro com opções/preferências
+                // Usar options (novo nome do campo) ou preferences (compatibilidade) se options não existir
+                const optionsField = roteiro.options || roteiro.preferences || null;
+                const preferencesText = optionsField ? 
+                    (typeof optionsField === 'string' ? JSON.parse(optionsField).join(', ') : optionsField.join(', ')) : '';
                 
                 document.getElementById('destination-title').textContent = 
                     `Explorando ${roteiro.destination}`;
@@ -112,12 +114,17 @@ function initMap() {
                     const prefsContainer = document.createElement('div');
                     prefsContainer.className = 'preference-chips mt-2';
                     
-                    JSON.parse(roteiro.preferences).forEach(pref => {
-                        const chip = document.createElement('span');
-                        chip.className = 'badge rounded-pill bg-secondary me-1';
-                        chip.textContent = pref;
-                        prefsContainer.appendChild(chip);
-                    });
+                    // Usar options se disponível, caso contrário usar preferences para compatibilidade
+                    const prefsArray = typeof optionsField === 'string' ? JSON.parse(optionsField) : optionsField;
+                    
+                    if (prefsArray && Array.isArray(prefsArray)) {
+                        prefsArray.forEach(pref => {
+                            const chip = document.createElement('span');
+                            chip.className = 'badge rounded-pill bg-secondary me-1';
+                            chip.textContent = pref;
+                            prefsContainer.appendChild(chip);
+                        });
+                    }
                     
                     // Inserir após o título
                     const titleElement = document.getElementById('destination-title');

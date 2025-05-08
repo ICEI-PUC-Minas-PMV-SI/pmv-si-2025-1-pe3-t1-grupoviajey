@@ -438,10 +438,10 @@
           saveItineraryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Salvando...';
           
           try {
-            // Obter preferências dos checkboxes selecionados
-            const preferences = [];
+            // Obter opções dos checkboxes selecionados
+            const travelOptions = [];
             document.querySelectorAll('.preference-options input[type="checkbox"]:checked').forEach(checkbox => {
-              preferences.push(checkbox.value);
+              travelOptions.push(checkbox.value);
             });
             
             // Criar objeto com os dados do roteiro
@@ -451,7 +451,7 @@
               destination,
               start_date,
               end_date,
-              preferences: JSON.stringify(preferences), // Enviar como JSON string
+              options: travelOptions, // Enviar como array de opções
               price_range: price_range || 'moderado'
             };
             
