@@ -1,0 +1,243 @@
+/* Custom styles for Viajey App */
+
+/* General styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Screen transitions */
+.screen {
+    display: none;
+    min-height: 100vh;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Logo */
+.logo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--bs-info);
+}
+
+/* Custom buttons */
+.btn-travel {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* Card styles */
+.travel-card {
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.travel-card:hover {
+    transform: translateY(-5px);
+}
+
+.travel-card img {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Onboarding styles */
+.onboarding-question {
+    margin-bottom: 2rem;
+}
+
+.option-card {
+    border: 2px solid var(--bs-secondary);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option-card.selected {
+    border-color: var(--bs-info);
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+}
+
+/* Itinerary builder */
+.day-block {
+    border: 1px solid var(--bs-secondary);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.time-section {
+    border-left: 3px solid var(--bs-info);
+    padding-left: 15px;
+    margin-bottom: 15px;
+}
+
+.activity-item {
+    background-color: rgba(var(--bs-light-rgb), 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: grab;
+}
+
+.activity-item.dragging {
+    opacity: 0.5;
+}
+
+.drop-zone {
+    min-height: 80px;
+    border: 2px dashed rgba(var(--bs-secondary-rgb), 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.drop-zone.drag-over {
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    border-color: var(--bs-info);
+}
+
+/* Progress indicators */
+.progress-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-secondary);
+    color: var(--bs-light);
+    margin-right: 10px;
+}
+
+.progress-circle.active {
+    background-color: var(--bs-info);
+}
+
+/* Checklist */
+.checklist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(var(--bs-light-rgb), 0.05);
+}
+
+.checklist-item input[type="checkbox"] {
+    margin-right: 15px;
+}
+
+.checklist-item.checked {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* Map styles */
+.map-container {
+    height: 400px;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.map-pin {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: var(--bs-danger);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.map-pin:after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background-color: var(--bs-light);
+    position: absolute;
+    border-radius: 50%;
+    top: 8px;
+    left: 8px;
+}
+
+.map-pin:hover {
+    transform: rotate(-45deg) scale(1.2);
+}
+
+.map-pin-popup {
+    position: absolute;
+    background-color: var(--bs-dark);
+    border-radius: 8px;
+    padding: 10px;
+    width: 200px;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: none;
+}
+
+.map-pin-popup.active {
+    display: block;
+}
+
+/* Profile screen */
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: var(--bs-info);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--bs-light);
+    margin: 0 auto 20px;
+}
+
+/* Sharing screen */
+.share-link-box {
+    background-color: rgba(var(--bs-light-rgb), 0.05);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    word-break: break-all;
+}
+
+/* Bottom navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bs-dark);
+    padding: 15px;
+    border-top: 1px solid rgba(var(--bs-light-rgb), 0.1);
+    z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .travel-card img {
+        height: 220px;
+    }
+    
+    .map-container {
+        height: 500px;
+    }
+}

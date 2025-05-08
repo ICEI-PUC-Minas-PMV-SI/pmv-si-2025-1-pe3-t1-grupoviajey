@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Gerenciar Roteiro</title>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  <link rel="stylesheet" href="/static/css/preference-chips.css">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    /* Itinerary Builder Styles */
+    .itinerary-header {
+      position: relative;
+      height: 250px;
+      overflow: hidden;
+      border-radius: 0 0 16px 16px;
+      margin-bottom: 30px;
+    }
+    
+    .itinerary-header-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .itinerary-header-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 30px;
+      color: white;
+    }
+    
+    .itinerary-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .itinerary-location {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .itinerary-meta {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .itinerary-dates,
+    .itinerary-budget {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+    
+    .weather-badge {
+      padding: 5px 12px;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .itinerary-actions {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .action-btn:hover {
+      background-color: var(--primary-color);
+    }
+    
+    .tab-container {
+      margin-bottom: 30px;
+    }
+    
+    .tab-navigation {
+      display: flex;
+      gap: 20px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+    
+    .tab-button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      color: #adb5bd;
+      border: none;
+      background: none;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+    
+    .tab-button:hover {
+      color: var(--text-color);
+    }
+    
+    .tab-button.active {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    
+    .tab-button.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: var(--primary-color);
+      border-radius: 3px 3px 0 0;
+    }
+    
+    .tab-content {
+      padding: 10px 0;
+    }
+    
+    .tab-pane {
+      display: none;
+    }
+    
+    .tab-pane.active {
+      display: block;
+    }
+    
+    /* Timeline styles */
+    .day-timeline {
+      margin-bottom: 40px;
+    }
+    
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .day-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    
+    .day-date {
+      font-size: 0.9rem;
+      color: #adb5bd;
+    }
+    
+    .day-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+    
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: var(--card-border);
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 30px;
+    }
+    
+    .timeline-point {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      left: -30px;
+      top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: white;
+    }
+    
+    .timeline-point.hotel {
+      background-color: #3498db;
+    }
+    
+    .timeline-point.restaurant {
+      background-color: #e74c3c;
+    }
+    
+    .timeline-point.attraction {
+      background-color: #f1c40f;
+    }
+    
+    .timeline-point.transport {
+      background-color: #2ecc71;
+    }
+    
+    .timeline-content {
+      position: relative;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      display: flex;
+      transition: transform 0.2s ease;
+    }
+    
+    .timeline-content:hover {
+      transform: translateY(-3px);
+    }
+    
+    .timeline-time {
+      min-width: 100px;
+      text-align: center;
+      padding-right: 15px;
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .timeline-time-start {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .timeline-time-end {
+      font-size: 0.9rem;
+      color: #adb5bd;
+    }
+    
+    .timeline-duration {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+    
+    .timeline-details {
+      flex: 1;
+      padding-left: 15px;
+      display: flex;
+    }
+    
+    .timeline-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-right: 15px;
+    }
+    
+    .timeline-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .timeline-info {
+      flex: 1;
+    }
+    
+    .timeline-info h4 {
+      margin: 0 0 5px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .timeline-info p {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+      color: #adb5bd;
+    }
+    
+    .timeline-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .timeline-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-right: 5px;
+    }
+    
+    .timeline-badge.hotel {
+      background-color: rgba(52, 152, 219, 0.2);
+      color: #3498db;
+    }
+    
+    .timeline-badge.restaurant {
+      background-color: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+    }
+    
+    .timeline-badge.attraction {
+      background-color: rgba(241, 196, 15, 0.2);
+      color: #f1c40f;
+    }
+    
+    .timeline-badge.transport {
+      background-color: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+    }
+    
+    .add-activity-btn {
+      margin-left: 40px;
+      margin-bottom: 30px;
+    }
+    
+    .add-day-btn {
+      width: 100%;
+      padding: 15px;
+      border: 2px dashed var(--card-border);
+      background-color: transparent;
+      border-radius: 12px;
+      color: var(--text-color);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .add-day-btn:hover {
+      border-color: var(--primary-color);
+      background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    /* Budget tab styles */
+    .budget-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .budget-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .budget-card h3 {
+      font-size: 1.1rem;
+      margin: 0 0 10px;
+      color: #adb5bd;
+    }
+    
+    .budget-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .budget-subtitle {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    
+    .budget-progress {
+      margin-top: 15px;
+    }
+    
+    .progress {
+      height: 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #adb5bd;
+    }
+    
+    .expense-list {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+    }
+    
+    .expense-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .expense-filters {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .expense-item {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .expense-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(13, 110, 253, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+    }
+    
+    .expense-info {
+      flex: 1;
+    }
+    
+    .expense-title {
+      margin: 0 0 3px;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .expense-metadata {
+      font-size: 0.85rem;
+      color: #6c757d;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .expense-amount {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    /* Map tab styles */
+    .map-container {
+      height: 500px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .map-legend {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+    }
+    
+    .map-legend-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .poi-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+    
+    .poi-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--box-shadow);
+      display: flex;
+      height: 100px;
+    }
+    
+    .poi-image {
+      width: 100px;
+      height: 100px;
+      overflow: hidden;
+    }
+    
+    .poi-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .poi-details {
+      flex: 1;
+      padding: 10px 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .poi-title {
+      font-size: 1rem;
+      margin: 0 0 5px;
+      font-weight: 500;
+    }
+    
+    .poi-type {
+      font-size: 0.8rem;
+      margin-bottom: 5px;
+    }
+    
+    .poi-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+    }
+    
+    /* Checklist tab styles */
+    .checklist-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+    
+    .checklist-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+    }
+    
+    .checklist-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .checklist-title {
+      font-size: 1.1rem;
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    .checklist-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .checklist-progress-bar {
+      width: 100px;
+      height: 6px;
+      background-color: var(--card-border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+    }
+    
+    .checklist-progress-text {
+      font-size: 0.8rem;
+      color: #adb5bd;
+    }
+    
+    .checklist-body {
+      padding: 0;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    
+    .checklist-item {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .checklist-item:last-child {
+      border-bottom: none;
+    }
+    
+    .checklist-item.completed {
+      background-color: rgba(46, 204, 113, 0.05);
+    }
+    
+    .checklist-item.completed .checklist-item-text {
+      text-decoration: line-through;
+      color: #6c757d;
+    }
+    
+    .checklist-checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--card-border);
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .checklist-checkbox:checked {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .checklist-checkbox:checked::after {
+      content: "✓";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+    }
+    
+    .checklist-item-text {
+      font-size: 0.95rem;
+      flex: 1;
+    }
+    
+    .checklist-item-action {
+      color: #6c757d;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    
+    .checklist-item-action:hover {
+      color: var(--text-color);
+    }
+    
+    .checklist-footer {
+      padding: 15px 20px;
+      border-top: 1px solid var(--card-border);
+    }
+    
+    .add-checklist-item {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .add-checklist-item input {
+      flex: 1;
+      background-color: var(--background-color);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: var(--text-color);
+    }
+    
+    /* Share tab styles */
+    .share-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .share-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    
+    .share-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .share-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(13, 110, 253, 0.1);
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 15px;
+    }
+    
+    .share-title {
+      font-size: 1.1rem;
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+    
+    .share-description {
+      font-size: 0.9rem;
+      color: #adb5bd;
+      margin: 0 0 20px;
+    }
+    
+    .shared-with {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .shared-with-title {
+      font-size: 1.1rem;
+      margin: 0 0 20px;
+      font-weight: 600;
+    }
+    
+    .user-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: var(--background-color);
+      border-radius: 8px;
+      padding: 10px 15px;
+    }
+    
+    .user-avatar-small {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    
+    .user-avatar-small img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .user-info-small {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .user-name-small {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .user-permission {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+    
+    .user-action {
+      color: #6c757d;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    
+    .invite-form {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+    }
+    
+    .invite-form-title {
+      font-size: 1.1rem;
+      margin: 0 0 20px;
+      font-weight: 600;
+    }
+    
+    .invite-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .invite-input-group input {
+      flex: 1;
+      background-color: var(--background-color);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: var(--text-color);
+    }
+    
+    .permission-select {
+      min-width: 120px;
+      background-color: var(--background-color);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: var(--text-color);
+    }
+    
+    .share-link-box {
+      margin-top: 30px;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+    }
+    
+    .share-link-title {
+      font-size: 1.1rem;
+      margin: 0 0 15px;
+      font-weight: 600;
+    }
+    
+    .share-link-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .share-link-input input {
+      flex: 1;
+      background-color: var(--background-color);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: var(--text-color);
+    }
+    
+    @media (max-width: 768px) {
+      .itinerary-header {
+        height: 200px;
+      }
+      
+      .itinerary-title {
+        font-size: 1.8rem;
+      }
+      
+      .itinerary-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .timeline-content {
+        flex-direction: column;
+      }
+      
+      .timeline-time {
+        min-width: auto;
+        padding-right: 0;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-right: none;
+        border-bottom: 1px solid var(--card-border);
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .timeline-details {
+        padding-left: 0;
+      }
+      
+      .budget-overview {
+        grid-template-columns: 1fr;
+      }
+      
+      .expense-item {
+        flex-wrap: wrap;
+      }
+      
+      .expense-amount {
+        width: 100%;
+        margin-top: 10px;
+        text-align: right;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (Fixed) -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="/">
+            <h1>Viajey</h1>
+          </a>
+        </div>
+        
+        <div class="search-bar">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <button class="btn btn-primary new-trip-btn">
+            <i class="fas fa-plus me-2"></i>Novo Roteiro
+          </button>
+          <div class="user-avatar" id="user-avatar-dropdown">
+            <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+            <span class="user-name">Oi, Roberta</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User Dropdown Menu -->
+    <div class="user-dropdown" id="user-dropdown">
+      <ul class="dropdown-menu">
+        <li><a href="#profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
+        <li><a href="#favorites"><i class="fas fa-heart me-2"></i>Favoritos</a></li>
+        <li><a href="#itineraries"><i class="fas fa-map-marked-alt me-2"></i>Roteiros</a></li>
+        <li><a href="#create-itinerary"><i class="fas fa-plus-circle me-2"></i>Criar roteiro</a></li>
+        <li class="divider"></li>
+        <li><a href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Itinerary Header -->
+    <div class="itinerary-header">
+      <img src="/static/img/destinations/barcelona.jpg" alt="Barcelona" class="itinerary-header-image">
+      <div class="itinerary-header-overlay">
+        <div class="itinerary-actions">
+          <button class="action-btn" title="Editar roteiro">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn" title="Favoritar">
+            <i class="far fa-heart"></i>
+          </button>
+          <button class="action-btn" title="Compartilhar">
+            <i class="fas fa-share-alt"></i>
+          </button>
+          <button class="action-btn" title="Mais opções">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+        </div>
+        
+        <div class="weather-badge">
+          <i class="fas fa-sun"></i>
+          <span>24°C</span>
+        </div>
+        
+        <h1 class="itinerary-title">Explorando Barcelona</h1>
+        <div class="itinerary-location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Barcelona, Espanha</span>
+        </div>
+        
+        <div class="itinerary-meta">
+          <div class="itinerary-dates">
+            <i class="far fa-calendar-alt"></i>
+            <span>15 — 22 Junho, 2025 (7 dias)</span>
+          </div>
+          <div class="itinerary-budget">
+            <i class="fas fa-wallet"></i>
+            <span>Orçamento: €2,500</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Tab Navigation -->
+      <div class="tab-container">
+        <div class="tab-navigation">
+          <button class="tab-button active" data-tab="timeline">Cronograma</button>
+          <button class="tab-button" data-tab="budget">Orçamento</button>
+          <button class="tab-button" data-tab="map">Mapa</button>
+          <button class="tab-button" data-tab="checklist">Checklists</button>
+          <button class="tab-button" data-tab="share">Compartilhar</button>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Timeline Tab -->
+          <div class="tab-pane active" id="timeline-tab">
+            <!-- Day 1 -->
+            <div class="day-timeline">
+              <div class="day-header">
+                <div>
+                  <h3 class="day-title">Dia 1</h3>
+                  <div class="day-date">15 de Junho, 2025</div>
+                </div>
+                <div class="day-actions">
+                  <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Editar
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash-alt me-1"></i>Remover
+                  </button>
+                </div>
+              </div>
+              
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-point hotel">
+                    <i class="fas fa-hotel"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-time">
+                      <div class="timeline-time-start">14:00</div>
+                      <div class="timeline-time-end">-</div>
+                    </div>
+                    <div class="timeline-details">
+                      <div class="timeline-image">
+                        <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Arts Barcelona">
+                      </div>
+                      <div class="timeline-info">
+                        <h4>
+                          Check-in: Hotel Arts Barcelona
+                          <span class="timeline-badge hotel">Hotel</span>
+                        </h4>
+                        <p><i class="fas fa-map-marker-alt me-1"></i>Marina, 19-21, Barcelona</p>
+                        <p><i class="fas fa-euro-sign me-1"></i>210 / noite</p>
+                        <div class="timeline-actions">
+                          <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                          </button>
+                          <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-external-link-alt me-1"></i>Reserva
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="timeline-item">
+                  <div class="timeline-point restaurant">
+                    <i class="fas fa-utensils"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-time">
+                      <div class="timeline-time-start">20:00</div>
+                      <div class="timeline-time-end">22:00</div>
+                      <div class="timeline-duration">2h</div>
+                    </div>
+                    <div class="timeline-details">
+                      <div class="timeline-image">
+                        <img src="/static/img/destinations/barcelona.jpg" alt="El Nacional">
+                      </div>
+                      <div class="timeline-info">
+                        <h4>
+                          Jantar: El Nacional
+                          <span class="timeline-badge restaurant">Restaurante</span>
+                        </h4>
+                        <p><i class="fas fa-map-marker-alt me-1"></i>Passeig de Gràcia, 24, Barcelona</p>
+                        <p><i class="fas fa-info-circle me-1"></i>Restaurante catalão tradicional com vários ambientes</p>
+                        <div class="timeline-actions">
+                          <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt me-1"></i>Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="btn btn-primary add-activity-btn">
+                <i class="fas fa-plus me-2"></i>Adicionar Atividade
+              </button>
+            </div>
+            
+            <!-- Day 2 -->
+            <div class="day-timeline">
+              <div class="day-header">
+                <div>
+                  <h3 class="day-title">Dia 2</h3>
+                  <div class="day-date">16 de Junho, 2025</div>
+                </div>
+                <div class="day-actions">
+                  <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Editar
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash-alt me-1"></i>Remover
+                  </button>
+                </div>
+              </div>
+              
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-point attraction">
+                    <i class="fas fa-monument"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-time">
+                      <div class="timeline-time-start">10:00</div>
+                      <div class="timeline-time-end">13:00</div>
+                      <div class="timeline-duration">3h</div>
+                    </div>
+                    <div class="timeline-details">
+                      <div class="timeline-image">
+                        <img src="/static/img/destinations/barcelona.jpg" alt="Sagrada Família">
+                      </div>
+                      <div class="timeline-info">
+                        <h4>
+                          Visita: Sagrada Família
+                          <span class="timeline-badge attraction">Atração</span>
+                        </h4>
+                        <p><i class="fas fa-map-marker-alt me-1"></i>Carrer de Mallorca, 401, Barcelona</p>
+                        <p><i class="fas fa-euro-sign me-1"></i>26 por pessoa (ingresso)</p>
+                        <div class="timeline-actions">
+                          <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                          </button>
+                          <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-external-link-alt me-1"></i>Detalhes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="timeline-item">
+                  <div class="timeline-point restaurant">
+                    <i class="fas fa-utensils"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-time">
+                      <div class="timeline-time-start">14:00</div>
+                      <div class="timeline-time-end">15:30</div>
+                      <div class="timeline-duration">1h30</div>
+                    </div>
+                    <div class="timeline-details">
+                      <div class="timeline-image">
+                        <img src="/static/img/destinations/barcelona.jpg" alt="La Paradeta">
+                      </div>
+                      <div class="timeline-info">
+                        <h4>
+                          Almoço: La Paradeta
+                          <span class="timeline-badge restaurant">Restaurante</span>
+                        </h4>
+                        <p><i class="fas fa-map-marker-alt me-1"></i>Carrer Comercial, 7, Barcelona</p>
+                        <p><i class="fas fa-info-circle me-1"></i>Restaurante de frutos do mar estilo mercado</p>
+                        <div class="timeline-actions">
+                          <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash-alt me-1"></i>Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="timeline-item">
+                  <div class="timeline-point attraction">
+                    <i class="fas fa-tree"></i>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-time">
+                      <div class="timeline-time-start">16:30</div>
+                      <div class="timeline-time-end">19:00</div>
+                      <div class="timeline-duration">2h30</div>
+                    </div>
+                    <div class="timeline-details">
+                      <div class="timeline-image">
+                        <img src="/static/img/destinations/barcelona.jpg" alt="Park Güell">
+                      </div>
+                      <div class="timeline-info">
+                        <h4>
+                          Visita: Park Güell
+                          <span class="timeline-badge attraction">Atração</span>
+                        </h4>
+                        <p><i class="fas fa-map-marker-alt me-1"></i>Carrer d'Olot, Barcelona</p>
+                        <p><i class="fas fa-euro-sign me-1"></i>10 por pessoa (ingresso)</p>
+                        <div class="timeline-actions">
+                          <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                          </button>
+                          <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-external-link-alt me-1"></i>Detalhes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="btn btn-primary add-activity-btn">
+                <i class="fas fa-plus me-2"></i>Adicionar Atividade
+              </button>
+            </div>
+            
+            <!-- Add Day Button -->
+            <button class="add-day-btn">
+              <i class="fas fa-plus me-2"></i>Adicionar Dia
+            </button>
+          </div>
+          
+          <!-- Budget Tab -->
+          <div class="tab-pane" id="budget-tab">
+            <div class="budget-overview">
+              <div class="budget-card">
+                <h3>Orçamento Total</h3>
+                <div class="budget-value">€2,500</div>
+                <div class="budget-subtitle">Para a viagem inteira (7 dias)</div>
+              </div>
+              
+              <div class="budget-card">
+                <h3>Gastos Atuais</h3>
+                <div class="budget-value">€1,485</div>
+                <div class="budget-subtitle">59% do orçamento</div>
+                <div class="budget-progress">
+                  <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 59%"></div>
+                  </div>
+                  <div class="progress-label">
+                    <span>€0</span>
+                    <span>€2,500</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="budget-card">
+                <h3>Restante</h3>
+                <div class="budget-value">€1,015</div>
+                <div class="budget-subtitle">41% disponível</div>
+              </div>
+            </div>
+            
+            <div class="expense-list">
+              <div class="expense-header">
+                <h3 class="section-title mb-0">Despesas</h3>
+                <div class="expense-filters">
+                  <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i>Nova Despesa
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-filter me-1"></i>Filtrar
+                  </button>
+                </div>
+              </div>
+              
+              <div class="expense-item">
+                <div class="expense-icon">
+                  <i class="fas fa-hotel"></i>
+                </div>
+                <div class="expense-info">
+                  <h4 class="expense-title">Hotel Arts Barcelona</h4>
+                  <div class="expense-metadata">
+                    <span><i class="far fa-calendar-alt me-1"></i>15-22 Jun</span>
+                    <span><i class="fas fa-tag me-1"></i>Hospedagem</span>
+                    <span><i class="fas fa-check-circle me-1"></i>Pago</span>
+                  </div>
+                </div>
+                <div class="expense-amount">€1,260</div>
+              </div>
+              
+              <div class="expense-item">
+                <div class="expense-icon">
+                  <i class="fas fa-utensils"></i>
+                </div>
+                <div class="expense-info">
+                  <h4 class="expense-title">El Nacional</h4>
+                  <div class="expense-metadata">
+                    <span><i class="far fa-calendar-alt me-1"></i>15 Jun</span>
+                    <span><i class="fas fa-tag me-1"></i>Alimentação</span>
+                    <span><i class="fas fa-check-circle me-1"></i>Pago</span>
+                  </div>
+                </div>
+                <div class="expense-amount">€85</div>
+              </div>
+              
+              <div class="expense-item">
+                <div class="expense-icon">
+                  <i class="fas fa-monument"></i>
+                </div>
+                <div class="expense-info">
+                  <h4 class="expense-title">Ingressos Sagrada Família</h4>
+                  <div class="expense-metadata">
+                    <span><i class="far fa-calendar-alt me-1"></i>16 Jun</span>
+                    <span><i class="fas fa-tag me-1"></i>Atrações</span>
+                    <span><i class="fas fa-check-circle me-1"></i>Pago</span>
+                  </div>
+                </div>
+                <div class="expense-amount">€52</div>
+              </div>
+              
+              <div class="expense-item">
+                <div class="expense-icon">
+                  <i class="fas fa-utensils"></i>
+                </div>
+                <div class="expense-info">
+                  <h4 class="expense-title">La Paradeta</h4>
+                  <div class="expense-metadata">
+                    <span><i class="far fa-calendar-alt me-1"></i>16 Jun</span>
+                    <span><i class="fas fa-tag me-1"></i>Alimentação</span>
+                    <span><i class="fas fa-check-circle me-1"></i>Pago</span>
+                  </div>
+                </div>
+                <div class="expense-amount">€68</div>
+              </div>
+              
+              <div class="expense-item">
+                <div class="expense-icon">
+                  <i class="fas fa-tree"></i>
+                </div>
+                <div class="expense-info">
+                  <h4 class="expense-title">Ingressos Park Güell</h4>
+                  <div class="expense-metadata">
+                    <span><i class="far fa-calendar-alt me-1"></i>16 Jun</span>
+                    <span><i class="fas fa-tag me-1"></i>Atrações</span>
+                    <span><i class="fas fa-check-circle me-1"></i>Pago</span>
+                  </div>
+                </div>
+                <div class="expense-amount">€20</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Map Tab -->
+          <div class="tab-pane" id="map-tab">
+            <div class="map-container" id="itinerary-map">
+              <!-- Map will be loaded here by JavaScript -->
+            </div>
+            
+            <div class="map-legend">
+              <div class="map-legend-item">
+                <div class="map-legend-icon" style="background-color: #3498db;"></div>
+                <span>Hotéis</span>
+              </div>
+              <div class="map-legend-item">
+                <div class="map-legend-icon" style="background-color: #e74c3c;"></div>
+                <span>Restaurantes</span>
+              </div>
+              <div class="map-legend-item">
+                <div class="map-legend-icon" style="background-color: #f1c40f;"></div>
+                <span>Atrações</span>
+              </div>
+              <div class="map-legend-item">
+                <div class="map-legend-icon" style="background-color: #2ecc71;"></div>
+                <span>Transporte</span>
+              </div>
+            </div>
+            
+            <h3 class="section-title">Pontos de Interesse</h3>
+            <div class="poi-list">
+              <div class="poi-card">
+                <div class="poi-image">
+                  <img src="/static/img/destinations/barcelona.jpg" alt="Sagrada Família">
+                </div>
+                <div class="poi-details">
+                  <h4 class="poi-title">Sagrada Família</h4>
+                  <div class="poi-type">
+                    <span class="timeline-badge attraction">Atração</span>
+                  </div>
+                  <div class="poi-actions">
+                    <button class="btn btn-sm btn-outline-secondary">Ver</button>
+                    <button class="btn btn-sm btn-outline-primary">Adicionar</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="poi-card">
+                <div class="poi-image">
+                  <img src="/static/img/destinations/barcelona.jpg" alt="Park Güell">
+                </div>
+                <div class="poi-details">
+                  <h4 class="poi-title">Park Güell</h4>
+                  <div class="poi-type">
+                    <span class="timeline-badge attraction">Atração</span>
+                  </div>
+                  <div class="poi-actions">
+                    <button class="btn btn-sm btn-outline-secondary">Ver</button>
+                    <button class="btn btn-sm btn-outline-primary">Adicionar</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="poi-card">
+                <div class="poi-image">
+                  <img src="/static/img/destinations/barcelona.jpg" alt="La Paradeta">
+                </div>
+                <div class="poi-details">
+                  <h4 class="poi-title">La Paradeta</h4>
+                  <div class="poi-type">
+                    <span class="timeline-badge restaurant">Restaurante</span>
+                  </div>
+                  <div class="poi-actions">
+                    <button class="btn btn-sm btn-outline-secondary">Ver</button>
+                    <button class="btn btn-sm btn-outline-primary">Adicionar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Checklist Tab -->
+          <div class="tab-pane" id="checklist-tab">
+            <div class="checklist-container">
+              <div class="checklist-card">
+                <div class="checklist-header">
+                  <h3 class="checklist-title">Documentos de Viagem</h3>
+                  <div class="checklist-progress">
+                    <div class="checklist-progress-bar">
+                      <div class="progress-fill" style="width: 66%;"></div>
+                    </div>
+                    <div class="checklist-progress-text">4/6 itens</div>
+                  </div>
+                </div>
+                <div class="checklist-body">
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Passaporte</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Seguro viagem</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Bilhetes aéreos</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Confirmação do hotel</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Cartão internacional</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Carteira internacional de motorista</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="checklist-footer">
+                  <div class="add-checklist-item">
+                    <input type="text" placeholder="Adicionar novo item...">
+                    <button class="btn btn-primary">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="checklist-card">
+                <div class="checklist-header">
+                  <h3 class="checklist-title">Itens para Levar</h3>
+                  <div class="checklist-progress">
+                    <div class="checklist-progress-bar">
+                      <div class="progress-fill" style="width: 40%;"></div>
+                    </div>
+                    <div class="checklist-progress-text">2/5 itens</div>
+                  </div>
+                </div>
+                <div class="checklist-body">
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Adaptador de tomada europeu</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Câmera</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Power bank</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Medicamentos</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Tradutor offline</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="checklist-footer">
+                  <div class="add-checklist-item">
+                    <input type="text" placeholder="Adicionar novo item...">
+                    <button class="btn btn-primary">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="checklist-card">
+                <div class="checklist-header">
+                  <h3 class="checklist-title">Tarefas Antes da Viagem</h3>
+                  <div class="checklist-progress">
+                    <div class="checklist-progress-bar">
+                      <div class="progress-fill" style="width: 33%;"></div>
+                    </div>
+                    <div class="checklist-progress-text">1/3 itens</div>
+                  </div>
+                </div>
+                <div class="checklist-body">
+                  <div class="checklist-item completed">
+                    <input type="checkbox" class="checklist-checkbox" checked>
+                    <div class="checklist-item-text">Verificar previsão do tempo</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Baixar mapas offline</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="checklist-item">
+                    <input type="checkbox" class="checklist-checkbox">
+                    <div class="checklist-item-text">Avisar banco sobre viagem</div>
+                    <button class="checklist-item-action">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="checklist-footer">
+                  <div class="add-checklist-item">
+                    <input type="text" placeholder="Adicionar novo item...">
+                    <button class="btn btn-primary">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center mt-4 mb-4">
+              <button class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nova Checklist
+              </button>
+            </div>
+          </div>
+          
+          <!-- Share Tab -->
+          <div class="tab-pane" id="share-tab">
+            <div class="share-options">
+              <div class="share-card">
+                <div class="share-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <h3 class="share-title">Compartilhar com amigos</h3>
+                <p class="share-description">Convide amigos para ver ou editar este roteiro</p>
+                <button class="btn btn-primary">
+                  <i class="fas fa-user-plus me-2"></i>Convidar amigos
+                </button>
+              </div>
+              
+              <div class="share-card">
+                <div class="share-icon">
+                  <i class="fas fa-globe"></i>
+                </div>
+                <h3 class="share-title">Tornar público</h3>
+                <p class="share-description">Permita que qualquer pessoa veja este roteiro</p>
+                <button class="btn btn-outline-primary">
+                  <i class="fas fa-lock-open me-2"></i>Tornar público
+                </button>
+              </div>
+              
+              <div class="share-card">
+                <div class="share-icon">
+                  <i class="fas fa-file-export"></i>
+                </div>
+                <h3 class="share-title">Exportar roteiro</h3>
+                <p class="share-description">Baixe como PDF ou compartilhe por email</p>
+                <button class="btn btn-outline-primary">
+                  <i class="fas fa-download me-2"></i>Exportar
+                </button>
+              </div>
+            </div>
+            
+            <div class="shared-with">
+              <h3 class="shared-with-title">Compartilhado com</h3>
+              <div class="user-list">
+                <div class="user-item">
+                  <div class="user-avatar-small">
+                    <img src="/static/img/avatar-placeholder.jpg" alt="Avatar">
+                  </div>
+                  <div class="user-info-small">
+                    <div class="user-name-small">Carlos Santos</div>
+                    <div class="user-permission">Editor</div>
+                  </div>
+                  <button class="user-action">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                </div>
+                
+                <div class="user-item">
+                  <div class="user-avatar-small">
+                    <img src="/static/img/avatar-placeholder.jpg" alt="Avatar">
+                  </div>
+                  <div class="user-info-small">
+                    <div class="user-name-small">Ana Ferreira</div>
+                    <div class="user-permission">Visualizador</div>
+                  </div>
+                  <button class="user-action">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="invite-form">
+              <h3 class="invite-form-title">Convidar pessoas</h3>
+              <div class="invite-input-group">
+                <input type="email" placeholder="Email">
+                <select class="permission-select">
+                  <option value="view">Visualizador</option>
+                  <option value="edit">Editor</option>
+                </select>
+                <button class="btn btn-primary">Convidar</button>
+              </div>
+            </div>
+            
+            <div class="share-link-box">
+              <h3 class="share-link-title">Link de compartilhamento</h3>
+              <div class="share-link-input">
+                <input type="text" value="https://viajey.app/roteiro/bcn2025" readonly>
+                <button class="btn btn-primary">Copiar</button>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="require-auth">
+                <label class="form-check-label" for="require-auth">
+                  Exigir autenticação para acessar
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <h5>Sobre o Viajey</h5>
+          <ul class="footer-links">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Missão</a></li>
+            <li><a href="#">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Comunidade</h5>
+          <ul class="footer-links">
+            <li><a href="#">Roteiros em destaque</a></li>
+            <li><a href="#">Enviar roteiro</a></li>
+            <li><a href="#">Avaliações</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Preferências</h5>
+          <ul class="footer-links">
+            <li><a href="#">Idioma</a></li>
+            <li><a href="#">Moeda</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Sociais</h5>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  
+  <!-- Custom JS -->
+  <script src="/static/js/desktop.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Setup user dropdown
+      setupUserDropdown();
+      
+      // Initialize map
+      const map = L.map('itinerary-map').setView([41.3851, 2.1734], 13);
+      
+      // Add tile layer (OpenStreetMap)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      
+      // Add markers for points of interest
+      const locations = [
+        { name: 'Hotel Arts Barcelona', lat: 41.3864, lng: 2.1974, type: 'hotel' },
+        { name: 'El Nacional', lat: 41.3911, lng: 2.1683, type: 'restaurant' },
+        { name: 'Sagrada Família', lat: 41.4036, lng: 2.1744, type: 'attraction' },
+        { name: 'La Paradeta', lat: 41.3858, lng: 2.1816, type: 'restaurant' },
+        { name: 'Park Güell', lat: 41.4145, lng: 2.1527, type: 'attraction' }
+      ];
+      
+      // Define marker icons for different types
+      const icons = {
+        hotel: L.divIcon({
+          className: 'custom-marker hotel',
+          html: '<i class="fas fa-hotel"></i>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        }),
+        restaurant: L.divIcon({
+          className: 'custom-marker restaurant',
+          html: '<i class="fas fa-utensils"></i>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        }),
+        attraction: L.divIcon({
+          className: 'custom-marker attraction',
+          html: '<i class="fas fa-monument"></i>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        }),
+        transport: L.divIcon({
+          className: 'custom-marker transport',
+          html: '<i class="fas fa-bus"></i>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        })
+      };
+      
+      // Add markers to map
+      locations.forEach(location => {
+        const marker = L.marker([location.lat, location.lng], { icon: icons[location.type] }).addTo(map);
+        marker.bindPopup(`<b>${location.name}</b><br>${location.type}`);
+      });
+      
+      // Tab navigation
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabPanes = document.querySelectorAll('.tab-pane');
+      
+      tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Remove active class from all buttons and panes
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          tabPanes.forEach(pane => pane.classList.remove('active'));
+          
+          // Add active class to clicked button
+          this.classList.add('active');
+          
+          // Show corresponding tab pane
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+      });
+      
+      // Checklist functionality
+      const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+      
+      checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const checklistItem = this.closest('.checklist-item');
+          
+          if (this.checked) {
+            checklistItem.classList.add('completed');
+          } else {
+            checklistItem.classList.remove('completed');
+          }
+        });
+      });
+      
+      // Add favorite functionality
+      const favoriteBtn = document.querySelector('.action-btn:nth-child(2)');
+      if (favoriteBtn) {
+        favoriteBtn.addEventListener('click', function() {
+          const icon = this.querySelector('i');
+          if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            icon.style.color = '#e74c3c';
+          } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            icon.style.color = '';
+          }
+        });
+      }
+    });
+  </script>
+  
+  <style>
+    /* Custom map markers */
+    .custom-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      width: 30px !important;
+      height: 30px !important;
+      line-height: 30px !important;
+      text-align: center;
+    }
+    
+    .custom-marker.hotel {
+      background-color: #3498db;
+    }
+    
+    .custom-marker.restaurant {
+      background-color: #e74c3c;
+    }
+    
+    .custom-marker.attraction {
+      background-color: #f1c40f;
+    }
+    
+    .custom-marker.transport {
+      background-color: #2ecc71;
+    }
+    
+    .custom-marker i {
+      font-size: 14px;
+    }
+  </style>
+</body>
+</html>
