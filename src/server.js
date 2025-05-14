@@ -1,7 +1,7 @@
 /**
  * Viajey - Servidor principal
  * Aplicação de planejamento de viagens com Node.js
- * Versão simplificada sem dependência de banco de dados para autenticação
+ * Versão com autenticação baseada em banco de dados PostgreSQL
  */
 
 require('dotenv').config();
@@ -14,28 +14,29 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Importar configuração do banco de dados (apenas para outras funcionalidades)
+// Importar configuração do banco de dados
 const db = require('./shared/db');
 
 console.log('Inicializando servidor Viajey...');
 console.log(`Porta configurada: ${PORT}`);
-console.log('Sistema de autenticação: Memória (sem banco de dados)');
+console.log('Sistema de autenticação: PostgreSQL (autenticação baseada em banco de dados)');
 
-// Verificação opcional de banco de dados para outras funcionalidades
+// Verificação da conexão com o banco de dados 
 (async () => {
   try {
-    console.log('Tentando verificar conexão com banco de dados para funcionalidades extras...');
+    console.log('Verificando conexão com banco de dados...');
     const status = await db.checkConnection();
     
     if (status.connected) {
-      console.log('Conexão com o banco estabelecida para funcionalidades extras!');
+      console.log('Conexão com o banco de dados PostgreSQL estabelecida com sucesso!');
     } else {
-      console.log('Banco de dados não disponível para funcionalidades extras.');
-      console.log('O sistema de autenticação continuará funcionando normalmente.');
+      console.log('ERRO: Banco de dados PostgreSQL não disponível!');
+      console.log('ERRO: Sistema de autenticação pode não funcionar corretamente.');
     }
   } catch (error) {
-    console.log('Banco de dados não disponível para funcionalidades extras.');
-    console.log('O sistema de autenticação continuará funcionando normalmente.');
+    console.log('ERRO: Falha ao conectar com o banco de dados PostgreSQL!');
+    console.log('ERRO: Sistema de autenticação pode não funcionar corretamente.');
+    console.error(error);
   }
 })();
 
