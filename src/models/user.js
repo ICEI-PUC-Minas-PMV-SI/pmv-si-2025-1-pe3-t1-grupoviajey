@@ -10,7 +10,7 @@ const crypto = require('crypto');
  */
 const getUserById = async (id) => {
   try {
-    const result = await db.query('SELECT id, username, email, profile_pic, preferences, travel_style, created_at FROM users WHERE id = $1', [id]);
+    const result = await db.query('SELECT id, username, email, profile_pic, created_at FROM users WHERE id = $1', [id]);
     
     if (result.rows.length === 0) {
       return null;
@@ -63,7 +63,7 @@ const getUserByUsername = async (username) => {
  * Cria um novo usuário
  */
 const createUser = async (userData) => {
-  const { username, email, password, profile_pic } = userData;
+  const { username, email, password, profile_pic = null } = userData;
   
   try {
     // Verificar se o email já está em uso
@@ -124,7 +124,7 @@ const updateUser = async (id, updates) => {
       UPDATE users 
       SET ${setClause}, updated_at = CURRENT_TIMESTAMP 
       WHERE id = $${values.length} 
-      RETURNING id, username, email, profile_pic, preferences, travel_style, created_at, updated_at
+      RETURNING id, username, email, profile_pic, created_at, updated_at
     `;
     
     const result = await db.query(query, values);
@@ -172,7 +172,7 @@ const verifyCredentials = async (email, password) => {
  * Função para criar hash da senha
  */
 const hashPassword = (password) => {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return crypto.createHash('sha256').update(String(password)).digest('hex');
 };
 
 module.exports = {
