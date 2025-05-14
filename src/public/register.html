@@ -29,10 +29,10 @@
     .auth-card {
       width: 100%;
       max-width: 450px;
-      background-color: var(--card-bg);
+      background-color: var(--bs-dark);
       border-radius: 12px;
       padding: 30px;
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
     
     .auth-header {
@@ -43,7 +43,7 @@
     .auth-logo {
       font-size: 2.5rem;
       font-weight: 700;
-      color: var(--primary-color);
+      color: var(--bs-primary);
       margin-bottom: 10px;
     }
     
@@ -58,7 +58,7 @@
       content: "";
       flex: 1;
       height: 1px;
-      background-color: var(--card-border);
+      background-color: #495057;
     }
     
     .auth-divider span {
@@ -80,14 +80,14 @@
       justify-content: center;
       padding: 10px;
       border-radius: 6px;
-      background-color: var(--background-color);
-      border: 1px solid var(--card-border);
-      color: var(--text-color);
+      background-color: var(--bs-dark);
+      border: 1px solid #495057;
+      color: var(--bs-light);
       transition: all 0.2s ease;
     }
     
     .social-btn:hover {
-      border-color: var(--primary-color);
+      border-color: var(--bs-primary);
     }
     
     .social-btn i {
@@ -101,7 +101,7 @@
     }
     
     .auth-footer a {
-      color: var(--primary-color);
+      color: var(--bs-primary);
       text-decoration: none;
     }
     
@@ -111,6 +111,10 @@
     
     .form-check-input[type="checkbox"] {
       margin-top: 0.25rem;
+    }
+    
+    #alert-container {
+      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -123,27 +127,23 @@
         <p>Junte-se a nós e comece a planejar viagens incríveis</p>
       </div>
       
-      <form id="register-form">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="first-name" class="form-label">Nome</label>
-            <input type="text" class="form-control" id="first-name" placeholder="Seu nome" required>
-          </div>
-          <div class="col-md-6">
-            <label for="last-name" class="form-label">Sobrenome</label>
-            <input type="text" class="form-control" id="last-name" placeholder="Seu sobrenome" required>
-          </div>
+      <div id="alert-container"></div>
+      
+      <form id="registerForm">
+        <div class="mb-3">
+          <label for="username" class="form-label">Nome de usuário</label>
+          <input type="text" class="form-control" id="username" name="username" placeholder="Escolha um nome de usuário" required>
         </div>
         
         <div class="mb-3">
-          <label for="register-email" class="form-label">Email</label>
-          <input type="email" class="form-control" id="register-email" placeholder="seu@email.com" required>
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="seu@email.com" required>
         </div>
         
         <div class="mb-3">
-          <label for="register-password" class="form-label">Senha</label>
+          <label for="password" class="form-label">Senha</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="register-password" placeholder="********" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
             <button class="btn btn-outline-secondary toggle-password" type="button">
               <i class="far fa-eye"></i>
             </button>
@@ -152,9 +152,9 @@
         </div>
         
         <div class="mb-3">
-          <label for="confirm-password" class="form-label">Confirmar Senha</label>
+          <label for="confirmPassword" class="form-label">Confirmar Senha</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="confirm-password" placeholder="********" required>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="********" required>
             <button class="btn btn-outline-secondary toggle-password" type="button">
               <i class="far fa-eye"></i>
             </button>
@@ -162,21 +162,21 @@
         </div>
         
         <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="agree-terms" required>
-          <label class="form-check-label" for="agree-terms">
+          <input type="checkbox" class="form-check-input" id="agreeTerms" name="agreeTerms" required>
+          <label class="form-check-label" for="agreeTerms">
             Concordo com os <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>
           </label>
         </div>
         
         <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="newsletter">
+          <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
           <label class="form-check-label" for="newsletter">
             Desejo receber novidades e dicas de viagem por email
           </label>
         </div>
         
         <div class="d-grid">
-          <button type="submit" class="btn btn-primary btn-lg">Criar Conta</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="registerBtn">Criar Conta</button>
         </div>
       </form>
       
@@ -194,7 +194,7 @@
       </div>
       
       <div class="auth-footer">
-        Já tem uma conta? <a href="/login">Entre aqui</a>
+        Já tem uma conta? <a href="/login.html">Entre aqui</a>
       </div>
     </div>
   </div>
@@ -229,41 +229,47 @@
         });
       });
       
-      // Form validation
-      const registerForm = document.getElementById('register-form');
+      // Função para mostrar alertas
+      function showAlert(message, type = 'danger') {
+        const alertContainer = document.getElementById('alert-container');
+        if (alertContainer) {
+          alertContainer.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+              ${message}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+      }
+      
+      // Form submission
+      const registerForm = document.getElementById('registerForm');
       if (registerForm) {
         registerForm.addEventListener('submit', async function(e) {
           e.preventDefault();
           
-          // Basic validation
-          const password = document.getElementById('register-password').value;
-          const confirmPassword = document.getElementById('confirm-password').value;
+          // Get form data
+          const username = document.getElementById('username').value;
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
+          const confirmPassword = document.getElementById('confirmPassword').value;
+          const agreeTerms = document.getElementById('agreeTerms').checked;
+          const newsletter = document.getElementById('newsletter').checked;
           
+          // Basic validation
           if (password !== confirmPassword) {
-            alert('As senhas não coincidem!');
+            showAlert('As senhas não coincidem!');
             return;
           }
           
           if (password.length < 8) {
-            alert('A senha deve ter pelo menos 8 caracteres!');
+            showAlert('A senha deve ter pelo menos 8 caracteres!');
             return;
           }
-          
-          // Get form data
-          const firstName = document.getElementById('first-name').value;
-          const lastName = document.getElementById('last-name').value;
-          const email = document.getElementById('register-email').value;
-          const agreeTerms = document.getElementById('agree-terms').checked;
-          const newsletter = document.getElementById('newsletter').checked;
-          
-          // Criar nome de usuário a partir do primeiro nome
-          const username = firstName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
           
           // Preparar dados para registro
           const userData = { 
             username,
-            firstName, 
-            lastName, 
             email, 
             password,
             agreeTerms,
@@ -273,10 +279,9 @@
           console.log('Registration attempt:', userData);
           
           // Desabilitar o botão de submit e mostrar loading
-          const submitBtn = registerForm.querySelector('button[type="submit"]');
-          const originalBtnText = submitBtn.textContent;
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registrando...';
+          const registerBtn = document.getElementById('registerBtn');
+          registerBtn.disabled = true;
+          registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registrando...';
           
           try {
             // Registrar usuário usando a função do auth_frontend.js
@@ -284,20 +289,24 @@
               const result = await AUTH.register(userData);
               
               // Se sucesso, mostrar mensagem e redirecionar para login
-              alert('Registro realizado com sucesso! Faça login para continuar.');
-              window.location.href = '/login.html';
+              showAlert('Registro realizado com sucesso! Redirecionando para login...', 'success');
+              
+              // Redirecionar após breve delay
+              setTimeout(() => {
+                window.location.href = '/login.html';
+              }, 1500);
             } else {
-              // AUTH não disponível, simular o fluxo
-              console.warn('AUTH não disponível, simulando registro');
-              alert('Sistema de registro em manutenção. Por favor, tente novamente mais tarde.');
-              submitBtn.disabled = false;
-              submitBtn.textContent = originalBtnText;
+              // AUTH não disponível
+              console.error('AUTH não disponível');
+              showAlert('Sistema de registro em manutenção. Por favor, tente novamente mais tarde.');
+              registerBtn.disabled = false;
+              registerBtn.textContent = 'Criar Conta';
             }
           } catch (error) {
-            // Mostrar erro
-            alert(`Erro ao registrar: ${error.message}`);
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
+            console.error('Erro no registro:', error);
+            showAlert(error.message || 'Erro ao registrar usuário');
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Criar Conta';
           }
         });
       }
