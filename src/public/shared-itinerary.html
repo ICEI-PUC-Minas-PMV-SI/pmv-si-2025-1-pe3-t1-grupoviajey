@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Itinerário Compartilhado</title>
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <img src="/static/img/logo.png" alt="Viajey" height="30">
+          VIAJEY
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/meus-roteiros.html">Meus Roteiros</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/explorar.html">Explorar</a>
+            </li>
+          </ul>
+          <div class="d-flex" id="userSection">
+            <!-- Preenchido via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-12">
+          <h1 class="mb-4">Acessar Itinerário Compartilhado</h1>
+          
+          <div id="accessForm" class="card bg-dark mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Digite o código de compartilhamento</h5>
+              <p class="card-text">Insira o código de compartilhamento do itinerário que você recebeu.</p>
+              
+              <div class="mb-3">
+                <div class="input-group">
+                  <input type="text" id="shareCodeInput" class="form-control" placeholder="Digite o código (ex: ABC123XYZ)" maxlength="10">
+                  <button id="accessButton" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Acessar
+                  </button>
+                </div>
+                <div id="errorMessage" class="text-danger mt-2 d-none"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="itineraryContainer" class="d-none">
+            <!-- Conteúdo do itinerário será carregado aqui -->
+            <div class="card bg-dark">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 id="itineraryTitle">Carregando itinerário...</h3>
+                <div>
+                  <span class="badge bg-info me-2" id="itineraryDestination"></span>
+                  <span class="badge bg-secondary" id="itineraryDates"></span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="itineraryDetails">
+                  <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Carregando detalhes do itinerário...</p>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                  <button id="backButton" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+                  <div id="actionButtons">
+                    <!-- Botões de ação dependem do estado de autenticação -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script>
+    // Inicializar autenticação
+    document.addEventListener('DOMContentLoaded', function() {
+      initAuth();
+      updateUserInterface();
+      setupEventListeners();
+    });
+
+    function updateUserInterface() {
+      // Atualizar a seção de usuário na barra de navegação
+      const userSection = document.getElementById('userSection');
+      
+      if (isAuthenticated()) {
+        const user = getCurrentUser();
+        userSection.innerHTML = `
+          <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              ${user.username}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/minha-conta.html">Minha Conta</a></li>
+              <li><a class="dropdown-item" href="/meus-roteiros.html">Meus Roteiros</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="logoutButton">Sair</a></li>
+            </ul>
+          </div>
+        `;
+        
+        // Adicionar listener para logout
+        document.getElementById('logoutButton').addEventListener('click', function(e) {
+          e.preventDefault();
+          logout();
+          window.location.href = '/';
+        });
+      } else {
+        userSection.innerHTML = `
+          <a href="/login.html" class="btn btn-outline-light me-2">Login</a>
+          <a href="/register.html" class="btn btn-primary">Cadastre-se</a>
+        `;
+      }
+    }
+
+    function setupEventListeners() {
+      // Botão de acesso ao itinerário
+      document.getElementById('accessButton').addEventListener('click', accessItinerary);
+      
+      // Enter no campo de código
+      document.getElementById('shareCodeInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          accessItinerary();
+        }
+      });
+      
+      // Botão voltar
+      document.getElementById('backButton').addEventListener('click', function() {
+        document.getElementById('itineraryContainer').classList.add('d-none');
+        document.getElementById('accessForm').classList.remove('d-none');
+      });
+    }
+
+    async function accessItinerary() {
+      const shareCode = document.getElementById('shareCodeInput').value.trim();
+      const errorElement = document.getElementById('errorMessage');
+      
+      // Validar código
+      if (!shareCode) {
+        showError('Por favor, digite um código de compartilhamento.');
+        return;
+      }
+      
+      // Resetar mensagem de erro
+      errorElement.classList.add('d-none');
+      
+      try {
+        // Buscar itinerário pelo código
+        const response = await fetch(`/api/itineraries/share/${shareCode}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            showError('Código de compartilhamento inválido ou itinerário não encontrado.');
+          } else {
+            const error = await response.json();
+            showError(`Erro: ${error.message || 'Falha ao acessar o itinerário'}`);
+          }
+          return;
+        }
+        
+        const itinerary = await response.json();
+        displayItinerary(itinerary);
+        
+        // Esconder formulário e mostrar itinerário
+        document.getElementById('accessForm').classList.add('d-none');
+        document.getElementById('itineraryContainer').classList.remove('d-none');
+      } catch (error) {
+        console.error('Erro ao acessar itinerário:', error);
+        showError('Ocorreu um erro ao tentar acessar o itinerário. Tente novamente.');
+      }
+    }
+
+    function showError(message) {
+      const errorElement = document.getElementById('errorMessage');
+      errorElement.textContent = message;
+      errorElement.classList.remove('d-none');
+    }
+
+    function displayItinerary(itinerary) {
+      // Preencher informações básicas
+      document.getElementById('itineraryTitle').textContent = itinerary.title;
+      document.getElementById('itineraryDestination').textContent = itinerary.destination;
+      
+      // Formatar datas
+      const startDate = new Date(itinerary.start_date).toLocaleDateString('pt-BR');
+      const endDate = new Date(itinerary.end_date).toLocaleDateString('pt-BR');
+      document.getElementById('itineraryDates').textContent = `${startDate} a ${endDate}`;
+      
+      // Renderizar dias e atividades
+      const detailsContainer = document.getElementById('itineraryDetails');
+      
+      if (!itinerary.days || itinerary.days.length === 0) {
+        detailsContainer.innerHTML = '<div class="alert alert-info">Este itinerário ainda não possui dias ou atividades.</div>';
+        return;
+      }
+      
+      let html = '';
+      
+      // Ordenar dias por número do dia
+      const sortedDays = [...itinerary.days].sort((a, b) => a.day_number - b.day_number);
+      
+      sortedDays.forEach(day => {
+        html += `
+          <div class="card bg-dark mb-3">
+            <div class="card-header">
+              <h5>Dia ${day.day_number}: ${day.title || 'Sem título'}</h5>
+              <small class="text-muted">${day.description || ''}</small>
+            </div>
+            <div class="card-body">
+        `;
+        
+        // Agrupar atividades por período
+        const periods = ['manhã', 'tarde', 'noite'];
+        periods.forEach(period => {
+          const periodActivities = day.activities ? day.activities.filter(a => a.period === period) : [];
+          
+          if (periodActivities.length > 0) {
+            html += `
+              <div class="mb-3">
+                <h6 class="border-bottom pb-2 text-capitalize">${period}</h6>
+                <div class="list-group">
+            `;
+            
+            // Ordenar atividades por posição
+            const sortedActivities = [...periodActivities].sort((a, b) => a.position - b.position);
+            
+            sortedActivities.forEach(activity => {
+              // Determinar cor do badge baseada no tipo
+              let badgeClass;
+              switch (activity.type) {
+                case 'atracao': badgeClass = 'bg-primary'; break;
+                case 'refeicao': badgeClass = 'bg-success'; break;
+                case 'transporte': badgeClass = 'bg-warning text-dark'; break;
+                case 'hospedagem': badgeClass = 'bg-info text-dark'; break;
+                default: badgeClass = 'bg-secondary';
+              }
+              
+              html += `
+                <div class="list-group-item bg-dark">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1">${activity.name}</h6>
+                      ${activity.location ? `<small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${activity.location}</small>` : ''}
+                    </div>
+                    <span class="badge ${badgeClass} text-capitalize">${activity.type}</span>
+                  </div>
+                  ${activity.notes ? `<p class="mt-2 mb-0 small">${activity.notes}</p>` : ''}
+                </div>
+              `;
+            });
+            
+            html += `
+                </div>
+              </div>
+            `;
+          }
+        });
+        
+        html += `
+            </div>
+          </div>
+        `;
+      });
+      
+      detailsContainer.innerHTML = html;
+      
+      // Configurar botões de ação
+      const actionButtons = document.getElementById('actionButtons');
+      
+      if (isAuthenticated()) {
+        actionButtons.innerHTML = `
+          <button class="btn btn-outline-primary me-2" id="duplicateButton">
+            <i class="fas fa-copy"></i> Duplicar para meus roteiros
+          </button>
+        `;
+        // Adicionar listener para botão de duplicar (implementar depois)
+        document.getElementById('duplicateButton').addEventListener('click', () => {
+          alert('Funcionalidade de duplicação em desenvolvimento!');
+        });
+      } else {
+        actionButtons.innerHTML = `
+          <a href="/login.html" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i> Faça login para salvar este roteiro
+          </a>
+        `;
+      }
+    }
+  </script>
+</body>
+
+</html>
