@@ -19,7 +19,7 @@ async function initDatabase() {
         id SERIAL PRIMARY KEY,
         username VARCHAR(100) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
         profile_pic VARCHAR(255),
         preferences JSONB,
         travel_style VARCHAR(50),
