@@ -1,6 +1,7 @@
 /**
  * Viajey - Servidor principal
- * Aplicação de planejamento de viagens com Node.js e PostgreSQL
+ * Aplicação de planejamento de viagens com Node.js
+ * Versão simplificada sem dependência de banco de dados para autenticação
  */
 
 require('dotenv').config();
@@ -13,61 +14,29 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Importar configuração do banco de dados
+// Importar configuração do banco de dados (apenas para outras funcionalidades)
 const db = require('./shared/db');
 
-// Inicializar banco de dados na inicialização do servidor
+console.log('Inicializando servidor Viajey...');
+console.log(`Porta configurada: ${PORT}`);
+console.log('Sistema de autenticação: Memória (sem banco de dados)');
+
+// Verificação opcional de banco de dados para outras funcionalidades
 (async () => {
-  let retries = 5;
-  let connected = false;
-  
-  while (retries > 0 && !connected) {
-    try {
-      console.log(`Tentando conectar ao banco de dados (tentativas restantes: ${retries})...`);
-      
-      // Verificar conexão
-      const status = await db.checkConnection();
-      
-      if (!status.connected) {
-        throw new Error(`Falha na conexão: ${status.error}`);
-      }
-      
-      console.log('Conexão com o banco estabelecida!');
-      console.log(`Timestamp do servidor: ${status.time}`);
-      
-      // Verificar tabelas existentes
-      if (status.tables && status.tables.length > 0) {
-        console.log('Tabelas disponíveis:');
-        status.tables.forEach(table => {
-          console.log(`- ${table}`);
-        });
-      } else {
-        console.log('Nenhuma tabela encontrada. Execute o script init-db.js para inicializar o esquema.');
-      }
-      
-      connected = true;
-    } catch (error) {
-      console.error('Erro ao conectar com o banco de dados:', error.message);
-      retries--;
-      
-      if (retries > 0) {
-        const waitTime = 5000; // 5 segundos
-        console.log(`Tentando novamente em ${waitTime/1000} segundos...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-      } else {
-        console.error('Número máximo de tentativas atingido. Verifique a conexão com o banco de dados.');
-        console.error('O servidor será iniciado, mas algumas funcionalidades podem não funcionar corretamente.');
-      }
+  try {
+    console.log('Tentando verificar conexão com banco de dados para funcionalidades extras...');
+    const status = await db.checkConnection();
+    
+    if (status.connected) {
+      console.log('Conexão com o banco estabelecida para funcionalidades extras!');
+    } else {
+      console.log('Banco de dados não disponível para funcionalidades extras.');
+      console.log('O sistema de autenticação continuará funcionando normalmente.');
     }
+  } catch (error) {
+    console.log('Banco de dados não disponível para funcionalidades extras.');
+    console.log('O sistema de autenticação continuará funcionando normalmente.');
   }
-  
-  // Imprimir informações de diagnóstico (sem expor credenciais)
-  console.log('Informações de conexão com o banco de dados:');
-  console.log(`- Host: ${process.env.PGHOST || 'não definido'}`);
-  console.log(`- Porta: ${process.env.PGPORT || '5432 (padrão)'}`);
-  console.log(`- Banco: ${process.env.PGDATABASE || 'não definido'}`);
-  console.log(`- Usuário: ${process.env.PGUSER || 'não definido'}`);
-  console.log(`- SSL: ${process.env.DISABLE_SSL === 'true' ? 'Desativado' : 'Configuração padrão'}`);
 })();
 
 // Middlewares
@@ -157,24 +126,27 @@ app.get('/api/healthcheck', async (req, res) => {
   }
 });
 
-// Endpoint para listar itinerários (como teste de acesso aos dados)
+// Endpoint para testar o sistema (sem dependência de banco de dados)
 app.get('/api/test/itineraries', async (req, res) => {
   try {
-    // Obter itinerários do banco de dados
-    const result = await db.query(
-      'SELECT id, title, destination, start_date, end_date FROM itineraries LIMIT 10'
-    );
+    // Dados de teste para demonstração
+    const mockItineraries = [
+      { id: 1, title: 'Férias em Paris', destination: 'Paris, França', start_date: '2025-06-10', end_date: '2025-06-20' },
+      { id: 2, title: 'Fim de semana em São Paulo', destination: 'São Paulo, Brasil', start_date: '2025-05-23', end_date: '2025-05-25' },
+      { id: 3, title: 'Viagem a Tóquio', destination: 'Tóquio, Japão', start_date: '2025-09-01', end_date: '2025-09-15' }
+    ];
     
     res.status(200).json({
       status: 'ok',
-      message: 'Itinerários obtidos com sucesso',
-      count: result.rows.length,
-      data: result.rows
+      message: 'Dados de teste obtidos com sucesso',
+      count: mockItineraries.length,
+      data: mockItineraries,
+      note: 'Dados simulados para demonstração do sistema de autenticação sem banco de dados'
     });
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: 'Falha ao obter itinerários',
+      message: 'Erro interno do servidor',
       error: error.message
     });
   }
