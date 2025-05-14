@@ -180,16 +180,28 @@ const AUTH = {
     }
   },
   
-  // Realizar login de usuário
-  login: async function(email, password) {
+  // Realizar login de usuário (versão revisada)
+  login: async function(userData) {
     try {
-      // Preparar dados para o login, convertendo password para password_hash 
-      const loginData = { 
-        email, 
-        password_hash: password 
-      };
+      // Aceitar tanto objeto completo quanto email/senha separados
+      let loginData;
       
-      console.log('Tentando login para:', email);
+      if (typeof userData === 'object' && userData !== null) {
+        // Se recebeu um objeto de dados, usar diretamente
+        loginData = userData;
+        console.log('Login com dados completos para:', userData.email);
+      } else if (arguments.length >= 2) {
+        // Compatibilidade com chamadas antigas (email, password)
+        const email = arguments[0];
+        const password = arguments[1];
+        loginData = { 
+          email: email,
+          senha: password // Usando campo 'senha' reconhecido pelo backend
+        };
+        console.log('Login com parâmetros separados para:', email);
+      } else {
+        throw new Error('Formato de login inválido');
+      }
       
       const response = await fetch('/api/auth/login', {
         method: 'POST',

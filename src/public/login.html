@@ -232,9 +232,16 @@
         loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
         
         try {
-          // Tentar fazer login usando a função do auth_frontend.js
+          // Tentar fazer login usando a função do auth_frontend.js com formato revisado
           if (window.AUTH) {
-            const result = await AUTH.login(email, password);
+            // Preparar dados no novo formato
+            const loginData = {
+              email: email,
+              senha: password // Usando campo 'senha' que é reconhecido pelo backend
+            };
+            
+            console.log('Dados de login:', loginData);
+            const result = await AUTH.login(loginData);
             
             // Mostrar mensagem de sucesso
             showAlert('Login bem-sucedido! Redirecionando...', 'success');
