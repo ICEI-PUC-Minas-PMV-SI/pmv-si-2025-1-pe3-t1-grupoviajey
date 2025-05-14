@@ -217,5 +217,6 @@ module.exports = {
   updateItinerary,
   getItineraryById,
   getItineraryByShareCode,
-  deleteItinerary
+  deleteItinerary,
+  generateShareCode
 };
