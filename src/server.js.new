@@ -14,7 +14,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Importar rotas
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/authRoutes.js.new');
 const apiRoutes = require('./routes/api');
 
 // Configuração do servidor
@@ -58,11 +58,11 @@ app.use('/api', apiRoutes);
 
 // Redirecionar para as páginas adequadas
 app.get('/register', (req, res) => {
-  res.redirect('/register.html');
+  res.redirect('/register.html.new');
 });
 
 app.get('/login', (req, res) => {
-  res.redirect('/login.html');
+  res.redirect('/login.html.new');
 });
 
 // Rota principal

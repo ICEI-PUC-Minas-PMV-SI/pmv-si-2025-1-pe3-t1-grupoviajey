@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Viajey - Login</title>
+  <title>Viajey - Cadastre-se</title>
   
   <!-- Bootstrap CSS (Tema escuro do Replit) -->
   <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
@@ -22,7 +22,7 @@
     }
     
     .auth-container {
-      max-width: 450px;
+      max-width: 500px;
       margin: 2rem auto;
       padding: 2rem;
       border-radius: 12px;
@@ -92,6 +92,11 @@
       color: #6c757d;
     }
     
+    .form-check-input:checked {
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
+    }
+    
     footer {
       margin-top: auto;
       padding: 1rem 0;
@@ -104,21 +109,6 @@
       height: 1rem;
       border-width: 0.2em;
     }
-    
-    .hero-section {
-      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('/static/img/hero-bg.jpg');
-      background-size: cover;
-      background-position: center;
-      color: white;
-      padding: 3rem 0;
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .hero-section h1 {
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
   </style>
 </head>
 <body>
@@ -130,26 +120,18 @@
           <h1 class="h3 mb-0 text-primary">Viajey</h1>
         </div>
         <div>
-          <a href="/register.html" class="btn btn-outline-primary btn-sm">Criar Conta</a>
+          <a href="/login.html.new" class="btn btn-outline-primary btn-sm">Entrar</a>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section (opcional) -->
-  <div class="hero-section">
-    <div class="container">
-      <h1>Bem-vindo ao Viajey</h1>
-      <p class="lead">Sua plataforma de planejamento de viagens</p>
-    </div>
-  </div>
-
   <!-- Conteúdo principal -->
   <main class="container my-4">
     <div class="auth-container">
       <div class="auth-header">
-        <h2>Entrar</h2>
-        <p class="text-muted">Acesse sua conta para gerenciar seus itinerários</p>
+        <h2>Criar Conta</h2>
+        <p class="text-muted">Junte-se ao Viajey para planejar viagens incríveis</p>
       </div>
       
       <!-- Área para alertas -->
@@ -169,8 +151,13 @@
         <span>OU</span>
       </div>
       
-      <!-- Formulário de Login -->
-      <form id="formLogin">
+      <!-- Formulário de Registro -->
+      <form id="formRegistro">
+        <div class="mb-3">
+          <label for="username" class="form-label">Nome de Usuário</label>
+          <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
           <input type="email" class="form-control" id="email" name="email" required>
@@ -179,31 +166,46 @@
         <div class="mb-3">
           <label for="senha" class="form-label">Senha</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="senha" name="senha" required>
+            <input type="password" class="form-control" id="senha" name="senha" minlength="6" required>
+            <button class="btn btn-outline-secondary toggle-senha" type="button">
+              <i class="far fa-eye"></i>
+            </button>
+          </div>
+          <div class="form-text">A senha deve ter pelo menos 6 caracteres</div>
+        </div>
+        
+        <div class="mb-3">
+          <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required>
             <button class="btn btn-outline-secondary toggle-senha" type="button">
               <i class="far fa-eye"></i>
             </button>
           </div>
         </div>
         
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="lembrarAcesso" name="lembrarAcesso">
-            <label class="form-check-label" for="lembrarAcesso">
-              Lembrar acesso
-            </label>
-          </div>
-          <a href="#" class="text-primary">Esqueceu a senha?</a>
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="concordaTermos" name="concordaTermos" required>
+          <label class="form-check-label" for="concordaTermos">
+            Concordo com os <a href="#" class="text-primary">Termos de Uso</a> e <a href="#" class="text-primary">Política de Privacidade</a>
+          </label>
         </div>
         
-        <button type="submit" class="btn btn-primary w-100 py-2" id="btnLogin">
-          Entrar
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="receberNovidades" name="receberNovidades">
+          <label class="form-check-label" for="receberNovidades">
+            Desejo receber novidades e dicas de viagem
+          </label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 py-2" id="btnRegistrar">
+          Criar Conta
         </button>
       </form>
       
       <div class="text-center mt-3">
         <p class="mb-0">
-          Não tem uma conta? <a href="/register.html" class="text-primary">Cadastre-se</a>
+          Já tem uma conta? <a href="/login.html.new" class="text-primary">Faça login</a>
         </p>
       </div>
     </div>
@@ -254,9 +256,27 @@
     const autenticacao = {
       estaLogado: () => !!armazenamento.obterToken() && !!armazenamento.obterUsuario(),
       
-      login: async (dados) => {
-        console.log('Enviando login:', dados);
+      registrar: async (dados) => {
+        console.log('Enviando registro:', dados);
         
+        const resposta = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+        
+        const resultado = await resposta.json();
+        
+        if (!resposta.ok) {
+          throw new Error(resultado.erro || 'Erro ao registrar usuário');
+        }
+        
+        return resultado;
+      },
+      
+      login: async (dados) => {
         const resposta = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
@@ -281,33 +301,10 @@
       logout: () => {
         armazenamento.limpar();
         window.location.href = '/login.html.new';
-      },
-      
-      verificarToken: async () => {
-        const token = armazenamento.obterToken();
-        
-        if (!token) {
-          return false;
-        }
-        
-        try {
-          const resposta = await fetch('/api/auth/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          return resposta.ok;
-        } catch (erro) {
-          console.error('Erro ao verificar token:', erro);
-          return false;
-        }
       }
     };
     
-    // Configuração do formulário de login
+    // Configuração do formulário de registro
     document.addEventListener('DOMContentLoaded', function() {
       // Verificar se já está logado
       if (autenticacao.estaLogado()) {
@@ -316,66 +313,84 @@
       }
       
       // Toggle de visualização da senha
-      document.querySelector('.toggle-senha').addEventListener('click', function() {
-        const campoSenha = document.getElementById('senha');
-        const tipoAtual = campoSenha.getAttribute('type');
-        campoSenha.setAttribute('type', tipoAtual === 'password' ? 'text' : 'password');
-        
-        const icone = this.querySelector('i');
-        icone.classList.toggle('fa-eye');
-        icone.classList.toggle('fa-eye-slash');
+      document.querySelectorAll('.toggle-senha').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const campoSenha = this.previousElementSibling;
+          const tipoAtual = campoSenha.getAttribute('type');
+          campoSenha.setAttribute('type', tipoAtual === 'password' ? 'text' : 'password');
+          
+          const icone = this.querySelector('i');
+          icone.classList.toggle('fa-eye');
+          icone.classList.toggle('fa-eye-slash');
+        });
       });
       
       // Gerenciar o envio do formulário
-      const formLogin = document.getElementById('formLogin');
-      const btnLogin = document.getElementById('btnLogin');
+      const formRegistro = document.getElementById('formRegistro');
+      const btnRegistrar = document.getElementById('btnRegistrar');
       
-      formLogin.addEventListener('submit', async function(e) {
+      formRegistro.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        const username = document.getElementById('username').value.trim();
         const email = document.getElementById('email').value.trim();
         const senha = document.getElementById('senha').value;
-        const lembrarAcesso = document.getElementById('lembrarAcesso').checked;
+        const confirmarSenha = document.getElementById('confirmarSenha').value;
+        const concordaTermos = document.getElementById('concordaTermos').checked;
+        const receberNovidades = document.getElementById('receberNovidades').checked;
         
         // Validações
-        if (!email || !senha) {
-          mostrarAlerta('Email e senha são obrigatórios');
+        if (!username || !email || !senha) {
+          mostrarAlerta('Todos os campos são obrigatórios');
+          return;
+        }
+        
+        if (senha.length < 6) {
+          mostrarAlerta('A senha deve ter pelo menos 6 caracteres');
+          return;
+        }
+        
+        if (senha !== confirmarSenha) {
+          mostrarAlerta('As senhas não coincidem');
+          return;
+        }
+        
+        if (!concordaTermos) {
+          mostrarAlerta('Você precisa concordar com os termos de uso');
           return;
         }
         
         // Desabilitar botão durante o processamento
-        btnLogin.disabled = true;
-        btnLogin.innerHTML = '<span class="spinner-border me-2" role="status" aria-hidden="true"></span> Entrando...';
+        btnRegistrar.disabled = true;
+        btnRegistrar.innerHTML = '<span class="spinner-border me-2" role="status" aria-hidden="true"></span> Registrando...';
         
         try {
-          // Dados para o login (usando o nome correto 'senha')
-          const dadosLogin = {
+          // Dados para o registro
+          const dadosRegistro = {
+            username,
             email,
-            senha
+            senha, // Usando o nome correto 'senha'
+            receberNovidades
           };
           
-          // Tentar fazer login
-          const resultado = await autenticacao.login(dadosLogin);
+          // Tentar registrar
+          const resultado = await autenticacao.registrar(dadosRegistro);
           
           // Mostrar sucesso
-          mostrarAlerta('Login realizado com sucesso! Redirecionando...', 'success');
-          
-          // Obter informação de redirecionamento da URL
-          const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect');
+          mostrarAlerta('Registro realizado com sucesso! Redirecionando para login...', 'success');
           
           // Redirecionar após breve espera
           setTimeout(() => {
-            window.location.href = redirect || '/desktop.html';
-          }, 1000);
+            window.location.href = '/login.html.new';
+          }, 1500);
           
         } catch (erro) {
-          console.error('Erro no login:', erro);
-          mostrarAlerta(erro.message || 'Credenciais inválidas. Tente novamente.');
+          console.error('Erro no registro:', erro);
+          mostrarAlerta(erro.message || 'Erro ao registrar. Tente novamente.');
           
           // Reativar botão
-          btnLogin.disabled = false;
-          btnLogin.textContent = 'Entrar';
+          btnRegistrar.disabled = false;
+          btnRegistrar.textContent = 'Criar Conta';
         }
       });
     });

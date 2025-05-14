@@ -1,245 +1,242 @@
 /**
- * Controlador de Autenticação com Banco de Dados
- * Integração com PostgreSQL para gerenciamento de usuários
- * Versão reconstruída para resolver problemas de compatibilidade com campo password_hash
+ * Controlador de Autenticação - Versão Simplificada
+ * Reescrito do zero para eliminar problemas persistentes
  */
 
 const jwt = require('jsonwebtoken');
-const db = require('../db');
 const crypto = require('crypto');
+const db = require('../db');
 
 // Chave secreta para tokens JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'viajey_secret_key_2025';
 
-/**
- * Função de hash para senhas
- */
-const hashPassword = (password) => {
-  return crypto.createHash('sha256').update(String(password)).digest('hex');
+// Função de hash para senhas (não altera nome das propriedades)
+const hashSenha = (texto) => {
+  return crypto.createHash('sha256').update(String(texto)).digest('hex');
 };
 
 /**
- * Registra um novo usuário
+ * Registro de novos usuários
  */
-const register = async (req, res) => {
+exports.registrar = async (req, res) => {
   try {
-    console.log('REGISTRO: Dados recebidos:', JSON.stringify(req.body));
+    // Debug dos dados recebidos
+    console.log('[AUTH-REGISTRAR] Payload recebido:', JSON.stringify(req.body));
     
-    // Extrair apenas os campos que realmente precisamos
+    // Extrair campos necessários
     const { username, email } = req.body;
     
-    // Usar qualquer campo de senha que estiver disponível
-    const senhaParaHash = req.body.senha || req.body.password || req.body.password_hash;
+    // A senha pode vir em vários campos, tentamos todos
+    let senhaTexto = req.body.senha;
     
-    console.log('REGISTRO: Campos extraídos:', { 
-      username, 
-      email, 
-      temSenha: !!senhaParaHash 
-    });
+    // Se não tiver senha no formato primário, procurar outros formatos
+    if (!senhaTexto) {
+      console.log('[AUTH-REGISTRAR] Senha primária não encontrada, buscando alternativas...');
+      senhaTexto = req.body.password;
+    }
     
-    // Validar dados obrigatórios
-    if (!username || !email || !senhaParaHash) {
-      return res.status(400).json({ 
-        error: 'Campos obrigatórios ausentes',
-        fields: {
-          username: !username ? 'ausente' : 'presente',
-          email: !email ? 'ausente' : 'presente',
-          senha: !senhaParaHash ? 'ausente' : 'presente'
-        }
+    // Validações básicas
+    if (!username || !email || !senhaTexto) {
+      console.log('[AUTH-REGISTRAR] Dados incompletos:', { 
+        temUsername: !!username, 
+        temEmail: !!email, 
+        temSenha: !!senhaTexto 
+      });
+      return res.status(400).json({
+        erro: 'Dados incompletos. Todos os campos são obrigatórios.',
+        campos: { username: !!username, email: !!email, senha: !!senhaTexto }
       });
     }
     
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Formato de email inválido' });
-    }
+    // Fazer hash da senha
+    const hashDaSenha = hashSenha(senhaTexto);
     
-    // Verificar se o email já está em uso
-    const emailCheck = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    // Verificar se email já existe
+    const emailCheck = await db.query('SELECT 1 FROM users WHERE email = $1', [email]);
     if (emailCheck.rows.length > 0) {
-      return res.status(409).json({ error: 'Email já está em uso' });
+      return res.status(409).json({ erro: 'Este email já está cadastrado' });
     }
     
-    // Verificar se o nome de usuário já está em uso
-    const usernameCheck = await db.query('SELECT id FROM users WHERE username = $1', [username]);
+    // Verificar se username já existe
+    const usernameCheck = await db.query('SELECT 1 FROM users WHERE username = $1', [username]);
     if (usernameCheck.rows.length > 0) {
-      return res.status(409).json({ error: 'Nome de usuário já está em uso' });
+      return res.status(409).json({ erro: 'Este nome de usuário já está em uso' });
     }
     
-    // Hash da senha
-    const hashed_password = hashPassword(senhaParaHash);
-    
-    console.log(`REGISTRO: Preparando SQL para inserir usuário: ${username} / ${email}`);
-    
-    // Inserir o novo usuário no banco de dados - IMPORTANTE: usar o nome exato da coluna
-    const insertQuery = `
-      INSERT INTO users (username, email, password_hash) 
-      VALUES ($1, $2, $3) 
+    // SQL para inserção (usando explicitamente o nome da coluna password_hash)
+    const sql = `
+      INSERT INTO users (username, email, password_hash, created_at, updated_at) 
+      VALUES ($1, $2, $3, NOW(), NOW()) 
       RETURNING id, username, email, created_at
     `;
     
-    const result = await db.query(insertQuery, [username, email, hashed_password]);
+    // Executar a inserção
+    console.log('[AUTH-REGISTRAR] Executando SQL com parâmetros:', { username, email, password_hash: '[HASH]' });
+    const result = await db.query(sql, [username, email, hashDaSenha]);
     
-    // Obter o usuário criado
-    const newUser = result.rows[0];
+    if (result.rows.length === 0) {
+      throw new Error('Erro na inserção de usuário');
+    }
+    
+    // Extrair dados do usuário inserido
+    const novoUsuario = result.rows[0];
+    console.log('[AUTH-REGISTRAR] Usuário criado com sucesso:', novoUsuario.id);
     
     // Gerar token JWT
-    const token = generateToken(newUser);
+    const token = gerarToken(novoUsuario);
     
-    console.log('REGISTRO: Usuário registrado com sucesso: ID:', newUser.id);
-    
+    // Resposta de sucesso
     res.status(201).json({
-      user: newUser,
+      mensagem: 'Cadastro realizado com sucesso',
+      usuario: {
+        id: novoUsuario.id,
+        username: novoUsuario.username,
+        email: novoUsuario.email
+      },
       token
     });
-  } catch (error) {
-    console.error('REGISTRO: Erro ao registrar usuário:', error);
+  } catch (erro) {
+    console.error('[AUTH-REGISTRAR] Erro:', erro);
     res.status(500).json({ 
-      error: error.message,
-      stack: error.stack
+      erro: 'Erro no servidor ao processar o registro', 
+      detalhes: erro.message 
     });
   }
 };
 
 /**
- * Autentica um usuário
+ * Login de usuários
  */
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   try {
-    console.log('LOGIN: Dados recebidos:', JSON.stringify(req.body));
+    // Debug dos dados recebidos
+    console.log('[AUTH-LOGIN] Payload recebido:', JSON.stringify(req.body));
     
+    // Extrair campos obrigatórios
     const { email } = req.body;
     
-    // Usar qualquer campo de senha que estiver disponível
-    const senhaParaHash = req.body.senha || req.body.password || req.body.password_hash;
+    // A senha pode vir em vários campos
+    let senhaTexto = req.body.senha;
     
-    // Validar dados obrigatórios
-    if (!email || !senhaParaHash) {
-      return res.status(400).json({ 
-        error: 'Email e senha são obrigatórios',
-        fields: {
-          email: !email ? 'ausente' : 'presente',
-          senha: !senhaParaHash ? 'ausente' : 'presente'
-        }
+    // Se não tiver senha no formato primário, procurar outros formatos
+    if (!senhaTexto) {
+      console.log('[AUTH-LOGIN] Senha primária não encontrada, buscando alternativas...');
+      senhaTexto = req.body.password;
+    }
+    
+    // Validações básicas
+    if (!email || !senhaTexto) {
+      return res.status(400).json({
+        erro: 'Dados incompletos. Email e senha são obrigatórios.',
+        campos: { email: !!email, senha: !!senhaTexto }
       });
     }
     
-    console.log(`LOGIN: Processando login para: ${email}`);
-    
     // Buscar usuário pelo email
-    const result = await db.query(
-      'SELECT id, username, email, password_hash FROM users WHERE email = $1', 
+    const resultado = await db.query(
+      'SELECT id, username, email, password_hash FROM users WHERE email = $1',
       [email]
     );
     
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+    // Verificar se usuário existe
+    if (resultado.rows.length === 0) {
+      return res.status(401).json({ erro: 'Credenciais inválidas' });
     }
     
-    const user = result.rows[0];
+    // Extrair dados do usuário
+    const usuario = resultado.rows[0];
+    
+    // Fazer hash da senha fornecida para comparar
+    const hashDaSenha = hashSenha(senhaTexto);
     
     // Verificar se a senha está correta
-    const hashedPassword = hashPassword(senhaParaHash);
-    
-    if (user.password_hash !== hashedPassword) {
-      console.log('LOGIN: Senha incorreta para usuário:', email);
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (usuario.password_hash !== hashDaSenha) {
+      console.log('[AUTH-LOGIN] Senha incorreta para usuário:', email);
+      return res.status(401).json({ erro: 'Credenciais inválidas' });
     }
-    
-    // Preparar objeto para resposta (sem incluir a senha)
-    const userForResponse = {
-      id: user.id,
-      username: user.username,
-      email: user.email
-    };
     
     // Gerar token JWT
-    const token = generateToken(userForResponse);
+    const token = gerarToken(usuario);
     
-    console.log('LOGIN: Login bem-sucedido para:', email);
-    
+    // Resposta de sucesso
+    console.log('[AUTH-LOGIN] Login bem-sucedido para:', email);
     res.json({
-      user: userForResponse,
+      mensagem: 'Login bem-sucedido',
+      usuario: {
+        id: usuario.id,
+        username: usuario.username,
+        email: usuario.email
+      },
       token
     });
-  } catch (error) {
-    console.error('LOGIN: Erro ao fazer login:', error);
+  } catch (erro) {
+    console.error('[AUTH-LOGIN] Erro:', erro);
     res.status(500).json({ 
-      error: error.message,
-      stack: error.stack
+      erro: 'Erro no servidor ao processar o login', 
+      detalhes: erro.message 
     });
   }
 };
 
 /**
- * Verifica se um token JWT é válido
+ * Verificação de token
  */
-const verify = async (req, res) => {
+exports.verificarToken = async (req, res) => {
   try {
-    console.log('VERIFY: Headers recebidos:', JSON.stringify(req.headers));
-    const token = req.body.token || req.query.token || req.headers['authorization']?.split(' ')[1];
+    // Extrair token do cabeçalho, query ou body
+    const token = req.headers.authorization?.split(' ')[1] || 
+                 req.query.token || 
+                 req.body.token;
     
     if (!token) {
-      console.log('VERIFY: Nenhum token fornecido na requisição');
-      return res.status(401).json({ error: 'Token não fornecido' });
+      return res.status(401).json({ erro: 'Token não fornecido' });
     }
     
+    // Verificar token
     try {
-      // Verificar token
       const decoded = jwt.verify(token, JWT_SECRET);
       
-      // Buscar usuário pelo ID
-      const result = await db.query('SELECT id, username, email FROM users WHERE id = $1', [decoded.id]);
+      // Buscar usuário para confirmar que ainda existe
+      const resultado = await db.query(
+        'SELECT id, username, email FROM users WHERE id = $1',
+        [decoded.id]
+      );
       
-      if (result.rows.length === 0) {
-        console.error('VERIFY: Usuário não encontrado para o ID:', decoded.id);
-        return res.status(404).json({ error: 'Usuário não encontrado' });
+      if (resultado.rows.length === 0) {
+        return res.status(401).json({ erro: 'Usuário não encontrado' });
       }
       
-      const user = result.rows[0];
+      // Dados do usuário
+      const usuario = resultado.rows[0];
       
-      console.log('VERIFY: Usuário autenticado:', user.username);
-      
+      // Resposta de sucesso
       res.json({
-        valid: true,
-        user: user
+        valido: true,
+        usuario: {
+          id: usuario.id,
+          username: usuario.username,
+          email: usuario.email
+        }
       });
-    } catch (err) {
-      console.error('VERIFY: Erro na verificação do JWT:', err.name, '-', err.message);
-      
-      // Verificar se é um erro de autenticação ou outro tipo
-      if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-        return res.status(401).json({ error: 'Token inválido ou expirado' });
-      } else {
-        // Outros erros do servidor não relacionados à autenticação
-        return res.status(500).json({ error: 'Erro interno ao verificar autenticação' });
-      }
+    } catch (erroJwt) {
+      // Erro na verificação do token
+      return res.status(401).json({ erro: 'Token inválido ou expirado' });
     }
-  } catch (error) {
-    console.error('VERIFY: Erro ao verificar token:', error);
-    res.status(500).json({ error: error.message });
+  } catch (erro) {
+    console.error('[AUTH-VERIFICAR] Erro:', erro);
+    res.status(500).json({ erro: 'Erro no servidor ao verificar token' });
   }
 };
 
 /**
- * Gera um token JWT para um usuário
+ * Geração de token JWT
  */
-const generateToken = (user) => {
+function gerarToken(usuario) {
   const payload = {
-    id: user.id,
-    username: user.username,
-    email: user.email
+    id: usuario.id,
+    username: usuario.username,
+    email: usuario.email
   };
   
-  // Token válido por 30 dias para melhor experiência do usuário
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
-  
-  return token;
-};
-
-module.exports = {
-  register,
-  login,
-  verify
-};
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+}

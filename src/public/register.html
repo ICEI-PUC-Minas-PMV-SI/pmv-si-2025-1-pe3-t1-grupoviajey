@@ -3,313 +3,396 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Viajey - Cadastro</title>
+  <title>Viajey - Cadastre-se</title>
   
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap CSS (Tema escuro do Replit) -->
   <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
   
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/static/css/desktop-style.css">
-  
   <!-- Favicon -->
   <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
   
   <style>
-    .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    body {
       min-height: 100vh;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
     }
     
-    .auth-card {
-      width: 100%;
-      max-width: 450px;
-      background-color: var(--bs-dark);
+    .auth-container {
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 2rem;
       border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      background-color: var(--bs-gray-800);
+    }
+    
+    .form-control, .btn {
+      border-radius: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--bs-primary);
     }
     
     .auth-header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 2rem;
     }
     
-    .auth-logo {
-      font-size: 2.5rem;
+    .auth-header h2 {
       font-weight: 700;
       color: var(--bs-primary);
-      margin-bottom: 10px;
-    }
-    
-    .auth-divider {
-      display: flex;
-      align-items: center;
-      margin: 20px 0;
-    }
-    
-    .auth-divider::before,
-    .auth-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background-color: #495057;
-    }
-    
-    .auth-divider span {
-      padding: 0 10px;
-      color: #6c757d;
-      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
     }
     
     .social-auth {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 1.5rem;
     }
     
-    .social-btn {
+    .social-auth .btn {
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      border-radius: 6px;
-      background-color: var(--bs-dark);
-      border: 1px solid #495057;
-      color: var(--bs-light);
-      transition: all 0.2s ease;
     }
     
-    .social-btn:hover {
+    .or-divider {
+      position: relative;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+    
+    .or-divider:before,
+    .or-divider:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 45%;
+      height: 1px;
+      background-color: #6c757d;
+    }
+    
+    .or-divider:before {
+      left: 0;
+    }
+    
+    .or-divider:after {
+      right: 0;
+    }
+    
+    .or-divider span {
+      display: inline-block;
+      padding: 0 10px;
+      background-color: var(--bs-gray-800);
+      position: relative;
+      z-index: 1;
+      color: #6c757d;
+    }
+    
+    .form-check-input:checked {
+      background-color: var(--bs-primary);
       border-color: var(--bs-primary);
     }
     
-    .social-btn i {
-      margin-right: 8px;
+    footer {
+      margin-top: auto;
+      padding: 1rem 0;
+      background-color: var(--bs-gray-900);
+      color: var(--bs-gray-600);
     }
     
-    .auth-footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.9rem;
-    }
-    
-    .auth-footer a {
-      color: var(--bs-primary);
-      text-decoration: none;
-    }
-    
-    .auth-footer a:hover {
-      text-decoration: underline;
-    }
-    
-    .form-check-input[type="checkbox"] {
-      margin-top: 0.25rem;
-    }
-    
-    #alert-container {
-      margin-bottom: 20px;
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      border-width: 0.2em;
     }
   </style>
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-card">
+  <!-- Header -->
+  <header class="bg-dark shadow-sm">
+    <div class="container py-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="logo">
+          <h1 class="h3 mb-0 text-primary">Viajey</h1>
+        </div>
+        <div>
+          <a href="/login.html" class="btn btn-outline-primary btn-sm">Entrar</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo principal -->
+  <main class="container my-4">
+    <div class="auth-container">
       <div class="auth-header">
-        <div class="auth-logo">Viajey</div>
-        <h2>Crie sua conta</h2>
-        <p>Junte-se a nós e comece a planejar viagens incríveis</p>
+        <h2>Criar Conta</h2>
+        <p class="text-muted">Junte-se ao Viajey para planejar viagens incríveis</p>
       </div>
       
-      <div id="alert-container"></div>
+      <!-- Área para alertas -->
+      <div id="alerta-container"></div>
       
-      <form id="registerForm">
+      <!-- Social Login Buttons -->
+      <div class="social-auth">
+        <button class="btn btn-outline-light" disabled>
+          <i class="fab fa-google me-2"></i> Google
+        </button>
+        <button class="btn btn-outline-light" disabled>
+          <i class="fab fa-facebook-f me-2"></i> Facebook
+        </button>
+      </div>
+      
+      <div class="or-divider">
+        <span>OU</span>
+      </div>
+      
+      <!-- Formulário de Registro -->
+      <form id="formRegistro">
         <div class="mb-3">
-          <label for="username" class="form-label">Nome de usuário</label>
-          <input type="text" class="form-control" id="username" name="username" placeholder="Escolha um nome de usuário" required>
+          <label for="username" class="form-label">Nome de Usuário</label>
+          <input type="text" class="form-control" id="username" name="username" required>
         </div>
         
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="seu@email.com" required>
+          <input type="email" class="form-control" id="email" name="email" required>
         </div>
         
         <div class="mb-3">
-          <label for="password" class="form-label">Senha</label>
+          <label for="senha" class="form-label">Senha</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
-            <button class="btn btn-outline-secondary toggle-password" type="button">
+            <input type="password" class="form-control" id="senha" name="senha" minlength="6" required>
+            <button class="btn btn-outline-secondary toggle-senha" type="button">
               <i class="far fa-eye"></i>
             </button>
           </div>
-          <div class="form-text">A senha deve ter pelo menos 8 caracteres</div>
+          <div class="form-text">A senha deve ter pelo menos 6 caracteres</div>
         </div>
         
         <div class="mb-3">
-          <label for="confirmPassword" class="form-label">Confirmar Senha</label>
+          <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
           <div class="input-group">
-            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="********" required>
-            <button class="btn btn-outline-secondary toggle-password" type="button">
+            <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" required>
+            <button class="btn btn-outline-secondary toggle-senha" type="button">
               <i class="far fa-eye"></i>
             </button>
           </div>
         </div>
         
         <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="agreeTerms" name="agreeTerms" required>
-          <label class="form-check-label" for="agreeTerms">
-            Concordo com os <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>
+          <input type="checkbox" class="form-check-input" id="concordaTermos" name="concordaTermos" required>
+          <label class="form-check-label" for="concordaTermos">
+            Concordo com os <a href="#" class="text-primary">Termos de Uso</a> e <a href="#" class="text-primary">Política de Privacidade</a>
           </label>
         </div>
         
         <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
-          <label class="form-check-label" for="newsletter">
-            Desejo receber novidades e dicas de viagem por email
+          <input type="checkbox" class="form-check-input" id="receberNovidades" name="receberNovidades">
+          <label class="form-check-label" for="receberNovidades">
+            Desejo receber novidades e dicas de viagem
           </label>
         </div>
         
-        <div class="d-grid">
-          <button type="submit" class="btn btn-primary btn-lg" id="registerBtn">Criar Conta</button>
-        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2" id="btnRegistrar">
+          Criar Conta
+        </button>
       </form>
       
-      <div class="auth-divider">
-        <span>OU CADASTRE-SE COM</span>
-      </div>
-      
-      <div class="social-auth">
-        <button class="social-btn">
-          <i class="fab fa-google"></i> Google
-        </button>
-        <button class="social-btn">
-          <i class="fab fa-facebook-f"></i> Facebook
-        </button>
-      </div>
-      
-      <div class="auth-footer">
-        Já tem uma conta? <a href="/login.html">Entre aqui</a>
+      <div class="text-center mt-3">
+        <p class="mb-0">
+          Já tem uma conta? <a href="/login.html.new" class="text-primary">Faça login</a>
+        </p>
       </div>
     </div>
-  </div>
-
-  <!-- Bootstrap Bundle with Popper -->
+  </main>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p class="mb-0">&copy; 2025 Viajey. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+  
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
-  <!-- Authentication JS -->
-  <script src="/static/js/auth_frontend.js" defer></script>
-  
-  <!-- Custom JS -->
+  <!-- Autenticação - Funções Principais -->
   <script>
+    // Função para exibir alertas
+    function mostrarAlerta(mensagem, tipo = 'danger') {
+      const alertaContainer = document.getElementById('alerta-container');
+      alertaContainer.innerHTML = `
+        <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+          ${mensagem}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      `;
+      
+      // Garantir que o alerta seja visto
+      alertaContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Utilitários de armazenamento local
+    const armazenamento = {
+      salvarToken: (token) => localStorage.setItem('authToken', token),
+      obterToken: () => localStorage.getItem('authToken'),
+      salvarUsuario: (dados) => localStorage.setItem('userData', JSON.stringify(dados)),
+      obterUsuario: () => {
+        const dados = localStorage.getItem('userData');
+        return dados ? JSON.parse(dados) : null;
+      },
+      limpar: () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      }
+    };
+    
+    // Gerenciamento de estado de autenticação
+    const autenticacao = {
+      estaLogado: () => !!armazenamento.obterToken() && !!armazenamento.obterUsuario(),
+      
+      registrar: async (dados) => {
+        console.log('Enviando registro:', dados);
+        
+        const resposta = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+        
+        const resultado = await resposta.json();
+        
+        if (!resposta.ok) {
+          throw new Error(resultado.erro || 'Erro ao registrar usuário');
+        }
+        
+        return resultado;
+      },
+      
+      login: async (dados) => {
+        const resposta = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+        
+        const resultado = await resposta.json();
+        
+        if (!resposta.ok) {
+          throw new Error(resultado.erro || 'Erro ao fazer login');
+        }
+        
+        // Salvar dados de autenticação
+        armazenamento.salvarToken(resultado.token);
+        armazenamento.salvarUsuario(resultado.usuario);
+        
+        return resultado;
+      },
+      
+      logout: () => {
+        armazenamento.limpar();
+        window.location.href = '/login.html.new';
+      }
+    };
+    
+    // Configuração do formulário de registro
     document.addEventListener('DOMContentLoaded', function() {
-      // Verificar se usuário já está logado
-      if (window.AUTH && AUTH.isUserLoggedIn()) {
+      // Verificar se já está logado
+      if (autenticacao.estaLogado()) {
         window.location.href = '/desktop.html';
         return;
       }
       
-      // Toggle password visibility for both password fields
-      const togglePasswordBtns = document.querySelectorAll('.toggle-password');
-      togglePasswordBtns.forEach(btn => {
+      // Toggle de visualização da senha
+      document.querySelectorAll('.toggle-senha').forEach(btn => {
         btn.addEventListener('click', function() {
-          const passwordField = this.previousElementSibling;
-          const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-          passwordField.setAttribute('type', type);
+          const campoSenha = this.previousElementSibling;
+          const tipoAtual = campoSenha.getAttribute('type');
+          campoSenha.setAttribute('type', tipoAtual === 'password' ? 'text' : 'password');
           
-          // Toggle icon
-          const icon = this.querySelector('i');
-          icon.classList.toggle('fa-eye');
-          icon.classList.toggle('fa-eye-slash');
+          const icone = this.querySelector('i');
+          icone.classList.toggle('fa-eye');
+          icone.classList.toggle('fa-eye-slash');
         });
       });
       
-      // Função para mostrar alertas
-      function showAlert(message, type = 'danger') {
-        const alertContainer = document.getElementById('alert-container');
-        if (alertContainer) {
-          alertContainer.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-              ${message}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          `;
-        }
-      }
+      // Gerenciar o envio do formulário
+      const formRegistro = document.getElementById('formRegistro');
+      const btnRegistrar = document.getElementById('btnRegistrar');
       
-      // Form submission
-      const registerForm = document.getElementById('registerForm');
-      if (registerForm) {
-        registerForm.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          // Get form data
-          const username = document.getElementById('username').value;
-          const email = document.getElementById('email').value;
-          const password = document.getElementById('password').value;
-          const confirmPassword = document.getElementById('confirmPassword').value;
-          const agreeTerms = document.getElementById('agreeTerms').checked;
-          const newsletter = document.getElementById('newsletter').checked;
-          
-          // Basic validation
-          if (password !== confirmPassword) {
-            showAlert('As senhas não coincidem!');
-            return;
-          }
-          
-          if (password.length < 8) {
-            showAlert('A senha deve ter pelo menos 8 caracteres!');
-            return;
-          }
-          
-          // Preparar dados para registro com formato simplificado
-          const userData = { 
-            username: username,
-            email: email, 
-            senha: password, // Usando campo senha que é interpretado corretamente pelo backend
-            agreeTerms: agreeTerms,
-            newsletter: newsletter
+      formRegistro.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const confirmarSenha = document.getElementById('confirmarSenha').value;
+        const concordaTermos = document.getElementById('concordaTermos').checked;
+        const receberNovidades = document.getElementById('receberNovidades').checked;
+        
+        // Validações
+        if (!username || !email || !senha) {
+          mostrarAlerta('Todos os campos são obrigatórios');
+          return;
+        }
+        
+        if (senha.length < 6) {
+          mostrarAlerta('A senha deve ter pelo menos 6 caracteres');
+          return;
+        }
+        
+        if (senha !== confirmarSenha) {
+          mostrarAlerta('As senhas não coincidem');
+          return;
+        }
+        
+        if (!concordaTermos) {
+          mostrarAlerta('Você precisa concordar com os termos de uso');
+          return;
+        }
+        
+        // Desabilitar botão durante o processamento
+        btnRegistrar.disabled = true;
+        btnRegistrar.innerHTML = '<span class="spinner-border me-2" role="status" aria-hidden="true"></span> Registrando...';
+        
+        try {
+          // Dados para o registro
+          const dadosRegistro = {
+            username,
+            email,
+            senha, // Usando o nome correto 'senha'
+            receberNovidades
           };
           
-          console.log('Dados para registro:', userData);
+          // Tentar registrar
+          const resultado = await autenticacao.registrar(dadosRegistro);
           
-          // Desabilitar o botão de submit e mostrar loading
-          const registerBtn = document.getElementById('registerBtn');
-          registerBtn.disabled = true;
-          registerBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registrando...';
+          // Mostrar sucesso
+          mostrarAlerta('Registro realizado com sucesso! Redirecionando para login...', 'success');
           
-          try {
-            // Registrar usuário usando a função do auth_frontend.js
-            if (window.AUTH) {
-              const result = await AUTH.register(userData);
-              
-              // Se sucesso, mostrar mensagem e redirecionar para login
-              showAlert('Registro realizado com sucesso! Redirecionando para login...', 'success');
-              
-              // Redirecionar após breve delay
-              setTimeout(() => {
-                window.location.href = '/login.html';
-              }, 1500);
-            } else {
-              // AUTH não disponível
-              console.error('AUTH não disponível');
-              showAlert('Sistema de registro em manutenção. Por favor, tente novamente mais tarde.');
-              registerBtn.disabled = false;
-              registerBtn.textContent = 'Criar Conta';
-            }
-          } catch (error) {
-            console.error('Erro no registro:', error);
-            showAlert(error.message || 'Erro ao registrar usuário');
-            registerBtn.disabled = false;
-            registerBtn.textContent = 'Criar Conta';
-          }
-        });
-      }
+          // Redirecionar após breve espera
+          setTimeout(() => {
+            window.location.href = '/login.html.new';
+          }, 1500);
+          
+        } catch (erro) {
+          console.error('Erro no registro:', erro);
+          mostrarAlerta(erro.message || 'Erro ao registrar. Tente novamente.');
+          
+          // Reativar botão
+          btnRegistrar.disabled = false;
+          btnRegistrar.textContent = 'Criar Conta';
+        }
+      });
     });
   </script>
 </body>
