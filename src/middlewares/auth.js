@@ -1,13 +1,41 @@
 /**
- * Middleware de Autenticação
- * Verifica se o usuário está autenticado para acessar rotas protegidas
+ * Middleware de Autenticação Simplificado
+ * Versão sem banco de dados - utiliza apenas memória
  */
 
 const jwt = require('jsonwebtoken');
-const UserModel = require('../models/user');
 
 // Chave secreta para tokens JWT (deve ser a mesma usada no authController)
 const JWT_SECRET = process.env.JWT_SECRET || 'viajey_secret_key_2025';
+
+// Usuários simulados em memória (referência aos mesmos do authController)
+// Na implementação real, deveria ser uma referência à mesma estrutura de dados
+const demoUsers = [
+  {
+    id: 1,
+    username: 'demo',
+    email: 'demo@example.com',
+    hashedPassword: '7a2f1ade3573d12c94a2c8e9e69d4203fd3bbee81af5be5a19e5263744e79712'
+  },
+  {
+    id: 2,
+    username: 'viajey',
+    email: 'viajey@example.com',
+    hashedPassword: '8a0b1e38291f9c1645676a185e326c71ff166766a9ab28b3e4723ecdcb9a8c35'
+  }
+];
+
+/**
+ * Busca usuário pelo ID (versão simplificada sem banco de dados)
+ */
+const getUserById = (id) => {
+  const user = demoUsers.find(user => user.id === id);
+  if (!user) return null;
+  
+  // Retornar cópia do usuário sem a senha
+  const { hashedPassword, ...userWithoutPassword } = user;
+  return userWithoutPassword;
+};
 
 /**
  * Middleware para verificar se o usuário está autenticado
@@ -25,7 +53,6 @@ const isAuthenticated = async (req, res, next) => {
     
     const token = authHeader.split(' ')[1];
     console.log('Token recebido para verificação:', token.substring(0, 15) + '...');
-    console.log('JWT_SECRET na verificação:', JWT_SECRET ? `${JWT_SECRET.substring(0, 3)}...${JWT_SECRET.substring(JWT_SECRET.length - 3)}` : 'Ausente');
     
     try {
       // Verificar token
@@ -35,7 +62,7 @@ const isAuthenticated = async (req, res, next) => {
       
       // Obter usuário atual
       console.log('Buscando usuário com ID:', decoded.id);
-      const user = await UserModel.getUserById(decoded.id);
+      const user = getUserById(decoded.id);
       
       if (!user) {
         console.error('Usuário não encontrado com ID:', decoded.id);
@@ -92,7 +119,7 @@ const optionalAuth = async (req, res, next) => {
       console.log('[OptionalAuth] Token verificado com sucesso. Payload ID:', decoded.id);
       
       // Obter usuário atual
-      const user = await UserModel.getUserById(decoded.id);
+      const user = getUserById(decoded.id);
       
       if (user) {
         console.log('[OptionalAuth] Usuário encontrado:', user.username);

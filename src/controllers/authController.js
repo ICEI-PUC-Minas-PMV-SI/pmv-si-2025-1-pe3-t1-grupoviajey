@@ -1,21 +1,45 @@
 /**
- * Controlador de Autenticação
- * Gerencia login, registro e autenticação de usuários
+ * Controlador de Autenticação Simplificado
+ * Versão sem banco de dados - utiliza apenas memória
  */
 
-const UserModel = require('../models/user');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 // Chave secreta para tokens JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'viajey_secret_key_2025';
+
+// Usuários simulados em memória (para fins de demonstração)
+const demoUsers = [
+  {
+    id: 1,
+    username: 'demo',
+    email: 'demo@example.com',
+    // Senha: demoaccount
+    hashedPassword: '7a2f1ade3573d12c94a2c8e9e69d4203fd3bbee81af5be5a19e5263744e79712'
+  },
+  {
+    id: 2,
+    username: 'viajey',
+    email: 'viajey@example.com',
+    // Senha: viajey2025
+    hashedPassword: '8a0b1e38291f9c1645676a185e326c71ff166766a9ab28b3e4723ecdcb9a8c35'
+  }
+];
+
+/**
+ * Função de hash simples
+ */
+const hashPassword = (password) => {
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(String(password)).digest('hex');
+};
 
 /**
  * Registra um novo usuário
  */
 const register = async (req, res) => {
   try {
-    const { username, email, password, profile_pic } = req.body;
+    const { username, email, password } = req.body;
     
     // Validar dados obrigatórios
     if (!username || !email || !password) {
@@ -29,32 +53,42 @@ const register = async (req, res) => {
     }
     
     // Verificar se o email já está em uso
-    const existingEmail = await UserModel.getUserByEmail(email);
+    const existingEmail = demoUsers.find(user => user.email === email);
     if (existingEmail) {
       return res.status(409).json({ error: 'Email já está em uso' });
     }
     
     // Verificar se o nome de usuário já está em uso
-    const existingUsername = await UserModel.getUserByUsername(username);
+    const existingUsername = demoUsers.find(user => user.username === username);
     if (existingUsername) {
       return res.status(409).json({ error: 'Nome de usuário já está em uso' });
     }
     
-    // Criar o usuário
-    const userData = {
+    // Criar o usuário (apenas em memória para demonstração)
+    const newUser = {
+      id: demoUsers.length + 1,
       username,
       email,
-      password,
-      profile_pic
+      hashedPassword: hashPassword(password)
     };
     
-    const newUser = await UserModel.createUser(userData);
+    // Adicionar à lista de demonstração
+    demoUsers.push(newUser);
+    
+    // Preparar objeto para resposta (sem incluir a senha)
+    const userForResponse = {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email
+    };
     
     // Gerar token JWT
-    const token = generateToken(newUser);
+    const token = generateToken(userForResponse);
+    
+    console.log('Usuário registrado com sucesso:', username);
     
     res.status(201).json({
-      user: newUser,
+      user: userForResponse,
       token
     });
   } catch (error) {
@@ -75,18 +109,28 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
     
-    // Verificar credenciais
-    const user = await UserModel.verifyCredentials(email, password);
+    // Buscar usuário pelo email
+    const user = demoUsers.find(user => user.email === email);
     
-    if (!user) {
+    // Verificar se usuário existe e senha está correta
+    if (!user || user.hashedPassword !== hashPassword(password)) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
     
+    // Preparar objeto para resposta (sem incluir a senha)
+    const userForResponse = {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    };
+    
     // Gerar token JWT
-    const token = generateToken(user);
+    const token = generateToken(userForResponse);
+    
+    console.log('Login bem-sucedido para:', email);
     
     res.json({
-      user,
+      user: userForResponse,
       token
     });
   } catch (error) {
@@ -112,26 +156,29 @@ const verify = async (req, res) => {
     
     try {
       // Verificar token
-      console.log('[Verify] JWT_SECRET:', JWT_SECRET ? `${JWT_SECRET.substring(0, 3)}...${JWT_SECRET.substring(JWT_SECRET.length - 3)}` : 'Ausente');
-      console.log('[Verify] Tentando verificar token...');
-      
       const decoded = jwt.verify(token, JWT_SECRET);
       console.log('[Verify] Token verificado com sucesso. Payload:', { id: decoded.id, username: decoded.username });
       
-      // Obter usuário atual
-      console.log('[Verify] Buscando usuário com ID:', decoded.id);
-      const user = await UserModel.getUserById(decoded.id);
+      // Buscar usuário pelo ID
+      const user = demoUsers.find(user => user.id === decoded.id);
       
       if (!user) {
         console.error('[Verify] Usuário não encontrado para o ID:', decoded.id);
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
       
+      // Preparar objeto para resposta (sem incluir a senha)
+      const userForResponse = {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      };
+      
       console.log('[Verify] Usuário encontrado:', user.username);
       
       res.json({
         valid: true,
-        user
+        user: userForResponse
       });
     } catch (err) {
       console.error('[Verify] Erro na verificação do JWT:', err.name, '-', err.message);
@@ -161,8 +208,6 @@ const generateToken = (user) => {
   };
   
   console.log('Gerando token JWT para usuário:', user.username, '(ID:', user.id, ')');
-  console.log('JWT_SECRET no login:', JWT_SECRET ? `${JWT_SECRET.substring(0, 3)}...${JWT_SECRET.substring(JWT_SECRET.length - 3)}` : 'Ausente');
-  console.log('Payload do token:', payload);
   
   // Token válido por 30 dias para melhor experiência do usuário
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
