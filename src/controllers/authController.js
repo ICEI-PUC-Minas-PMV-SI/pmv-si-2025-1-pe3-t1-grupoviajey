@@ -51,7 +51,9 @@ const register = async (req, res) => {
     }
     
     // Hash da senha
-    const password_hash = hashPassword(password);
+    const password_hash = hashPassword(passwordValue);
+    
+    console.log(`Registrando usuário: ${username} com email: ${email}`);
     
     // Inserir o novo usuário no banco de dados
     const result = await db.query(
@@ -82,12 +84,17 @@ const register = async (req, res) => {
  */
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, password_hash: passHash } = req.body;
+    
+    // Usar password ou password_hash, dependendo do que foi enviado
+    const passwordValue = password || passHash;
     
     // Validar dados obrigatórios
-    if (!email || !password) {
+    if (!email || !passwordValue) {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
+    
+    console.log(`Tentativa de login para: ${email}`);
     
     // Buscar usuário pelo email
     const result = await db.query('SELECT id, username, email, password_hash FROM users WHERE email = $1', [email]);
@@ -99,11 +106,14 @@ const login = async (req, res) => {
     const user = result.rows[0];
     
     // Verificar se a senha está correta
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = hashPassword(passwordValue);
     
     if (user.password_hash !== hashedPassword) {
+      console.log('Senha incorreta para usuário:', email);
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
+    
+    console.log('Login bem-sucedido para:', email);
     
     // Preparar objeto para resposta (sem incluir a senha)
     const userForResponse = {
