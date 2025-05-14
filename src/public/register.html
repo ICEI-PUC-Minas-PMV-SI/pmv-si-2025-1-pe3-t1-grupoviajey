@@ -267,19 +267,16 @@
             return;
           }
           
-          // Preparar dados para registro
-          // Importante: enviamos o mesmo valor tanto como password quanto como password_hash 
-          // para garantir compatibilidade com o backend
+          // Preparar dados para registro com formato simplificado
           const userData = { 
             username: username,
             email: email, 
-            password: password,
-            password_hash: password, // Enviando duplicado para garantir
+            senha: password, // Usando campo senha que é interpretado corretamente pelo backend
             agreeTerms: agreeTerms,
             newsletter: newsletter
           };
           
-          console.log('Registration attempt:', userData);
+          console.log('Dados para registro:', userData);
           
           // Desabilitar o botão de submit e mostrar loading
           const registerBtn = document.getElementById('registerBtn');
