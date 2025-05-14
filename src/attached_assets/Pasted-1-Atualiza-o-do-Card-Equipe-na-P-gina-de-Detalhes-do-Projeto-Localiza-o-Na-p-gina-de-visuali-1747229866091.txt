@@ -1,0 +1,29 @@
+1. Atualização do Card "Equipe" na Página de Detalhes do Projeto:
+Localização: Na página de visualização de um projeto, existe um card atualmente rotulado como "Equipe".
+Texto do Botão/Link: Dentro deste card "Equipe", há um link ou botão para adicionar novas pessoas. O texto deste link/botão deve ser alterado para exibir exatamente: "+ Adicionar Colaborador".
+Ação do Botão/Link: Ao clicar neste link/botão "+ Adicionar Colaborador", o sistema deve abrir um modal intitulado "Adicionar Colaborador".
+Campos do Modal "Adicionar Colaborador" (acessado pelo card "Equipe"): Este modal deve conter os seguintes campos, e somente estes, na ordem especificada:
+Nome: Um campo de texto para o nome completo do colaborador.
+Função: Um campo de texto para a função do colaborador (ex: Engenheiro, Pedreiro).
+Horário de Entrada: Um campo para registrar o horário de entrada, do tipo "time". O valor padrão deve ser "07:12", mas o campo deve ser editável pelo usuário.
+Horário de Saída: Um campo para registrar o horário de saída, do tipo "time", editável pelo usuário.
+Observação: Um campo de texto para quaisquer observações relevantes sobre o colaborador.
+2. Atualização do Modal de Adição de Mão de Obra Dentro de um RDO:
+Localização: Ao criar ou editar um Relatório Diário de Obra (RDO), na seção de "Mão de Obra".
+Ação: Quando o usuário clicar na opção para adicionar um novo registro de mão de obra.
+Modal Correto: O sistema deve abrir um modal intitulado "Adicionar Colaborador".
+Campos do Modal "Adicionar Colaborador" (acessado pela Mão de Obra do RDO): Este modal deve ser idêntico ao descrito no item 1.4, contendo os seguintes campos, e somente estes, na ordem especificada:
+Nome: Um campo de texto para o nome completo do colaborador.
+Função: Um campo de texto para a função do colaborador.
+Horário de Entrada: Um campo para registrar o horário de entrada, do tipo "time". O valor padrão deve ser "07:12", mas o campo deve ser editável pelo usuário.
+Horário de Saída: Um campo para registrar o horário de saída, do tipo "time", editável pelo usuário.
+Observação: Um campo de texto para quaisquer observações relevantes.
+Campo a Ser Removido: O campo "Quantidade", que existia no modal antigo ("Adicionar Função"), não deve mais estar presente.
+3. Correção do Bug de Carregamento Infinito ao Editar um RDO:
+Localização: Na lista de "Histórico de Relatórios" de um projeto.
+Ação: Quando o usuário clica no botão "Editar" associado a um RDO específico listado.
+Problema Atual: O sistema exibe um indicador de carregamento (spinner) que nunca desaparece, e o formulário de edição do RDO não é carregado, impedindo a edição.
+Solicitação: Corrija este problema de forma definitiva. Ao clicar em "Editar" em um RDO, o sistema deve carregar os dados daquele RDO no formulário de edição e permitir que o usuário modifique e salve as alterações com sucesso.
+Instruções Gerais Adicionais:
+Consistência da Nomenclatura: Garanta que o termo "Colaborador" seja utilizado de forma consistente em todas as interfaces do usuário relacionadas à gestão de pessoas ou mão de obra, substituindo termos como "Equipe" (quando se refere a indivíduos), "Membro" ou "Função" (quando se refere a uma pessoa).
+Campos Não Obrigatórios: Conforme solicitado anteriormente, ao adicionar ou editar um colaborador (através dos modais descritos acima), o preenchimento de todos os campos (Nome, Função, Horário de Entrada, Horário de Saída, Observação) não é obrigatório para salvar. O usuário deve poder salvar mesmo que alguns campos, como horários e observações, estejam vazios. Nome e Função podem ser considerados os campos minimamente necessários.
