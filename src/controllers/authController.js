@@ -1,36 +1,19 @@
 /**
- * Controlador de Autenticação Simplificado
- * Versão sem banco de dados - utiliza apenas memória
+ * Controlador de Autenticação com Banco de Dados
+ * Integração com PostgreSQL para gerenciamento de usuários
  */
 
 const jwt = require('jsonwebtoken');
+const db = require('../db');
+const crypto = require('crypto');
 
 // Chave secreta para tokens JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'viajey_secret_key_2025';
 
-// Usuários simulados em memória (para fins de demonstração)
-const demoUsers = [
-  {
-    id: 1,
-    username: 'demo',
-    email: 'demo@example.com',
-    // Senha: demoaccount
-    hashedPassword: '7a2f1ade3573d12c94a2c8e9e69d4203fd3bbee81af5be5a19e5263744e79712'
-  },
-  {
-    id: 2,
-    username: 'viajey',
-    email: 'viajey@example.com',
-    // Senha: viajey2025
-    hashedPassword: '8a0b1e38291f9c1645676a185e326c71ff166766a9ab28b3e4723ecdcb9a8c35'
-  }
-];
-
 /**
- * Função de hash simples
+ * Função de hash para senhas
  */
 const hashPassword = (password) => {
-  const crypto = require('crypto');
   return crypto.createHash('sha256').update(String(password)).digest('hex');
 };
 
@@ -53,42 +36,36 @@ const register = async (req, res) => {
     }
     
     // Verificar se o email já está em uso
-    const existingEmail = demoUsers.find(user => user.email === email);
-    if (existingEmail) {
+    const emailCheck = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (emailCheck.rows.length > 0) {
       return res.status(409).json({ error: 'Email já está em uso' });
     }
     
     // Verificar se o nome de usuário já está em uso
-    const existingUsername = demoUsers.find(user => user.username === username);
-    if (existingUsername) {
+    const usernameCheck = await db.query('SELECT id FROM users WHERE username = $1', [username]);
+    if (usernameCheck.rows.length > 0) {
       return res.status(409).json({ error: 'Nome de usuário já está em uso' });
     }
     
-    // Criar o usuário (apenas em memória para demonstração)
-    const newUser = {
-      id: demoUsers.length + 1,
-      username,
-      email,
-      hashedPassword: hashPassword(password)
-    };
+    // Hash da senha
+    const password_hash = hashPassword(password);
     
-    // Adicionar à lista de demonstração
-    demoUsers.push(newUser);
+    // Inserir o novo usuário no banco de dados
+    const result = await db.query(
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, created_at',
+      [username, email, password_hash]
+    );
     
-    // Preparar objeto para resposta (sem incluir a senha)
-    const userForResponse = {
-      id: newUser.id,
-      username: newUser.username,
-      email: newUser.email
-    };
+    // Obter o usuário criado
+    const newUser = result.rows[0];
     
     // Gerar token JWT
-    const token = generateToken(userForResponse);
+    const token = generateToken(newUser);
     
     console.log('Usuário registrado com sucesso:', username);
     
     res.status(201).json({
-      user: userForResponse,
+      user: newUser,
       token
     });
   } catch (error) {
@@ -110,10 +87,18 @@ const login = async (req, res) => {
     }
     
     // Buscar usuário pelo email
-    const user = demoUsers.find(user => user.email === email);
+    const result = await db.query('SELECT id, username, email, password_hash FROM users WHERE email = $1', [email]);
     
-    // Verificar se usuário existe e senha está correta
-    if (!user || user.hashedPassword !== hashPassword(password)) {
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Credenciais inválidas' });
+    }
+    
+    const user = result.rows[0];
+    
+    // Verificar se a senha está correta
+    const hashedPassword = hashPassword(password);
+    
+    if (user.password_hash !== hashedPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
     
@@ -160,25 +145,20 @@ const verify = async (req, res) => {
       console.log('[Verify] Token verificado com sucesso. Payload:', { id: decoded.id, username: decoded.username });
       
       // Buscar usuário pelo ID
-      const user = demoUsers.find(user => user.id === decoded.id);
+      const result = await db.query('SELECT id, username, email FROM users WHERE id = $1', [decoded.id]);
       
-      if (!user) {
+      if (result.rows.length === 0) {
         console.error('[Verify] Usuário não encontrado para o ID:', decoded.id);
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
       
-      // Preparar objeto para resposta (sem incluir a senha)
-      const userForResponse = {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      };
+      const user = result.rows[0];
       
       console.log('[Verify] Usuário encontrado:', user.username);
       
       res.json({
         valid: true,
-        user: userForResponse
+        user: user
       });
     } catch (err) {
       console.error('[Verify] Erro na verificação do JWT:', err.name, '-', err.message);

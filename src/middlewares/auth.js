@@ -1,40 +1,33 @@
 /**
- * Middleware de Autenticação Simplificado
- * Versão sem banco de dados - utiliza apenas memória
+ * Middleware de Autenticação com Banco de Dados
+ * Integração com PostgreSQL para gerenciamento de usuários
  */
 
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 
 // Chave secreta para tokens JWT (deve ser a mesma usada no authController)
 const JWT_SECRET = process.env.JWT_SECRET || 'viajey_secret_key_2025';
 
-// Usuários simulados em memória (referência aos mesmos do authController)
-// Na implementação real, deveria ser uma referência à mesma estrutura de dados
-const demoUsers = [
-  {
-    id: 1,
-    username: 'demo',
-    email: 'demo@example.com',
-    hashedPassword: '7a2f1ade3573d12c94a2c8e9e69d4203fd3bbee81af5be5a19e5263744e79712'
-  },
-  {
-    id: 2,
-    username: 'viajey',
-    email: 'viajey@example.com',
-    hashedPassword: '8a0b1e38291f9c1645676a185e326c71ff166766a9ab28b3e4723ecdcb9a8c35'
-  }
-];
-
 /**
- * Busca usuário pelo ID (versão simplificada sem banco de dados)
+ * Busca usuário pelo ID usando o banco de dados
  */
-const getUserById = (id) => {
-  const user = demoUsers.find(user => user.id === id);
-  if (!user) return null;
-  
-  // Retornar cópia do usuário sem a senha
-  const { hashedPassword, ...userWithoutPassword } = user;
-  return userWithoutPassword;
+const getUserById = async (id) => {
+  try {
+    const result = await db.query(
+      'SELECT id, username, email FROM users WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    return result.rows[0];
+  } catch (error) {
+    console.error('Erro ao buscar usuário pelo ID:', error);
+    throw error;
+  }
 };
 
 /**
@@ -60,9 +53,9 @@ const isAuthenticated = async (req, res, next) => {
       const decoded = jwt.verify(token, JWT_SECRET);
       console.log('Token verificado com sucesso. Payload:', { id: decoded.id, username: decoded.username });
       
-      // Obter usuário atual
+      // Obter usuário atual do banco de dados
       console.log('Buscando usuário com ID:', decoded.id);
-      const user = getUserById(decoded.id);
+      const user = await getUserById(decoded.id);
       
       if (!user) {
         console.error('Usuário não encontrado com ID:', decoded.id);
@@ -118,8 +111,8 @@ const optionalAuth = async (req, res, next) => {
       const decoded = jwt.verify(token, JWT_SECRET);
       console.log('[OptionalAuth] Token verificado com sucesso. Payload ID:', decoded.id);
       
-      // Obter usuário atual
-      const user = getUserById(decoded.id);
+      // Obter usuário atual do banco de dados
+      const user = await getUserById(decoded.id);
       
       if (user) {
         console.log('[OptionalAuth] Usuário encontrado:', user.username);
