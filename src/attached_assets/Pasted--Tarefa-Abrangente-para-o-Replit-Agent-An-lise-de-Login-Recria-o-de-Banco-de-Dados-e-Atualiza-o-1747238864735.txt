@@ -1,0 +1,51 @@
+**Tarefa Abrangente para o Replit Agent: Análise de Login, Recriação de Banco de Dados e Atualização de Rotas no Projeto ViajeyPlanner**
+
+**Atenção Replit Agent:** Esta é uma tarefa complexa com etapas destrutivas (exclusão de tabelas do banco de dados). Prossiga com extremo cuidado e SEMPRE peça confirmação explícita do usuário antes de executar qualquer comando que modifique o banco de dados ou o código de forma significativa. Recomende ao usuário fazer um backup do banco de dados e do código antes de iniciar, se possível.
+
+**Contexto do Projeto:**
+- Nome do Projeto: ViajeyPlanner
+- Tecnologias (inferidas/conhecidas): Frontend (HTML, CSS, JavaScript), Backend (Node.js/Express), Banco de Dados (PostgreSQL).
+- String de Conexão PostgreSQL: `postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable`
+
+**Por favor, execute as seguintes etapas sequencialmente, pedindo confirmação do usuário em pontos críticos:**
+
+**Parte 1: Análise do Fluxo de Login do Frontend**
+
+1.  **Investigue o Código Frontend:** Analise os arquivos HTML e JavaScript do frontend (provavelmente em pastas como `public/` ou `static/`) relacionados à funcionalidade de login.
+2.  **Identifique o Envio de Dados:** Determine como os dados de login (ex: email, senha) são capturados do formulário de login.
+3.  **Identifique o Endpoint de Destino:** Identifique para qual URL (endpoint) do backend e com qual método HTTP (ex: POST) esses dados de login são enviados.
+4.  **Relate suas Descobertas:** Apresente ao usuário o arquivo frontend analisado, o trecho de código responsável pelo envio do login, o método HTTP e a URL do endpoint de backend identificada.
+
+**Parte 2: Recriação do Banco de Dados PostgreSQL (Etapa Crítica e Destrutiva!)**
+
+1.  **Confirmação para Exclusão:** **ANTES DE PROSSEGUIR, ALERTE O USUÁRIO QUE A PRÓXIMA ETAPA EXCLUIRÁ TODAS AS TABELAS EXISTENTES NO BANCO DE DADOS `viajey` E PEÇA CONFIRMAÇÃO EXPLÍCITA PARA CONTINUAR.**
+2.  **Conexão ao Banco:** Utilize a string de conexão `postgres://viajey:viajey@viajey_viajey:5432/viajey?sslmode=disable` para se conectar ao banco de dados PostgreSQL.
+3.  **Listar Tabelas Existentes (Opcional, para informação do usuário):** Se possível, liste todas as tabelas atualmente existentes no banco de dados `viajey` e mostre ao usuário.
+4.  **Gerar Script de Exclusão:** Gere os comandos SQL `DROP TABLE IF EXISTS nome_da_tabela CASCADE;` para TODAS as tabelas existentes que você identificou (ou que o usuário confirmar). Mostre esses comandos ao usuário.
+5.  **Confirmação Final para Exclusão:** **PEÇA UMA ÚLTIMA CONFIRMAÇÃO EXPLÍCITA DO USUÁRIO ANTES DE EXECUTAR OS COMANDOS `DROP TABLE`.**
+6.  **Executar Exclusão:** Somente após a confirmação final, execute os comandos `DROP TABLE` para remover todas as tabelas.
+7.  **Propor Novo Esquema de Tabelas:**
+    a.  Analise o código do backend existente (especialmente `models/` e rotas de registro/autenticação como `controllers/authController.js` e `models/user.js`) para inferir as tabelas e colunas necessárias para um sistema de login/registro e outras funcionalidades principais do ViajeyPlanner (ex: usuários, itinerários, atividades).
+    b.  Proponha um conjunto de comandos SQL `CREATE TABLE` para as novas tabelas (ex: `users`, `itineraries`, `activities`, etc.), incluindo tipos de dados apropriados, chaves primárias, chaves estrangeiras, constraints `NOT NULL`, e índices relevantes. Preste atenção especial à tabela `users` para incluir campos como `id`, `username`, `email`, `password_hash`, `created_at`, etc.
+    c.  Apresente os comandos `CREATE TABLE` propostos ao usuário para revisão e aprovação.
+8.  **Confirmação para Criação:** Peça confirmação explícita do usuário para executar os comandos `CREATE TABLE` propostos (após possíveis ajustes solicitados pelo usuário).
+9.  **Criar Novas Tabelas:** Somente após a confirmação, execute os comandos `CREATE TABLE` para criar a nova estrutura do banco de dados do zero.
+10. **Relate o Resultado:** Informe ao usuário se a exclusão e criação das tabelas foram bem-sucedidas.
+
+**Parte 3: Análise e Ajuste das Rotas de Conexão do Backend**
+
+1.  **Identifique as Rotas Relevantes:** Analise os arquivos de rotas do backend (provavelmente em `routes/`) e os controladores (`controllers/`) que interagem com o banco de dados, especialmente aqueles relacionados à autenticação (login, registro), usuários e outras entidades principais do sistema.
+2.  **Compare com o Novo Esquema:** Verifique se as queries SQL ou os métodos de ORM utilizados nessas rotas e controladores estão alinhados com os nomes das novas tabelas e colunas que foram criadas na Parte 2.
+3.  **Proponha Ajustes:** Para cada rota/controlador que precisar de modificação:
+    a.  Mostre o trecho de código original que interage com o banco de dados.
+    b.  Explique qual ajuste é necessário para compatibilizar com o novo esquema.
+    c.  Apresente o trecho de código modificado proposto.
+4.  **Confirmação para Alterações no Código:** **PEÇA CONFIRMAÇÃO EXPLÍCITA DO USUÁRIO ANTES DE APLICAR CADA ALTERAÇÃO NO CÓDIGO DO BACKEND.**
+5.  **Aplicar Ajustes:** Somente após a confirmação do usuário para cada alteração, modifique os arquivos do backend.
+6.  **Relate as Modificações:** Informe ao usuário quais arquivos foram modificados e apresente um resumo das alterações.
+
+**Considerações Finais para o Usuário (Recomende ao Agente incluir isso na resposta final):**
+
+*   Após a execução deste prompt, será crucial testar exaustivamente todas as funcionalidades do site, especialmente o registro de novos usuários, login, e operações CRUD relacionadas às entidades principais.
+*   Pode ser necessário ajustar o código do frontend se os endpoints da API ou a estrutura dos dados de resposta tiverem mudado significativamente.
+*   Este prompt é um ponto de partida. Podem surgir interações e refinamentos adicionais durante o processo.
