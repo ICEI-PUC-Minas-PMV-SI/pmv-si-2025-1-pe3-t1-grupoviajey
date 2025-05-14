@@ -19,7 +19,7 @@ const apiRoutes = require('./routes/api');
 
 // Configuração do servidor
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000; // Usando 3000 para evitar conflito com a porta 5000
 
 // Middleware
 app.use(cors());
@@ -65,6 +65,14 @@ app.get('/login', (req, res) => {
   res.redirect('/login.html');
 });
 
+app.get('/desktop', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'desktop.html'));
+});
+
+app.get('/desktop.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'desktop.html'));
+});
+
 // Rota principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -79,33 +87,23 @@ app.use((err, req, res, next) => {
 // Iniciar o servidor
 async function iniciarServidor() {
   console.log('Inicializando servidor Viajey...');
-  console.log('Porta configurada:', PORT);
   console.log('Sistema de autenticação: PostgreSQL (reconstruído)');
   
   // Verificar conexão com banco de dados
   const dbOk = await verificarBancoDados();
   
-  // Tentar iniciar o servidor na porta definida
-  try {
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
-      
-      if (!dbOk) {
-        console.warn('⚠️ Servidor iniciado, mas há problemas na conexão com o banco de dados.');
-      }
-    });
-  } catch (erro) {
-    console.error('Erro ao iniciar o servidor na porta', PORT);
-    console.error('Detalhes do erro:', erro.message);
+  // Forçar uso da porta 3000
+  const PORTA_FIXA = 3000;
+  console.log('Porta forçada para:', PORTA_FIXA);
+  
+  // Iniciar o servidor diretamente na porta 3000
+  app.listen(PORTA_FIXA, () => {
+    console.log(`Servidor rodando na porta ${PORTA_FIXA}`);
     
-    // Tentar uma porta alternativa
-    const portaAlternativa = 3000;
-    console.log('Tentando porta alternativa:', portaAlternativa);
-    
-    app.listen(portaAlternativa, () => {
-      console.log(`Servidor rodando na porta ${portaAlternativa}`);
-    });
-  }
+    if (!dbOk) {
+      console.warn('⚠️ Servidor iniciado, mas há problemas na conexão com o banco de dados.');
+    }
+  });
 }
 
 // Executar o servidor
