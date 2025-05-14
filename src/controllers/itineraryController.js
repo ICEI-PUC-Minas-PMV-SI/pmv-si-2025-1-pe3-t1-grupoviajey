@@ -14,11 +14,11 @@ const ActivityModel = require('../models/activity');
 const getAllItineraries = async (req, res) => {
   try {
     console.log('[GetAllItineraries] Requisição recebida');
-    console.log('[GetAllItineraries] Usuário autenticado:', req.user ? `${req.user.username} (ID: ${req.user.id})` : 'Nenhum');
+    console.log('[GetAllItineraries] Usuário autenticado:', req.usuario ? `${req.usuario.username} (ID: ${req.usuario.id})` : 'Nenhum');
     console.log('[GetAllItineraries] Query params:', req.query);
     
     // Se tiver usuário autenticado, usar seu ID (já que agora a rota é autenticada)
-    const userId = req.user ? req.user.id : null;
+    const userId = req.usuario ? req.usuario.id : null;
     
     console.log('[GetAllItineraries] Buscando itinerários para o usuário ID:', userId);
     const itineraries = await ItineraryModel.getAllItineraries(userId);
@@ -110,7 +110,7 @@ const getItineraryByShareCode = async (req, res) => {
 const createItinerary = async (req, res) => {
   try {
     console.log('[CreateItinerary] === INÍCIO DA CRIAÇÃO DE ITINERÁRIO ===');
-    console.log('[CreateItinerary] Usuário autenticado:', req.user ? `${req.user.username} (ID: ${req.user.id})` : 'Nenhum');
+    console.log('[CreateItinerary] Usuário autenticado:', req.usuario ? `${req.usuario.username} (ID: ${req.usuario.id})` : 'Nenhum');
     console.log('[CreateItinerary] Headers:', JSON.stringify(req.headers, null, 2));
     console.log('[CreateItinerary] Corpo da requisição:', JSON.stringify(req.body, null, 2));
     
@@ -124,14 +124,14 @@ const createItinerary = async (req, res) => {
     }
     
     // Verificar se o usuário está autenticado (middleware isAuthenticated deve garantir que sim)
-    if (!req.user) {
+    if (!req.usuario) {
       console.log('[CreateItinerary] Erro: usuário não autenticado');
       return res.status(401).json({ error: 'Usuário não autenticado. Por favor, faça login novamente.' });
     }
     
     // Adicionar user_id do usuário autenticado
-    itineraryData.user_id = req.user.id;
-    console.log('[CreateItinerary] Usando ID do usuário autenticado:', itineraryData.user_id, '(', req.user.username, ')');
+    itineraryData.user_id = req.usuario.id;
+    console.log('[CreateItinerary] Usando ID do usuário autenticado:', itineraryData.user_id, '(', req.usuario.username, ')');
     
     // Garantir que valores opcionais não causem erros
     itineraryData.price_range = itineraryData.price_range || 'moderado';
