@@ -22,10 +22,13 @@ const hashPassword = (password) => {
  */
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, password_hash: passHash } = req.body;
+    
+    // Usar password ou password_hash, dependendo do que foi enviado
+    const passwordValue = password || passHash;
     
     // Validar dados obrigatórios
-    if (!username || !email || !password) {
+    if (!username || !email || !passwordValue) {
       return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
     

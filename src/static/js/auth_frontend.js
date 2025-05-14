@@ -149,6 +149,15 @@ const AUTH = {
   // Realizar registro de usuário
   register: async function(userData) {
     try {
+      // Converter o campo password para password_hash antes de enviar
+      if (userData.password) {
+        // Apenas renomear o campo password para password_hash - o backend fará o hash
+        userData.password_hash = userData.password;
+        delete userData.password;
+      }
+      
+      console.log('Enviando dados para registro:', Object.keys(userData));
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -173,12 +182,20 @@ const AUTH = {
   // Realizar login de usuário
   login: async function(email, password) {
     try {
+      // Preparar dados para o login, convertendo password para password_hash 
+      const loginData = { 
+        email, 
+        password_hash: password 
+      };
+      
+      console.log('Tentando login para:', email);
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(loginData)
       });
       
       const data = await response.json();
