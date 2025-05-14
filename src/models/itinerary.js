@@ -65,14 +65,18 @@ const createItinerary = async (itineraryData) => {
       optionsValue = JSON.stringify(optionsData);
     }
     
+    // Gerar código de compartilhamento único
+    const shareCode = generateShareCode();
+    
     console.log('[CreateItinerary - Model] Valor final de options:', optionsValue);
+    console.log('[CreateItinerary - Model] Código de compartilhamento gerado:', shareCode);
     
     const result = await db.query(
       `INSERT INTO itineraries 
-        (user_id, title, destination, start_date, end_date, price_range, options) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb) 
+        (user_id, title, destination, start_date, end_date, price_range, options, share_code) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8) 
        RETURNING *`,
-      [user_id, title, destination, start_date, end_date, price_range || 'moderado', optionsValue]
+      [user_id, title, destination, start_date, end_date, price_range || 'moderado', optionsValue, shareCode]
     );
     
     console.log('[CreateItinerary - Model] Itinerário criado com sucesso, ID:', result.rows[0].id);
@@ -144,22 +148,20 @@ const getItineraryById = async (id) => {
 
 /**
  * Obtém um itinerário pelo código de compartilhamento
- * Nota: Temporariamente alterado para retornar um erro já que a coluna share_code não existe
  */
 const getItineraryByShareCode = async (shareCode) => {
   try {
-    // Ao invés de tentar usar uma coluna que não existe, apenas lançamos um erro informativo
-    throw new Error('Funcionalidade de compartilhamento ainda não implementada no banco de dados.');
+    console.log('[GetItineraryByShareCode] Buscando itinerário com código:', shareCode);
     
-    /* Implementação original (desativada):
     const result = await db.query('SELECT * FROM itineraries WHERE share_code = $1', [shareCode]);
     
     if (result.rows.length === 0) {
+      console.log('[GetItineraryByShareCode] Nenhum itinerário encontrado com o código:', shareCode);
       return null;
     }
     
+    console.log('[GetItineraryByShareCode] Itinerário encontrado, ID:', result.rows[0].id);
     return result.rows[0];
-    */
   } catch (error) {
     console.error('Erro ao obter itinerário por código de compartilhamento:', error);
     throw error;
