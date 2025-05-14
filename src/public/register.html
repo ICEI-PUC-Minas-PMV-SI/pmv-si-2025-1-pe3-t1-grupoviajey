@@ -268,12 +268,15 @@
           }
           
           // Preparar dados para registro
+          // Importante: enviamos o mesmo valor tanto como password quanto como password_hash 
+          // para garantir compatibilidade com o backend
           const userData = { 
-            username,
-            email, 
-            password,
-            agreeTerms,
-            newsletter
+            username: username,
+            email: email, 
+            password: password,
+            password_hash: password, // Enviando duplicado para garantir
+            agreeTerms: agreeTerms,
+            newsletter: newsletter
           };
           
           console.log('Registration attempt:', userData);

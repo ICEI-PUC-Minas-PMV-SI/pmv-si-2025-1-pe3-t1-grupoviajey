@@ -149,14 +149,18 @@ const AUTH = {
   // Realizar registro de usuário
   register: async function(userData) {
     try {
-      // Converter o campo password para password_hash antes de enviar
-      if (userData.password) {
-        // Apenas renomear o campo password para password_hash - o backend fará o hash
+      // Verificar se já temos password_hash - se não, criar a partir do password
+      if (!userData.password_hash && userData.password) {
         userData.password_hash = userData.password;
-        delete userData.password;
+      }
+      
+      // Garantir que os campos obrigatórios estejam presentes
+      if (!userData.username || !userData.email || (!userData.password && !userData.password_hash)) {
+        throw new Error('Dados de registro incompletos. Preencha todos os campos obrigatórios.');
       }
       
       console.log('Enviando dados para registro:', Object.keys(userData));
+      console.log('Dados do usuário:', JSON.stringify(userData));
       
       const response = await fetch('/api/auth/register', {
         method: 'POST',
