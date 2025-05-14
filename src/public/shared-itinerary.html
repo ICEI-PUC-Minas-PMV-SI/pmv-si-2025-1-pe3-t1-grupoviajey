@@ -108,6 +108,17 @@
       initAuth();
       updateUserInterface();
       setupEventListeners();
+      
+      // Verificar se há código de compartilhamento na URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareCode = urlParams.get('code');
+      
+      if (shareCode) {
+        // Preencher o campo de código
+        document.getElementById('shareCodeInput').value = shareCode;
+        // Acessar o itinerário automaticamente
+        accessItinerary();
+      }
     });
 
     function updateUserInterface() {
@@ -304,9 +315,110 @@
             <i class="fas fa-copy"></i> Duplicar para meus roteiros
           </button>
         `;
-        // Adicionar listener para botão de duplicar (implementar depois)
-        document.getElementById('duplicateButton').addEventListener('click', () => {
-          alert('Funcionalidade de duplicação em desenvolvimento!');
+        // Adicionar listener para botão de duplicar itinerário
+        document.getElementById('duplicateButton').addEventListener('click', async () => {
+          try {
+            // Verificar se está autenticado
+            if (!isAuthenticated()) {
+              alert('Você precisa estar logado para duplicar este itinerário. Por favor, faça login.');
+              window.location.href = '/login.html';
+              return;
+            }
+            
+            // Obter o itinerário atual
+            const shareCode = document.getElementById('shareCodeInput').value.trim();
+            const response = await fetch(`/api/itineraries/share/${shareCode}`);
+            
+            if (!response.ok) {
+              throw new Error('Não foi possível obter o itinerário para duplicação.');
+            }
+            
+            const originalItinerary = await response.json();
+            
+            // Preparar os dados do novo itinerário
+            const newItineraryData = {
+              title: `${originalItinerary.title} (Duplicado)`,
+              destination: originalItinerary.destination,
+              start_date: originalItinerary.start_date,
+              end_date: originalItinerary.end_date,
+              price_range: originalItinerary.price_range,
+              options: originalItinerary.options
+            };
+            
+            // Criar o novo itinerário
+            const createResponse = await fetch('/api/itineraries', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+              },
+              body: JSON.stringify(newItineraryData)
+            });
+            
+            if (!createResponse.ok) {
+              throw new Error('Falha ao criar o novo itinerário.');
+            }
+            
+            const newItinerary = await createResponse.json();
+            
+            // Para cada dia do itinerário original, criar um dia no novo itinerário
+            if (originalItinerary.days && originalItinerary.days.length > 0) {
+              for (const originalDay of originalItinerary.days) {
+                // Criar o dia
+                const dayResponse = await fetch(`/api/itineraries/${newItinerary.id}/days`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                  },
+                  body: JSON.stringify({
+                    day_number: originalDay.day_number,
+                    title: originalDay.title,
+                    description: originalDay.description || ''
+                  })
+                });
+                
+                if (!dayResponse.ok) {
+                  console.error('Erro ao criar dia:', await dayResponse.text());
+                  continue;
+                }
+                
+                const newDay = await dayResponse.json();
+                
+                // Para cada atividade do dia original, criar uma atividade no novo dia
+                if (originalDay.activities && originalDay.activities.length > 0) {
+                  for (const activity of originalDay.activities) {
+                    await fetch('/api/activities', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                      },
+                      body: JSON.stringify({
+                        itinerary_day_id: newDay.id,
+                        name: activity.name,
+                        type: activity.type,
+                        location: activity.location || '',
+                        notes: activity.notes || '',
+                        period: activity.period,
+                        start_time: activity.start_time || '',
+                        end_time: activity.end_time || '',
+                        position: activity.position
+                      })
+                    });
+                  }
+                }
+              }
+            }
+            
+            // Exibir mensagem de sucesso e redirecionar
+            alert('Itinerário duplicado com sucesso! Redirecionando para o seu novo itinerário...');
+            window.location.href = `/itinerary.html?id=${newItinerary.id}`;
+            
+          } catch (error) {
+            console.error('Erro ao duplicar itinerário:', error);
+            alert(`Erro ao duplicar itinerário: ${error.message}`);
+          }
         });
       } else {
         actionButtons.innerHTML = `

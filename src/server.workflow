@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "command": "node server.js",
+  "command": "bash start.sh",
   "environment": {},
   "persistent": true
 }
