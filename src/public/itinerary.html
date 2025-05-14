@@ -1725,8 +1725,11 @@
             <div class="share-link-box">
               <h3 class="share-link-title">Link de compartilhamento</h3>
               <div class="share-link-input">
-                <input type="text" value="https://viajey.app/roteiro/bcn2025" readonly>
-                <button class="btn btn-primary">Copiar</button>
+                <input type="text" id="share-link-input" value="Carregando link..." readonly>
+                <button class="btn btn-primary" id="copy-share-link">Copiar</button>
+              </div>
+              <div class="alert alert-success mt-2 d-none" id="copy-success-alert">
+                Link copiado para a área de transferência!
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="require-auth">
@@ -1900,6 +1903,70 @@
             icon.classList.add('far');
             icon.style.color = '';
           }
+        });
+      }
+      
+      // Obter parâmetros da URL
+      function getItineraryIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id');
+      }
+      
+      // Gerenciar compartilhamento
+      const shareTab = document.querySelector('button[data-tab="share"]');
+      shareTab.addEventListener('click', function() {
+        // Carregar informações de compartilhamento quando entrar na aba
+        const itineraryId = getItineraryIdFromUrl();
+        if (itineraryId) {
+          updateShareLink(itineraryId);
+        }
+      });
+      
+      // Atualizar link de compartilhamento baseado no código
+      async function updateShareLink(itineraryId) {
+        try {
+          // Buscar os detalhes do itinerário para obter o código de compartilhamento
+          const response = await fetch(`/api/itineraries/${itineraryId}`);
+          if (!response.ok) {
+            throw new Error('Não foi possível carregar os detalhes do itinerário');
+          }
+          
+          const itinerary = await response.json();
+          if (!itinerary.share_code) {
+            // Se não existir código de compartilhamento, exibir mensagem informativa
+            document.getElementById('share-link-input').value = 'Este itinerário ainda não tem um código de compartilhamento';
+            return;
+          }
+          
+          // Gerar URL completa para compartilhamento
+          const shareUrl = `${window.location.origin}/shared-itinerary.html?code=${itinerary.share_code}`;
+          document.getElementById('share-link-input').value = shareUrl;
+          
+          // Configurar botão de cópia
+          const copyButton = document.getElementById('copy-share-link');
+          copyButton.addEventListener('click', function() {
+            copyShareLink(shareUrl);
+          });
+        } catch (error) {
+          console.error('Erro ao atualizar link de compartilhamento:', error);
+          document.getElementById('share-link-input').value = 'Erro ao gerar link de compartilhamento';
+        }
+      }
+      
+      // Copiar link para a área de transferência
+      function copyShareLink(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          // Mostrar confirmação
+          const successAlert = document.getElementById('copy-success-alert');
+          successAlert.classList.remove('d-none');
+          
+          // Esconder após 3 segundos
+          setTimeout(() => {
+            successAlert.classList.add('d-none');
+          }, 3000);
+        }).catch(err => {
+          console.error('Erro ao copiar texto: ', err);
+          alert('Não foi possível copiar o link. Por favor, copie manualmente.');
         });
       }
     });
