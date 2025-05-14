@@ -41,7 +41,7 @@ const initDatabase = async () => {
         id SERIAL PRIMARY KEY,
         username VARCHAR(100) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
         profile_pic VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -160,9 +160,14 @@ app.get('/local/:placeId', (req, res) => {
 app.post('/api/users', async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    
+    // Hash da senha usando SHA-256
+    const crypto = require('crypto');
+    const password_hash = crypto.createHash('sha256').update(String(password)).digest('hex');
+    
     const result = await pool.query(
-      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id',
-      [username, email, password]
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id',
+      [username, email, password_hash]
     );
     res.status(201).json({ id: result.rows[0].id, username, email });
   } catch (error) {

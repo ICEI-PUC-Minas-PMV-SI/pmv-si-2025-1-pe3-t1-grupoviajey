@@ -1,38 +1,23 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["openssl", "postgresql"]
-
-[deployment]
-deploymentTarget = "autoscale"
-run = ["node", "server.js"]
-
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node server.js"
-waitForPort = 3000
+packages = ["jq"]
 
 [[ports]]
 localPort = 3000
-externalPort = 80
+externalPort = 3000
 
 [[ports]]
-localPort = 3001
-externalPort = 3001
+localPort = 5000
+externalPort = 80
+
+[deployment]
+run = ["sh", "-c", "node server.js"]
+deploymentTarget = "cloudrun"
+
+[env]
+SERVER_PORT = 3000
+
+[server]
+run = "bash start-with-logs.sh"
