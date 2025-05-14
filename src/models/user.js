@@ -82,7 +82,7 @@ const createUser = async (userData) => {
     const hashedPassword = hashPassword(password);
     
     const result = await db.query(
-      'INSERT INTO users (username, email, password, profile_pic) VALUES ($1, $2, $3, $4) RETURNING id, username, email, profile_pic, created_at',
+      'INSERT INTO users (username, email, password_hash, profile_pic) VALUES ($1, $2, $3, $4) RETURNING id, username, email, profile_pic, created_at',
       [username, email, hashedPassword, profile_pic]
     );
     
@@ -98,9 +98,10 @@ const createUser = async (userData) => {
  */
 const updateUser = async (id, updates) => {
   try {
-    // Se a senha estiver sendo atualizada, faz o hash
+    // Se a senha estiver sendo atualizada, faz o hash e ajusta o nome do campo
     if (updates.password) {
-      updates.password = hashPassword(updates.password);
+      updates.password_hash = hashPassword(updates.password);
+      delete updates.password;
     }
     
     // Construir query dinamicamente baseada nos campos atualizados
@@ -154,12 +155,12 @@ const verifyCredentials = async (email, password) => {
     // Verificar senha
     const hashedPassword = hashPassword(password);
     
-    if (user.password !== hashedPassword) {
+    if (user.password_hash !== hashedPassword) {
       return null;
     }
     
     // Retornar dados do usuário (sem a senha)
-    const { password: _, ...userData } = user;
+    const { password_hash: _, ...userData } = user;
     return userData;
   } catch (error) {
     console.error('Erro ao verificar credenciais:', error);
