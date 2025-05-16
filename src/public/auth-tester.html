@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tester de Autenticação - Viajey</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    .token-box {
+      font-family: monospace;
+      font-size: 0.8rem;
+      max-height: 150px;
+      overflow-y: auto;
+      word-break: break-all;
+    }
+    .result-section {
+      height: 400px;
+      overflow-y: auto;
+    }
+    .json-formatter {
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .test-card {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-map-marker-alt me-2"></i>Viajey
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/desktop.html">Home</a>
+          </li>
+        </ul>
+        <div class="d-flex">
+          <a href="/login.html" class="btn btn-outline-light me-2 auth-logged-out">Login</a>
+          <a href="/register.html" class="btn btn-light auth-logged-out">Registre-se</a>
+          
+          <div class="dropdown auth-logged-in" style="display: none;">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user-circle me-1"></i>
+              <span class="user-name">Usuário</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/minha-conta.html"><i class="fas fa-user me-2"></i>Minha Conta</a></li>
+              <li><a class="dropdown-item" href="/meus-roteiros.html"><i class="fas fa-map me-2"></i>Meus Roteiros</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <div class="row">
+      <div class="col-12">
+        <h1 class="mb-4">Diagnóstico de Autenticação</h1>
+        <p class="lead">Use esta página para testar a funcionalidade de autenticação e verificar tokens JWT.</p>
+        
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>Esta página é destinada ao diagnóstico do sistema de autenticação. Os resultados dos testes serão exibidos abaixo.
+        </div>
+        
+        <div id="alert-container"></div>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5>Status de Autenticação</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <h6>Status:</h6>
+              <p id="auth-status">Verificando...</p>
+            </div>
+            
+            <div class="mb-3">
+              <h6>Token JWT:</h6>
+              <div class="token-box p-2 bg-light border rounded">
+                <p id="auth-token">Verificando...</p>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <h6>Dados do Usuário:</h6>
+              <div class="token-box p-2 bg-light border rounded">
+                <p id="user-data">Verificando...</p>
+              </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" id="verifyTokenBtn">Verificar Token</button>
+              <button class="btn btn-warning" id="clearAuthBtn">Limpar Autenticação</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Testes de API -->
+        <div class="card mt-4">
+          <div class="card-header">
+            <h5>Testes de API</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button class="btn btn-info" id="testPublicApiBtn">Testar API Pública</button>
+              <button class="btn btn-info" id="testProtectedApiBtn">Testar API Protegida</button>
+              <button class="btn btn-info" id="createItineraryBtn">Criar Roteiro de Teste</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5>Resultados dos Testes</h5>
+          </div>
+          <div class="card-body result-section" id="results-container">
+            <div class="text-center text-muted">
+              <i class="fas fa-info-circle fa-2x mb-2"></i>
+              <p>Os resultados dos testes aparecerão aqui.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Login Rápido</h5>
+          </div>
+          <div class="card-body">
+            <form id="testLoginForm" class="row g-3">
+              <div class="col-md-4">
+                <label for="testEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="testEmail" placeholder="seu.email@exemplo.com" required>
+              </div>
+              <div class="col-md-4">
+                <label for="testPassword" class="form-label">Senha</label>
+                <input type="password" class="form-control" id="testPassword" required>
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100">Login</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS & Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Auth Scripts -->
+  <script src="/static/js/auth_frontend.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Referências para elementos da página
+      const authStatusEl = document.getElementById('auth-status');
+      const authTokenEl = document.getElementById('auth-token');
+      const userDataEl = document.getElementById('user-data');
+      const resultsContainer = document.getElementById('results-container');
+      
+      // Função para adicionar resultado ao container
+      function addResult(title, content, success = true) {
+        const resultCard = document.createElement('div');
+        resultCard.className = `test-card card border-${success ? 'success' : 'danger'} mb-3`;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        
+        resultCard.innerHTML = `
+          <div class="card-header bg-${success ? 'success' : 'danger'} text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">${title}</h6>
+              <small>${timestamp}</small>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="json-formatter">${content}</div>
+          </div>
+        `;
+        
+        resultsContainer.prepend(resultCard);
+      }
+      
+      // Função para formatar JSON de forma legível
+      function formatJSON(obj) {
+        try {
+          return JSON.stringify(obj, null, 2)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+              let cls = 'text-info';
+              if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                  cls = 'text-danger';
+                } else {
+                  cls = 'text-success';
+                }
+              } else if (/true|false/.test(match)) {
+                cls = 'text-warning';
+              } else if (/null/.test(match)) {
+                cls = 'text-muted';
+              }
+              return '<span class="' + cls + '">' + match + '</span>';
+            });
+        } catch (e) {
+          return String(obj);
+        }
+      }
+      
+      // Atualizar informações de autenticação
+      function updateAuthInfo() {
+        const isLoggedIn = AUTH.isUserLoggedIn();
+        const token = AUTH.getAuthToken();
+        const userData = AUTH.getUserData();
+        
+        authStatusEl.innerHTML = isLoggedIn 
+          ? '<span class="badge bg-success">Autenticado</span>' 
+          : '<span class="badge bg-danger">Não Autenticado</span>';
+        
+        authTokenEl.textContent = token || 'Nenhum token encontrado';
+        userDataEl.innerHTML = userData 
+          ? formatJSON(userData) 
+          : 'Nenhum dado de usuário encontrado';
+      }
+      
+      // Verificar token no servidor
+      async function verifyTokenWithServer() {
+        const token = AUTH.getAuthToken();
+        
+        if (!token) {
+          addResult('Verificação de Token', 'Nenhum token disponível para verificar', false);
+          return;
+        }
+        
+        try {
+          addResult('Verificação de Token', 'Enviando requisição para verificar token...', true);
+          
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            addResult('Verificação de Token', `Token válido! Resposta: ${formatJSON(data)}`, true);
+          } else {
+            addResult('Verificação de Token', `Token inválido: ${formatJSON(data)}`, false);
+          }
+        } catch (error) {
+          addResult('Verificação de Token', `Erro: ${error.message}`, false);
+        }
+      }
+      
+      // Testar API pública
+      async function testPublicApi() {
+        try {
+          addResult('API Pública', 'Enviando requisição para API pública...', true);
+          
+          const response = await fetch('/api/itineraries');
+          const data = await response.json();
+          
+          addResult('API Pública', `Resultado: ${formatJSON(data)}`, response.ok);
+        } catch (error) {
+          addResult('API Pública', `Erro: ${error.message}`, false);
+        }
+      }
+      
+      // Testar API protegida
+      async function testProtectedApi() {
+        try {
+          addResult('API Protegida', 'Enviando requisição para API protegida...', true);
+          
+          const response = await AUTH.fetchWithAuth('/api/itineraries', {
+            method: 'GET',
+            requireAuth: true
+          });
+          
+          const data = await response.json();
+          
+          addResult('API Protegida', `Resultado: ${formatJSON(data)}`, response.ok);
+        } catch (error) {
+          addResult('API Protegida', `Erro: ${error.message}`, false);
+        }
+      }
+      
+      // Criar roteiro de teste
+      async function createTestItinerary() {
+        try {
+          addResult('Criar Roteiro', 'Enviando requisição para criar roteiro de teste...', true);
+          
+          // Dados de teste para o roteiro
+          const today = new Date();
+          const nextWeek = new Date(today);
+          nextWeek.setDate(today.getDate() + 7);
+          
+          const formatDate = (date) => {
+            return date.toISOString().split('T')[0];
+          };
+          
+          const itineraryData = {
+            title: 'Roteiro de Teste ' + new Date().toLocaleTimeString(),
+            destination: 'Destino de Teste',
+            start_date: formatDate(today),
+            end_date: formatDate(nextWeek),
+            price_range: 'moderado'
+          };
+          
+          addResult('Dados do Roteiro', `Enviando: ${formatJSON(itineraryData)}`, true);
+          
+          const response = await AUTH.fetchWithAuth('/api/itineraries', {
+            method: 'POST',
+            body: JSON.stringify(itineraryData),
+            requireAuth: true
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            addResult('Criar Roteiro', `Roteiro criado com sucesso! ID: ${data.id}`, true);
+          } else {
+            addResult('Criar Roteiro', `Erro ao criar roteiro: ${formatJSON(data)}`, false);
+          }
+        } catch (error) {
+          addResult('Criar Roteiro', `Erro: ${error.message}`, false);
+        }
+      }
+      
+      // Configurar event listeners
+      document.getElementById('verifyTokenBtn').addEventListener('click', verifyTokenWithServer);
+      document.getElementById('clearAuthBtn').addEventListener('click', function() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        updateAuthInfo();
+        addResult('Limpeza', 'Dados de autenticação removidos', true);
+      });
+      
+      document.getElementById('testPublicApiBtn').addEventListener('click', testPublicApi);
+      document.getElementById('testProtectedApiBtn').addEventListener('click', testProtectedApi);
+      document.getElementById('createItineraryBtn').addEventListener('click', createTestItinerary);
+      
+      // Configurar formulário de login rápido
+      document.getElementById('testLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('testEmail').value;
+        const password = document.getElementById('testPassword').value;
+        
+        try {
+          addResult('Login', `Tentando login com email: ${email}`, true);
+          
+          const result = await AUTH.login(email, password);
+          
+          addResult('Login', `Login realizado com sucesso! Token: ${result.token.substring(0, 20)}...`, true);
+          updateAuthInfo();
+        } catch (error) {
+          addResult('Login', `Erro de login: ${error.message}`, false);
+        }
+      });
+      
+      // Inicializar a página
+      updateAuthInfo();
+      addResult('Inicialização', 'Página de diagnóstico carregada', true);
+    });
+  </script>
+</body>
+</html>
