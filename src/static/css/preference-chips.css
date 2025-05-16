@@ -1,0 +1,99 @@
+/* Preference Chips Styling */
+.preference-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.preference-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.preference-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.preference-chip label {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preference-checkbox:checked + label {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.preference-checkbox:focus + label {
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+
+.preference-chip:hover label {
+  border-color: var(--primary-color);
+}
+
+/* Modal Styles */
+.modal-content {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--card-border);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--card-border);
+}
+
+.modal-title {
+  color: var(--text-color);
+}
+
+/* Weather Widget */
+.weather-widget {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.current-weather {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+}
+
+.current-weather i {
+  font-size: 1.5rem;
+  color: #ffcc00;
+}
+
+.temperature {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.location {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}

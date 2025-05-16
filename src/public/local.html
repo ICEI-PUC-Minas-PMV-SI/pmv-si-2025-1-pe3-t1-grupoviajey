@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Local - Viajey</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="/static/css/desktop-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .carousel-item img {
+            height: 400px;
+            object-fit: cover;
+        }
+        .place-details-container {
+            margin-top: 1.5rem;
+        }
+        .opening-hours li {
+            padding: 0.25rem 0;
+        }
+        .map-container {
+            height: 300px;
+            width: 100%;
+        }
+        .reviews-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .review-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+        .rating-stars i {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header / Navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/static/img/logo-viajey.svg" alt="Viajey" height="30" class="d-inline-block align-text-top">
+                Viajey
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/explorar">Explorar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/itinerary-kanban">Meus Roteiros</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/profile">Meu Perfil</a></li>
+                        <li><a class="dropdown-item" href="/settings">Configurações</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout">Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div id="loading-container" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando informações do local...</p>
+        </div>
+        
+        <div id="place-details" class="place-details-container" style="display: none;">
+            <!-- Back button -->
+            <div class="mb-3">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+            
+            <!-- Place title and badges -->
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 id="place-name" class="mb-1">Nome do Local</h1>
+                            <div class="mb-2">
+                                <span id="place-type-badge" class="badge bg-primary me-2">Tipo</span>
+                                <span id="place-rating" class="badge bg-warning text-dark">
+                                    <i class="fas fa-star"></i> <span id="rating-value">0.0</span>
+                                </span>
+                            </div>
+                        </div>
+                        <button id="add-to-itinerary-btn" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Adicionar ao Roteiro
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Photos carousel and info -->
+            <div class="row">
+                <!-- Carousel -->
+                <div class="col-md-7 mb-4">
+                    <div id="place-photos-carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="carousel-inner">
+                            <!-- Photos will be added here -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#place-photos-carousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#place-photos-carousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Próximo</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Info -->
+                <div class="col-md-5 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Informações</h5>
+                            
+                            <div class="mb-3">
+                                <h6><i class="fas fa-map-marker-alt text-danger"></i> Endereço</h6>
+                                <p id="place-address" class="mb-0">Endereço do local</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6><i class="fas fa-phone text-success"></i> Telefone</h6>
+                                <p id="place-phone" class="mb-0">Telefone do local</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6><i class="fas fa-globe text-info"></i> Website</h6>
+                                <p id="place-website" class="mb-0">Website do local</p>
+                            </div>
+                            
+                            <div>
+                                <h6><i class="fas fa-clock text-warning"></i> Horário de Funcionamento</h6>
+                                <ul id="place-hours" class="list-unstyled mb-0 opening-hours">
+                                    <!-- Opening hours will be added here -->
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a id="google-maps-link" href="#" target="_blank" class="btn btn-outline-primary w-100">
+                                <i class="fab fa-google"></i> Ver no Google Maps
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Map and Reviews -->
+            <div class="row">
+                <!-- Map -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Localização</h5>
+                            <div id="map" class="map-container"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Avaliações</h5>
+                            <div id="place-reviews" class="reviews-container">
+                                <!-- Reviews will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-body-tertiary py-3 mt-4">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Viajey. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Local scripts -->
+    <script src="/static/js/local.js"></script>
+    
+    <!-- Load Google Maps API with API Key -->
+    <script>
+        // Fetch API key from the server
+        fetch('/api/maps/key')
+            .then(response => response.json())
+            .then(data => {
+                const apiKey = data.key;
+                // Load Google Maps API with the retrieved key
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar chave da API:', error);
+                document.getElementById('loading-container').innerHTML = 
+                    '<div class="alert alert-danger">Erro ao carregar dados do mapa. Por favor, tente novamente mais tarde.</div>';
+            });
+    </script>
+</body>
+</html>

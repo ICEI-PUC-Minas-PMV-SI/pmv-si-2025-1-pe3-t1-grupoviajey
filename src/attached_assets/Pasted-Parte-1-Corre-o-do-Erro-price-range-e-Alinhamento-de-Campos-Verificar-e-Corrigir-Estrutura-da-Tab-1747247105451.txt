@@ -1,0 +1,60 @@
+Parte 1: Correção do Erro price_range e Alinhamento de Campos
+Verificar e Corrigir Estrutura da Tabela itineraries no Banco de Dados:
+Ação: Analise o script de inicialização do banco de dados (provavelmente em init-db/init.sql ou similar ) ou, se possível, conecte-se ao PostgreSQL e inspecione a tabela itineraries.
+Problema a Resolver: O erro "column price_range of relation itineraries does not exist" indica que a coluna está faltando.
+Solução:
+Se a coluna price_range não existir, adicione-a à tabela itineraries. O tipo de dados deve ser textual (ex: VARCHAR(50) ou TEXT). Defina um valor padrão se apropriado (ex: 'moderado', conforme visto no models/itinerary.js).
+Se a coluna existir com um nome ligeiramente diferente ou tipo incompatível, ajuste-a.
+Exemplo de SQL (se precisar adicionar): ALTER TABLE itineraries ADD COLUMN price_range VARCHAR(50) DEFAULT 'moderado'; (Adapte conforme necessário).
+Alinhar Backend (models/itinerary.js e controllers/itineraryController.js):
+Ação: Revise models/itinerary.js.
+Verificação: Confirme que a função createItinerary está corretamente incluindo price_range na query INSERT e que lida com sua ausência (parece que já define 'moderado' se não fornecido, o que é bom).
+Ação: Revise controllers/itineraryController.js.
+Verificação: Na função que lida com POST /api/itineraries (criação de roteiro), certifique-se de que price_range é extraído do req.body e passado para createItinerary. Se não for um campo obrigatório do formulário, o comportamento padrão do model é suficiente.
+Alinhar Frontend (Formulário de Criação de Roteiro):
+Ação: Localize o formulário HTML para criar um novo roteiro (ex: em public/desktop.html dentro de um modal, ou uma página public/criar-roteiro.html) e o script JavaScript associado (ex: em static/js/app.js ou static/js/itinerary.js).
+Verificação:
+Se price_range deve ser um campo preenchido pelo usuário, adicione o input correspondente ao formulário HTML.
+Garanta que o JavaScript colete o valor de price_range e o inclua no payload enviado para a API POST /api/itineraries.
+Se price_range não for um campo do formulário, certifique-se de que o frontend não o envie ou envie um valor que o backend possa ignorar/usar o padrão.
+Importante: Verifique se todos os outros campos do formulário (título, destino, datas, etc.) estão sendo corretamente enviados e recebidos pelo backend, conforme definido no models/itinerary.js.
+Parte 2: Redirecionamento Após Criação de Roteiro para o Kanban
+No Script JavaScript do Frontend (após criação bem-sucedida do roteiro):
+Ação: Modifique a função JavaScript que trata a resposta da API POST /api/itineraries.
+Lógica:
+Após o backend retornar sucesso e os dados do roteiro criado (incluindo o id do novo roteiro):
+Redirecione o usuário para a página do Kanban, passando o ID do roteiro como parâmetro na URL.
+Exemplo de Redirecionamento: window.location.href = '/itinerary-kanban.html?roteiroId=' + novoRoteiro.id; (Ajuste o nome da página Kanban se for diferente, ex: explorar.html).
+Parte 3: Implementar Seleção e Edição de Roteiro Específico com Integração ao Kanban
+Listagem de Roteiros para Edição (em public/desktop.html ou página similar):
+Ação: Na seção "Seus Roteiros" da página desktop.html (ou onde os roteiros do usuário são/serão listados).
+Lógica JavaScript:
+Ao carregar a página, faça uma requisição GET /api/itineraries (ou GET /api/users/me/itineraries se houver uma rota específica para roteiros do usuário logado) para buscar os roteiros.
+Para cada roteiro retornado, exiba suas informações (título, destino) e adicione um botão/link "Editar" (ou "Gerenciar no Kanban").
+O botão "Editar" deve conter o id do roteiro (ex: em um atributo data-roteiro-id).
+Redirecionamento para Edição no Kanban:
+Ação: Adicione um event listener aos botões "Editar".
+Lógica JavaScript:
+Ao clicar em "Editar", obtenha o roteiroId do atributo data-roteiro-id.
+Redirecione para a página do Kanban: window.location.href = '/itinerary-kanban.html?roteiroId=' + roteiroId;.
+Carregamento de Dados do Roteiro Específico no Kanban (public/itinerary-kanban.html e static/js/itinerary-kanban.js):
+Ação: Modifique static/js/itinerary-kanban.js (ou o script principal da página Kanban).
+Lógica JavaScript ao Carregar a Página:
+Obtenha o roteiroId dos parâmetros da URL (ex: new URLSearchParams(window.location.search).get('roteiroId')).
+Se roteiroId existir:
+Faça uma requisição GET /api/itineraries/:roteiroId (substituindo :roteiroId pelo valor obtido) para buscar os dados completos do itinerário, incluindo seus dias e atividades.
+Com os dados retornados, popule a interface do Kanban (título do roteiro, colunas de dias, cards de atividades).
+Armazene o currentItinerary (ou similar) no estado da aplicação JavaScript com os dados carregados.
+Persistência de Alterações no Kanban:
+Ação: Revise todas as funções em static/js/itinerary-kanban.js que modificam o roteiro (adicionar/editar/mover/excluir atividades, adicionar/remover dias).
+Lógica JavaScript:
+Certifique-se de que o roteiroId (do itinerário carregado) seja usado em todas as chamadas de API para o backend para salvar as alterações.
+Exemplo para Adicionar Atividade: Quando uma nova atividade é adicionada, a função saveNewActivity (ou similar) deve fazer um POST para uma rota como /api/itineraries/:roteiroId/days/:dayId/activities, incluindo os dados da atividade e o roteiroId e dayId corretos.
+Correção Específica: A funcionalidade de "adicionar atividade" que atualmente "não adiciona nada no roteiro" deve ser corrigida para garantir que a nova atividade seja enviada para a API correta do backend e associada ao itinerário e dia corretos.
+Resultado Esperado:
+O erro ao salvar roteiros devido à coluna price_range é resolvido.
+Após criar um novo roteiro, o usuário é redirecionado para a visualização Kanban desse roteiro.
+O usuário pode ver uma lista dos seus roteiros e selecionar um para editar.
+Ao selecionar um roteiro para editar, a página Kanban carrega os dados corretos desse roteiro.
+Todas as modificações feitas no Kanban (adicionar, editar, mover, excluir atividades/dias) são salvas no backend para o roteiro específico que está sendo editado.
+Por favor, aplique estas modificações de forma incremental e teste cada parte.

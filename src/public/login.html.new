@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Login</title>
+  
+  <!-- Bootstrap CSS (Tema escuro do Replit) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .auth-container {
+      max-width: 450px;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      background-color: var(--bs-gray-800);
+    }
+    
+    .form-control, .btn {
+      border-radius: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--bs-primary);
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .auth-header h2 {
+      font-weight: 700;
+      color: var(--bs-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .social-auth {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .social-auth .btn {
+      flex: 1;
+    }
+    
+    .or-divider {
+      position: relative;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+    
+    .or-divider:before,
+    .or-divider:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 45%;
+      height: 1px;
+      background-color: #6c757d;
+    }
+    
+    .or-divider:before {
+      left: 0;
+    }
+    
+    .or-divider:after {
+      right: 0;
+    }
+    
+    .or-divider span {
+      display: inline-block;
+      padding: 0 10px;
+      background-color: var(--bs-gray-800);
+      position: relative;
+      z-index: 1;
+      color: #6c757d;
+    }
+    
+    footer {
+      margin-top: auto;
+      padding: 1rem 0;
+      background-color: var(--bs-gray-900);
+      color: var(--bs-gray-600);
+    }
+    
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      border-width: 0.2em;
+    }
+    
+    .hero-section {
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url('/static/img/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      padding: 3rem 0;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .hero-section h1 {
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="bg-dark shadow-sm">
+    <div class="container py-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="logo">
+          <h1 class="h3 mb-0 text-primary">Viajey</h1>
+        </div>
+        <div>
+          <a href="/register.html.new" class="btn btn-outline-primary btn-sm">Criar Conta</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section (opcional) -->
+  <div class="hero-section">
+    <div class="container">
+      <h1>Bem-vindo ao Viajey</h1>
+      <p class="lead">Sua plataforma de planejamento de viagens</p>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <main class="container my-4">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h2>Entrar</h2>
+        <p class="text-muted">Acesse sua conta para gerenciar seus itinerários</p>
+      </div>
+      
+      <!-- Área para alertas -->
+      <div id="alerta-container"></div>
+      
+      <!-- Social Login Buttons -->
+      <div class="social-auth">
+        <button class="btn btn-outline-light" disabled>
+          <i class="fab fa-google me-2"></i> Google
+        </button>
+        <button class="btn btn-outline-light" disabled>
+          <i class="fab fa-facebook-f me-2"></i> Facebook
+        </button>
+      </div>
+      
+      <div class="or-divider">
+        <span>OU</span>
+      </div>
+      
+      <!-- Formulário de Login -->
+      <form id="formLogin">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="senha" class="form-label">Senha</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="senha" name="senha" required>
+            <button class="btn btn-outline-secondary toggle-senha" type="button">
+              <i class="far fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="lembrarAcesso" name="lembrarAcesso">
+            <label class="form-check-label" for="lembrarAcesso">
+              Lembrar acesso
+            </label>
+          </div>
+          <a href="#" class="text-primary">Esqueceu a senha?</a>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 py-2" id="btnLogin">
+          Entrar
+        </button>
+      </form>
+      
+      <div class="text-center mt-3">
+        <p class="mb-0">
+          Não tem uma conta? <a href="/register.html.new" class="text-primary">Cadastre-se</a>
+        </p>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p class="mb-0">&copy; 2025 Viajey. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Autenticação - Funções Principais -->
+  <script>
+    // Função para exibir alertas
+    function mostrarAlerta(mensagem, tipo = 'danger') {
+      const alertaContainer = document.getElementById('alerta-container');
+      alertaContainer.innerHTML = `
+        <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
+          ${mensagem}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      `;
+      
+      // Garantir que o alerta seja visto
+      alertaContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Utilitários de armazenamento local
+    const armazenamento = {
+      salvarToken: (token) => localStorage.setItem('authToken', token),
+      obterToken: () => localStorage.getItem('authToken'),
+      salvarUsuario: (dados) => localStorage.setItem('userData', JSON.stringify(dados)),
+      obterUsuario: () => {
+        const dados = localStorage.getItem('userData');
+        return dados ? JSON.parse(dados) : null;
+      },
+      limpar: () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      }
+    };
+    
+    // Gerenciamento de estado de autenticação
+    const autenticacao = {
+      estaLogado: () => !!armazenamento.obterToken() && !!armazenamento.obterUsuario(),
+      
+      login: async (dados) => {
+        console.log('Enviando login:', dados);
+        
+        const resposta = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+        
+        const resultado = await resposta.json();
+        
+        if (!resposta.ok) {
+          throw new Error(resultado.erro || 'Erro ao fazer login');
+        }
+        
+        // Salvar dados de autenticação
+        armazenamento.salvarToken(resultado.token);
+        armazenamento.salvarUsuario(resultado.usuario);
+        
+        return resultado;
+      },
+      
+      logout: () => {
+        armazenamento.limpar();
+        window.location.href = '/login.html.new';
+      },
+      
+      verificarToken: async () => {
+        const token = armazenamento.obterToken();
+        
+        if (!token) {
+          return false;
+        }
+        
+        try {
+          const resposta = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          return resposta.ok;
+        } catch (erro) {
+          console.error('Erro ao verificar token:', erro);
+          return false;
+        }
+      }
+    };
+    
+    // Configuração do formulário de login
+    document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se já está logado
+      if (autenticacao.estaLogado()) {
+        window.location.href = '/desktop.html';
+        return;
+      }
+      
+      // Toggle de visualização da senha
+      document.querySelector('.toggle-senha').addEventListener('click', function() {
+        const campoSenha = document.getElementById('senha');
+        const tipoAtual = campoSenha.getAttribute('type');
+        campoSenha.setAttribute('type', tipoAtual === 'password' ? 'text' : 'password');
+        
+        const icone = this.querySelector('i');
+        icone.classList.toggle('fa-eye');
+        icone.classList.toggle('fa-eye-slash');
+      });
+      
+      // Gerenciar o envio do formulário
+      const formLogin = document.getElementById('formLogin');
+      const btnLogin = document.getElementById('btnLogin');
+      
+      formLogin.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const lembrarAcesso = document.getElementById('lembrarAcesso').checked;
+        
+        // Validações
+        if (!email || !senha) {
+          mostrarAlerta('Email e senha são obrigatórios');
+          return;
+        }
+        
+        // Desabilitar botão durante o processamento
+        btnLogin.disabled = true;
+        btnLogin.innerHTML = '<span class="spinner-border me-2" role="status" aria-hidden="true"></span> Entrando...';
+        
+        try {
+          // Dados para o login (usando o nome correto 'senha')
+          const dadosLogin = {
+            email,
+            senha
+          };
+          
+          // Tentar fazer login
+          const resultado = await autenticacao.login(dadosLogin);
+          
+          // Mostrar sucesso
+          mostrarAlerta('Login realizado com sucesso! Redirecionando...', 'success');
+          
+          // Obter informação de redirecionamento da URL
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          
+          // Redirecionar após breve espera
+          setTimeout(() => {
+            window.location.href = redirect || '/desktop.html';
+          }, 1000);
+          
+        } catch (erro) {
+          console.error('Erro no login:', erro);
+          mostrarAlerta(erro.message || 'Credenciais inválidas. Tente novamente.');
+          
+          // Reativar botão
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Entrar';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
