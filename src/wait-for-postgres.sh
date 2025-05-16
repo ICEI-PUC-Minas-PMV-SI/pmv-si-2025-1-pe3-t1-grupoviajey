@@ -49,14 +49,12 @@ until psql -h "$host" -p "$port" -U "$user" -d "$dbname" -c '\q' >/dev/null 2>&1
     echo "Verificando porta TCP $port em $host:"
     nc -zv "$host" "$port" -w 5 || echo "Não foi possível conectar a $host:$port"
     
-    # Tentar hosts alternativos na rede EasyPanel
+    # Tentar hosts alternativos na rede Docker
     if [[ "$host" == *"viajey"* || "$host" == "viajey_viajey" ]]; then
-      echo "Ambiente EasyPanel detectado. Tentando hosts alternativos..."
+      echo "Ambiente Docker detectado. Tentando hosts alternativos..."
       
-      # Lista de hosts alternativos comuns no EasyPanel e Docker
       alt_hosts=("postgres" "postgresql" "db" "database" "postgres-db" "pgsql" "viajey-db" "viajey_db")
       
-      # Tentar primeiro o nome viajey_viajey diretamente
       echo "Tentando host principal: viajey_viajey"
       if nc -zv "viajey_viajey" "$port" -w 3 >/dev/null 2>&1; then
         echo "Porta $port aberta em viajey_viajey!"
@@ -67,7 +65,6 @@ until psql -h "$host" -p "$port" -U "$user" -d "$dbname" -c '\q' >/dev/null 2>&1
         fi
       fi
       
-      # Tentar alternativas
       for alt_host in "${alt_hosts[@]}"; do
         echo "Tentando host alternativo: $alt_host"
         
@@ -101,4 +98,4 @@ echo "PostgreSQL está disponível em $host:$port - continuando"
 if [ -n "$cmd" ]; then
   echo "Executando comando: $cmd"
   exec $cmd
-fi
+fi 
