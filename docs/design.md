@@ -67,7 +67,8 @@ Permitir que o usuário acesse sua conta na plataforma inserindo suas credenciai
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
 - **Minimização da carga de trabalho do usuário**: Campos são simples e com preenchimento direto. A opção de lembrar os dados ajuda na redução de esforço futuro;
 - **Controle explícito**: O botão “Entrar” tem uma ação clara;
-- **Compatibilidade com o usuário**: Linguagem simples, clara e próxima da forma como o usuário pensa a tarefa de login.
+- **Compatibilidade com o usuário**: Linguagem simples, clara e próxima da forma como o usuário pensa a tarefa de login;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-login](../assets/Telas/Tela%20de%20Login.png)
 
@@ -93,7 +94,8 @@ Permitir que novos usuários criem uma conta na plataforma fornecendo suas infor
 - **Agrupamento e distinção entre itens**: A separação clara entre campos e botão torna a interação intuitiva;
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
 - **Hierarquia visual**: O botão "Criar Conta" se destaca claramente como ação principal;
-- **Minimização da carga de trabalho do usuário**: Campos são simples e com preenchimento direto.
+- **Minimização da carga de trabalho do usuário**: Campos são simples e com preenchimento direto;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-cadastro](../assets/Telas/Tela%20de%20Cadastro%20de%20Novo%20usuário.png)
 
@@ -117,7 +119,8 @@ Fornecer um meio para que o usuário recupere o acesso à conta, caso tenha esqu
 - **Agrupamento e distinção entre itens**: A interface é clara, com espaçamento adequado e foco total na ação principal;
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
 - **Controle explícito**: O botão "Recuperar senha" é claro quanto à sua função;
-- **Minimização da carga de trabalho do usuário**: Por ter apenas um campo, a carga cognitiva é quase nula.
+- **Minimização da carga de trabalho do usuário**: Por ter apenas um campo, a carga cognitiva é quase nula;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-recuperação-de-senha](../assets/Telas/Tela%20de%20Recuperar%20senha.png)
 
@@ -141,7 +144,8 @@ Disponibilizar ao usuário um espaço para visualizar e editar informações da 
 ### Recomendações Ergonômicas
 - **Agrupamento e distinção entre itens**: Todos os campos estão sob o título “Informações pessoais”, criando clareza de contexto;
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
-- **Controle explícito**: O botão de “Salvar alterações” está em destaque visual, com boa área de toque.
+- **Controle explícito**: O botão de “Salvar alterações” está em destaque visual, com boa área de toque;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-garenciamento-de-conta](../assets/Telas/Tela%20de%20Gerenciamento%20de%20conta.png)
 
@@ -164,7 +168,8 @@ Exibir os conteúdos ou anúncios que o usuário marcou como favoritos, permitin
 
 ### Recomendações Ergonômicas
 - **Agrupamento e distinção entre itens**: A organização em grid facilita a visualização de múltiplos favoritos ao mesmo tempo;
-- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto.
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-gerenciamento-de-favoritos](../assets/Telas/Gerenciar%20Favoritos.png)
 
@@ -186,13 +191,14 @@ Apresentar ao usuário as avaliações que ele já realizou, possibilitando a vi
 ### Recomendações Ergonômicas
 - **Agrupamento e distinção entre itens**: O agrupamento das avaliações ajuda na busca visual por informações;
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
-- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário.
+- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-de-gerenciamento-de-avaliações](../assets/Telas/Gerenciar%20Avaliações.png)
 
 ## Tela Inicial
 ### Objetivo da Tela
-Apresentar ao usuário as avaliações que ele já realizou, possibilitando a visualização e eventual edição ou exclusão dessas avaliações. Serve como um histórico de interações com a plataforma, contribuindo para o engajamento e o controle do próprio conteúdo publicado.
+Servir como o ponto de entrada da plataforma, apresentando as principais funcionalidades e permitindo ao usuário iniciar pesquisas, visualizar sugestões ou acessar áreas específicas do sistema.
 
 ### Princípios Gestálticos
 - **Proximidade**: Blocos de conteúdo e chamadas estão bem agrupados, reforçando hierarquia visual;
@@ -208,6 +214,100 @@ Apresentar ao usuário as avaliações que ele já realizou, possibilitando a vi
 
 ### Recomendações Ergonômicas
 - **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
-- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário.
+- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-inicial](../assets/Telas/Tela%20inicial.png)
+
+## Tela de Detalhes do item selecionado
+### Objetivo da Tela
+Exibir informações detalhadas sobre um item/local específico selecionado. Ajuda o usuário a conhecer melhor o local e assim tomar decisões sobre visitá-lo.
+
+### Princípios Gestálticos
+- **Proximidade**: Informações como nome do local, endereço e avaliações estão próximas, indicando coesão;
+- **Similaridade**: Ícones e textos seguem um mesmo padrão, permitindo a associação rápida de significado;
+- **Região comum**: Informações estão organizadas em blocos, facilitando a leitura do usuário.
+
+### Regras de Ouro
+- **Consistência**: A interface segue o padrão visual das demais interfaces do projeto;
+- **Minimizar Carga de Memória**: Todas as informações relevantes estão disponíveis na tela, sem necessidade de o usuário lembrar dados prévios;
+- **Controle ao Usuário**: Possibilidade de escolha ao usuário entre apenas visualizar o item, favoritá-lo ou adicioná-lo a um roteiro.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-detalhes-do-item-selecionado](../assets/Telas/Detalhes%20do%20local.png)
+
+## Tela de Resultados da Busca
+### Objetivo da Tela
+Exibir os locais ou destinos encontrados com base nos critérios informados pelo usuário na busca, permitindo comparar e selecionar opções.
+
+### Princípios Gestálticos
+- **Proximidade**: Cada item da busca está separado por espaçamentos consistentes, formando blocos;
+- **Similaridade**: Todos os itens seguem mesmo padrão visual: título, ícone/imagem e ação;
+- **Continuidade**: Estrutura bem alinhada, facilitando a leitura rápida dos resultados;
+- **Região comum**: A listagem toda está contida em uma área específica, reforçando que os itens pertencem ao mesmo conjunto.
+
+### Regras de Ouro
+- **Consistência**: A interface segue um padrão visual e de navegação entre as abas;
+- **Atalhos**: Usuário pode acessar diretamente o local desejado a partir do resultado da busca, bem como pode filtrar os resultados através das categorias, reduzindo etapas;
+- **Controle ao Usuário**: Possibilidade de escolha ao usuário entre filtrar por categorias, filtros avançados, organizar os itens, ver detalhes, visualizá-los no mapa ou mesmo já adicioná-los diretamente em um roteiro.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Feedback imediato**: Esta tela é um feedback imediato à busca do usuário através da barra de pesquisa. Ademais, todos os botões, quando acionados, fornecem feedback imediato ao usuário;
+- **Minimização da carga de trabalho do usuário**: Layout limpo e com a utilização de ícones conhecidos reduz o esforço cognitivo do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-resultados-da-busca](../assets/Telas/Resultado%20da%20busca.png)
+
+## Tela de Gerenciamento de Itinerário
+### Objetivo da Tela
+Apresentar e permitir a edição de um roteiro de viagem personalizado, com informações organizadas por dias, locais e gastos, além de integrar um mapa interativo.
+
+### Princípios Gestálticos
+- **Conectividade**: Cada item da lista se conecta logicamente, em ordem, indicando conectividade entre itens de um mesmo dia do itinerário;
+- **Proximidade**: Cada grupo de locais por dia está bem organizado, facilitando a identificação do agrupamento de atividades;
+- **Similaridade**: Locais visitados possuem a mesma estrutura: imagem, nome, nota e botões de ação (“Anotação”, “Gastos”), o que ajuda na previsibilidade da interface;
+- **Fechamento**: Os cards de locais têm contornos completos que facilitam a identificação como unidades distintas;
+- **Continuidade**: Estrutura clara em colunas e seções: à esquerda o roteiro, à direita o mapa;
+- **Região comum**: Cada dia do itinerário é separado visualmente em áreas de colapso/expansão (accordion), agrupando as atividades.
+
+### Regras de Ouro
+- **Consistência**: Os elementos seguem padrões visuais e estruturais, mantendo a coesão;
+- **Atalhos**: Botão de “Adicionar local” agiliza a inserção sem precisar navegar para outras telas;
+- **Feedbacks Informativos**: Valores como “Orçamento”, “Total gasto” e “Disponível” fornecem feedbacks imediatos sobre a viagem;
+- **Controle ao Usuário**: Usuário escolhe que dia expandir e pode realizar diversas ações dentro desta tela, como compartilhar itinerário, adicionais locais, etc;
+- **Reversão de Ações**: Ícones de lixeira indicam possibilidade de apagar locais, sugerindo reversibilidade de ações realizadas;
+- **Minimizar Carga de Memória**: As informações do roteiro estão organizadas por dia e local, dispensando a necessidade de lembrar detalhes fora da tela.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Agrupamento e distinção entre itens**: O agrupamento das informações de cada dia do itinerário ajuda na busca visual por informações sem sobrecarregar o usuário com muitas informações simultâneas;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-gerenciar-itinerario](../assets/Telas/Roteiro%20detalhes.png)
+
+## Tela de Itinerário criado por IA
+### Objetivo da Tela
+Exibir ao usuário um itinerário de viagem gerado automaticamente com base nas preferências que ele informou previamente. A tela apresenta sugestões de locais e suas informações, facilitando o planejamento rápido e automatizado da viagem.
+
+### Princípios Gestálticos
+- **Similaridade**: O corpo do texto segue a mesma tipografia, cor e espaçamento, permitindo que o usuário compreenda facilmente que tudo faz parte do mesmo roteiro;
+- **Continuidade**: Os elementos textuais estão alinhados à esquerda e o mapa à direita, promovendo uma leitura natural e contínua;
+- **Região comum**: O itinerário criado está delimitado dentro de uma área determinada, o que reforça que todo o conteúdo ali pertence à mesma categoria.
+
+### Regras de Ouro
+- **Consistência**: Todos os elementos textuais seguem um mesmo padrão visual (fontes, espaçamento), facilitando a compreensão do usuário;
+- **Feedbacks Informativos**: A exibição do itinerário após o preenchimento dos dados solicitados pela IA é um feedback claro de que a ação foi concluída com sucesso;
+- **Controle ao Usuário**: O usuário escolhe quais locais/atrações estarão ou não no roteiro, bastando um clique para selecionar ou não cada item;
+- **Minimizar Carga de Memória**: O conteúdo gerado está visível integralmente, sem exigir que o usuário memorize informações para compreender ou prosseguir.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Agrupamento e distinção entre itens**: O agrupamento dos itens selecionados pela IA está claro e com espaçamento adequado, facilitando a leitura do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-itinerário-gerado-por-IA](../assets/Telas/Roteiro%20gerado%20por%20IA.png)
+
