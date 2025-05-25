@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuVOZ__B8cRNSdzmS5wjwJ1FzCmianyC4&libraries=places"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+</head>
+<body>
+  <div id="header"></div>
+  <main>
+    <section class="search-section">
+      <h1>Explore seu próximo destino</h1>
+      <div id="search-bar-include"></div>
+      <div class="ou">ou você também pode</div>
+    </section>
+    <section class="hero-section">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <h2>Deixar com a nossa IA!<br>Ela te ajuda a descobrir onde ir,<br>o que fazer e quanto gastar.</h2>
+        <button class="cta-btn">Gerar meu roteiro agora!</button>
+      </div>
+    </section>
+    <section class="cards-section">
+      <div class="card">Clima do local que a pessoa está</div>
+      <div class="card">Chamadas por voz ou atrações</div>
+      <div class="card">Propaganda de algo</div>
+    </section>
+  </main>
+  <div id="footer"></div>
+  <script src="js/include.js"></script>
+  <script>
+    // Inclui o componente search-bar
+    fetch('components/search-bar/search-bar.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('search-bar-include').innerHTML = html;
+        // Carrega o script do search-bar
+        var script = document.createElement('script');
+        script.src = 'components/search-bar/search-bar.js';
+        document.body.appendChild(script);
+      });
+  </script>
+</body>
+</html> 
