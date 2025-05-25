@@ -120,3 +120,94 @@ Fornecer um meio para que o usuário recupere o acesso à conta, caso tenha esqu
 - **Minimização da carga de trabalho do usuário**: Por ter apenas um campo, a carga cognitiva é quase nula.
 
 ![tela-de-recuperação-de-senha](../assets/Telas/Tela%20de%20Recuperar%20senha.png)
+
+## Tela de Gerenciamento de Conta
+### Objetivo da Tela
+Disponibilizar ao usuário um espaço para visualizar e editar informações da própria conta, como nome, e-mail, senha e dados pessoais. É um recurso importante para a atualização cadastral.
+
+### Princípios Gestálticos
+- **Proximidade**: Os campos estão agrupados sob o título “Informações pessoais”;
+- **Similaridade**: Todos os campos mantém estilo e cores uniformes;
+- **Continuidade**: A estrutura vertical é mantida, guiando o usuário de cima para baixo;
+- **Conectividade**: O ícone de lápis ao lado do avatar indica editabilidade de forma visualmente conectada.
+
+### Regras de Ouro
+- **Consistência**: A tela segue o mesmo padrão visual da tela de cadastro, criando coerência na experiência;
+- **Atalhos**: A função de alterar a foto de perfil está sinalizada com o ícone de lápis, o que agiliza o entendimento do usuário e, consequentemente, a ação;
+- **Feedbacks Informativos**: Embora não visível nesta imagem, o botão "Salvar alterações" é um componente que fornece feedback ao ser clicado (mensagem de erro ou sucesso);
+- **Minimizar Carga de Memória**: Campos são autoexplicativos e já vêm preenchidos com os dados do usuário, o que evita retrabalho e memorização;
+- **Controle ao Usuário**: Caso o usuário não queira realizar nenhuma alteração, basta clicar no botão "Cancelar".
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: Todos os campos estão sob o título “Informações pessoais”, criando clareza de contexto;
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Controle explícito**: O botão de “Salvar alterações” está em destaque visual, com boa área de toque.
+
+![tela-de-garenciamento-de-conta](../assets/Telas/Tela%20de%20Gerenciamento%20de%20conta.png)
+
+## Tela de Gerenciamento dos Favoritos
+### Objetivo da Tela
+Exibir os conteúdos ou anúncios que o usuário marcou como favoritos, permitindo que ele acesse rapidamente itens de interesse. Funciona como uma área de acesso rápido e personalizado, promovendo a retomada de navegação em conteúdos salvos.
+
+### Princípios Gestálticos
+- **Região comum**: Cada item está contido em uma área delimitada (card), o que agrupa visualmente os elementos relacionados;
+- **Proximidade**: Os cards estão dispostos lado a lado com espaçamento uniforme, organizando os elementos de maneira clara;
+- **Similaridade**: Os cards possuem estrutura idêntica, reforçando a ideia de grupo;
+- **Continuidade**: A grade regular e os alinhamentos verticais/horizontais facilitam a navegação visual;
+- **Simetria**: Os elementos são balanceados entre colunas e linhas.
+
+### Regras de Ouro
+- **Consistência**: Todos os campos seguem o mesmo estilo das demais telas do projeto;
+- **Controle ao Usuário**: Possibilidade de adicionar ao roteiro, excluir o item dos Favoritos e ver detalhes do item favoritado dá poder ao usuário;
+- **Atalhos**: O botão de "+ Roteiro" funciona como um atalho para inserir o item em um roteiro, o que agiliza o processo;
+- **Prevenção de erros**: O ícone da lixeira é discreto (o que pode evitar cliques acidentais) e é exibida uma mensagem para confirmação de exclusão, prevenindo erros acidentais.
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: A organização em grid facilita a visualização de múltiplos favoritos ao mesmo tempo;
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto.
+
+![tela-de-gerenciamento-de-favoritos](../assets/Telas/Gerenciar%20Favoritos.png)
+
+## Tela de Gerenciamento de Avaliações
+### Objetivo da Tela
+Apresentar ao usuário as avaliações que ele já realizou, possibilitando a visualização e eventual edição ou exclusão dessas avaliações. Serve como um histórico de interações com a plataforma, contribuindo para o engajamento e o controle do próprio conteúdo publicado.
+
+### Princípios Gestálticos
+- **Proximidade**: Cada avaliação está em um card separado com espaçamento adequado entre os itens, o que facilita a leitura e segmenta visualmente as avaliações;
+- **Simetria**: Os cards são simétricos, com equilíbrio visual;
+- **Similaridade**: Todos os cards seguem o mesmo padrão visual (mesma estrutura e estilo), indicando que são elementos da mesma categoria;
+- **Continuidade**: O layout vertical e o alinhamento consistente das informações (nome, estrelas, texto) favorecem a navegação fluida;
+- **Região comum**: Cada avaliação está em uma caixa delimitada, reforçando o agrupamento lógico.
+
+### Regras de Ouro
+- **Consistência**: A interface segue um padrão visual e de navegação entre as abas;
+- **Minimizar Carga de Memória**: As informações são visuais e contextuais, com estrutura padronizada.
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: O agrupamento das avaliações ajuda na busca visual por informações;
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário.
+
+![tela-de-gerenciamento-de-avaliações](../assets/Telas/Gerenciar%20Avaliações.png)
+
+## Tela Inicial
+### Objetivo da Tela
+Apresentar ao usuário as avaliações que ele já realizou, possibilitando a visualização e eventual edição ou exclusão dessas avaliações. Serve como um histórico de interações com a plataforma, contribuindo para o engajamento e o controle do próprio conteúdo publicado.
+
+### Princípios Gestálticos
+- **Proximidade**: Blocos de conteúdo e chamadas estão bem agrupados, reforçando hierarquia visual;
+- **Simetria**: Os cards inferiores são simétricos;
+- **Fechamento**: Delimitação clara dos elementos;
+- **Continuidade**: Alinhamento vertical e horizontal mantido de forma clara;
+- **Região comum**: Seções bem separadas: busca, chamada da IA, cards informativos.
+
+### Regras de Ouro
+- **Consistência**: A interface segue um padrão visual e de navegação entre as abas;
+- **Atalhos**: Botão de ação rápida para gerar roteiro com IA de forma agilizada;
+- **Controle ao Usuário**: Possibilidade de escolha ao usuário entre buscar manualmente ou utilizar IA para gerar seu roteiro.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário.
+
+![tela-inicial](../assets/Telas/Tela%20inicial.png)
