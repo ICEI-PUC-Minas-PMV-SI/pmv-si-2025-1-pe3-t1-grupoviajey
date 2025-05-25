@@ -65,3 +65,25 @@ if (calendarBtn) {
     fp.open();
   });
 }
+
+// Redireciona para a página de resultados ao clicar em Pesquisar
+const searchBtn = document.querySelector('.search-btn');
+if (searchBtn) {
+  searchBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const cidade = document.getElementById('autocomplete')?.value || '';
+    let checkin = '', checkout = '';
+    const fpInstance = document.getElementById('date-range')?._flatpickr;
+    if (fpInstance && fpInstance.selectedDates.length === 2) {
+      const [start, end] = fpInstance.selectedDates;
+      checkin = `${String(start.getDate()).padStart(2, '0')}/${String(start.getMonth()+1).padStart(2, '0')}/${start.getFullYear()}`;
+      checkout = `${String(end.getDate()).padStart(2, '0')}/${String(end.getMonth()+1).padStart(2, '0')}/${end.getFullYear()}`;
+    }
+    const tipo = 'hotel';
+    // Salva no localStorage
+    localStorage.setItem('buscaViajey', JSON.stringify({ cidade, checkin, checkout, tipo }));
+    // Monta a query string
+    const params = new URLSearchParams({ cidade, checkin, checkout, tipo });
+    window.location.href = `results.html?${params.toString()}`;
+  });
+}

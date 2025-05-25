@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados da Busca | Viajey</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="components/header/header.css">
+  <link rel="stylesheet" href="components/footer/footer.css">
+  <link rel="stylesheet" href="components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="components/cards/result-card.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q&libraries=places"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <script src="components/cards/result-card.js"></script>
+</head>
+<body>
+  <div id="header"></div>
+  <main>
+    <section class="results-header-section">
+      <div class="results-header-container">
+        <h1 class="results-title">Explorando Balneário Camboriú</h1>
+        <div id="search-bar-include"></div>
+      </div>
+    </section>
+    <section class="results-filters-section">
+      <div class="filters-container">
+        <div class="filters-left">
+          <button class="filter-btn active">Hotel</button>
+          <button class="filter-btn">Restaurantes</button>
+          <button class="filter-btn">Atrações</button>
+        </div>
+        <div class="filters-right">
+          <button class="filter-btn"><img src="/apps/frontend/images/funnel.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Filtros</button>
+          <button class="filter-btn"><img src="/apps/frontend/images/sort.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Organizar</button>
+        </div>
+      </div>
+    </section>
+    <section class="results-content-section">
+      <div class="results-grid-map-container">
+        <div class="results-grid"></div>
+        <div class="results-map"><div id="map" style="width:100%;height:100%;background:#e0e0e0;"></div></div>
+      </div>
+    </section>
+  </main>
+  <div id="footer"></div>
+  <script src="js/include.js"></script>
+  <script>
+    const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q';
+    function getBuscaPersistida() {
+      try {
+        return JSON.parse(localStorage.getItem('buscaViajey')) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function inicializarMapaComCidade(tipoInicial = 'hotel') {
+      const { cidade } = getBuscaPersistida();
+      if (!cidade) {
+        console.log('Cidade não definida');
+        return;
+      }
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cidade)}&key=${API_KEY}`)
+        .then(res => res.json())
+        .then(geo => {
+          if (geo.results && geo.results[0]) {
+            const location = geo.results[0].geometry.location;
+            const mapDiv = document.getElementById('map');
+            if (mapDiv) {
+              const map = new google.maps.Map(mapDiv, {
+                center: location,
+                zoom: 14
+              });
+
+              let markers = [];
+
+              function limparResultados() {
+                document.querySelector('.results-grid').innerHTML = '';
+                markers.forEach(m => m.setMap(null));
+                markers = [];
+              }
+
+              function buscarEAdicionar(tipo, iconUrl) {
+                limparResultados();
+                const lat = location.lat;
+                const lng = location.lng;
+                fetch(`http://localhost:3001/api/places?lat=${lat}&lng=${lng}&type=${tipo}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    const results = data.results || [];
+                    results.forEach(place => {
+                      // Adiciona marcador no mapa
+                      if (place.location) {
+                        const marker = new google.maps.Marker({
+                          position: place.location,
+                          map: map,
+                          title: place.name,
+                          icon: iconUrl || undefined
+                        });
+                        markers.push(marker);
+                      }
+                      // Cria card sem foto, só dados gratuitos
+                      if (window.createResultCard) {
+                        document.querySelector('.results-grid').appendChild(
+                          window.createResultCard({
+                            image: '',
+                            title: place.name,
+                            rating: place.rating || 0,
+                            tags: place.types ? place.types.slice(0, 2) : [],
+                            address: place.address || '',
+                            price_level: place.price_level
+                          })
+                        );
+                      }
+                    });
+                  });
+              }
+              // Ícones
+              const hotelIcon = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+              const restaurantIcon = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+              const attractionIcon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+
+              // Filtro inicial
+              let tipoAtual = tipoInicial;
+              let iconAtual = hotelIcon;
+              if (tipoAtual === 'restaurant') iconAtual = restaurantIcon;
+              if (tipoAtual === 'tourist_attraction') iconAtual = attractionIcon;
+              buscarEAdicionar(tipoAtual, iconAtual);
+
+              // Filtros dinâmicos
+              document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                  this.classList.add('active');
+                  let tipo = 'hotel', icon = hotelIcon;
+                  if (this.textContent.includes('Restaurantes')) { tipo = 'restaurant'; icon = restaurantIcon; }
+                  if (this.textContent.includes('Atra')) { tipo = 'tourist_attraction'; icon = attractionIcon; }
+                  tipoAtual = tipo;
+                  iconAtual = icon;
+                  buscarEAdicionar(tipoAtual, iconAtual);
+                });
+              });
+            }
+          }
+        });
+    }
+
+    function preencherBusca({ cidade, checkin, checkout }) {
+      console.log('Dados da busca:', { cidade, checkin, checkout });
+      
+      // Preencher cidade
+      const input = document.getElementById('autocomplete');
+      if (input) input.value = cidade || '';
+      
+      // Preencher calendário se datas existirem e Flatpickr estiver pronto
+      const trySetCalendar = () => {
+        const dateInput = document.getElementById('date-range');
+        console.log('Tentando preencher calendário:', {
+          dateInput: !!dateInput,
+          flatpickr: dateInput?._flatpickr ? 'pronto' : 'não pronto',
+          checkin,
+          checkout
+        });
+
+        if (
+          dateInput &&
+          dateInput._flatpickr &&
+          checkin &&
+          checkout
+        ) {
+          try {
+            // Converter datas do formato DD/MM/YYYY para YYYY-MM-DD
+            const [d1, m1, y1] = checkin.split('/');
+            const [d2, m2, y2] = checkout.split('/');
+            const start = new Date(`${y1}-${m1}-${d1}`);
+            const end = new Date(`${y2}-${m2}-${d2}`);
+            
+            console.log('Datas convertidas:', { start, end });
+            
+            // Configurar o calendário
+            dateInput._flatpickr.setDate([start, end]);
+            
+            // Atualiza o texto do botão
+            const calendarBtn = document.querySelector('.calendar-btn');
+            if (calendarBtn) {
+              const opts = { weekday: 'short', day: '2-digit', month: 'short' };
+              const startStr = start.toLocaleDateString('pt-BR', opts).replace('.', '');
+              const endStr = end.toLocaleDateString('pt-BR', opts).replace('.', '');
+              calendarBtn.querySelector('.calendar-text').textContent = `${startStr} — ${endStr}`;
+              console.log('Texto do botão atualizado:', `${startStr} — ${endStr}`);
+            }
+            return true;
+          } catch (error) {
+            console.error('Erro ao preencher datas:', error);
+            return false;
+          }
+        }
+        return false;
+      };
+
+      // Tenta até conseguir setar o calendário
+      let tentativas = 0;
+      (function waitForCalendar() {
+        if (!trySetCalendar() && tentativas < 30) {
+          tentativas++;
+          console.log(`Tentativa ${tentativas} de preencher calendário`);
+          setTimeout(waitForCalendar, 100);
+        }
+      })();
+    }
+
+    function setTituloDinamico() {
+      const { cidade } = getBuscaPersistida();
+      const titulo = document.querySelector('.results-title');
+      if (titulo && cidade) {
+        titulo.textContent = `Explorando ${cidade}`;
+      }
+    }
+
+    // Aguarda o search-bar, Flatpickr e Google Maps estarem prontos
+    function waitForMap() {
+      const mapDiv = document.getElementById('map');
+      const input = document.getElementById('autocomplete');
+      const dateInput = document.getElementById('date-range');
+      const flatpickrReady = dateInput && dateInput._flatpickr;
+      
+      console.log('Estado dos componentes:', {
+        map: !!mapDiv,
+        googleMaps: !!(window.google && window.google.maps),
+        input: !!input,
+        dateInput: !!dateInput,
+        flatpickrReady
+      });
+
+      if (mapDiv && window.google && window.google.maps && input && dateInput && flatpickrReady) {
+        const params = getBuscaPersistida();
+        console.log('Parâmetros encontrados:', params);
+        preencherBusca(params);
+        setTituloDinamico();
+        inicializarMapaComCidade();
+      } else {
+        setTimeout(waitForMap, 100);
+      }
+    }
+    waitForMap();
+  </script>
+  <script>
+    // Inclui o componente search-bar
+    fetch('components/search-bar/search-bar.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('search-bar-include').innerHTML = html;
+        var script = document.createElement('script');
+        script.src = 'components/search-bar/search-bar.js';
+        document.body.appendChild(script);
+      });
+  </script>
+</body>
+</html> 
