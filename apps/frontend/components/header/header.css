@@ -1,0 +1,32 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    position: relative;
+    z-index: 10;
+  }
+  .logo {
+    height: 40px;
+  }
+  .nav {
+    display: flex;
+    gap: 16px;
+  }
+  .nav-link {
+    text-decoration: none;
+    color: #004954;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  .nav-link.login {
+    background: #004954;
+    color: #fff;
+  }
+  .nav-link:hover {
+    background: #e0f2f1;
+  }

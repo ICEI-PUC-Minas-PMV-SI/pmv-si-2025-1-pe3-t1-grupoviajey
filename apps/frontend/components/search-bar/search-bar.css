@@ -6,10 +6,11 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   max-width: 700px;
   height: 48px;
-  margin: 0 auto 24px auto;
+  margin: 24px 0;
   padding: 0 8px;
   width: 100%;
   gap: 0;
+  justify-content: flex-start;
 }
 .search-icon {
   display: flex;
@@ -93,4 +94,16 @@
 }
 .search-btn:hover {
   background: #14525a;
+}
+/* Alinha à esquerda só na página de resultados */
+.results-header-section .search-bar-container {
+  margin-left: 0;
+  margin-right: auto;
+  justify-content: flex-start;
+}
+/* Centraliza só na página index */
+.search-section .search-bar-container {
+  margin-left: auto;
+  margin-right: auto;
+  justify-content: center;
 } 
