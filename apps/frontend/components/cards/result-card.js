@@ -1,4 +1,4 @@
-window.createResultCard = function({ image, title, rating, tags, address, price_level }) {
+window.createResultCard = function({ image, title, rating, tags, address }) {
   const card = document.createElement('div');
   card.className = 'result-card';
 
@@ -9,6 +9,54 @@ window.createResultCard = function({ image, title, rating, tags, address, price_
     imgDiv.style.backgroundSize = 'cover';
     imgDiv.style.backgroundPosition = 'center';
   }
+
+  // Add favorite button
+  const favoriteBtn = document.createElement('button');
+  favoriteBtn.className = 'favorite-btn';
+  favoriteBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+
+  favoriteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    favoriteBtn.classList.toggle('active');
+    const path = favoriteBtn.querySelector('path');
+    
+    // Create feedback message
+    const feedbackMsg = document.createElement('div');
+    feedbackMsg.className = 'favorite-feedback';
+    
+    if (favoriteBtn.classList.contains('active')) {
+      path.setAttribute('fill', '#ff4d4d');
+      path.setAttribute('stroke', '#ff4d4d');
+      feedbackMsg.textContent = 'Adicionado aos favoritos';
+    } else {
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', 'currentColor');
+      feedbackMsg.textContent = 'Removido dos favoritos';
+    }
+
+    // Position the feedback message next to the button
+    const rect = favoriteBtn.getBoundingClientRect();
+    feedbackMsg.style.top = `${rect.top}px`;
+    feedbackMsg.style.right = `${window.innerWidth - rect.left}px`;
+
+    // Add to body and show
+    document.body.appendChild(feedbackMsg);
+    feedbackMsg.classList.add('show');
+    
+    // Remove after animation
+    setTimeout(() => {
+      feedbackMsg.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(feedbackMsg);
+      }, 300);
+    }, 2000);
+  });
+  imgDiv.appendChild(favoriteBtn);
 
   const info = document.createElement('div');
   info.className = 'result-info';
