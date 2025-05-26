@@ -126,6 +126,7 @@
 
       return `
         <div class="info-window">
+          <button class="info-window-close" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">×</button>
           <h3 class="info-window-title">${place.name}</h3>
           ${rating}
           <div class="info-window-tags">${types}</div>
@@ -416,6 +417,14 @@
                 if (this.textContent.includes('Atra')) selectedType = 'tourist_attraction';
                 searchNearby(map.getCenter());
               });
+            });
+
+            // Adiciona listener global para fechar InfoWindow ao clicar fora
+            google.maps.event.addListener(map, 'click', function() {
+              if (window.currentInfoWindow) {
+                window.currentInfoWindow.close();
+                window.currentInfoWindow = null;
+              }
             });
           }
         });
