@@ -300,14 +300,4 @@
     background: #0d353a;
     color: #fff
   }
-  .floating-roteiro-dropdown {
-    position: absolute;
-    z-index: 99999;
-    min-width: 220px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.13);
-    padding: 12px 0 0 0;
-    display: none;
-  }
   
