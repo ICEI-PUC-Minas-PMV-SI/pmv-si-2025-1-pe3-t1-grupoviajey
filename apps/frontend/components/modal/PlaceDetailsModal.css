@@ -1,0 +1,268 @@
+.place-details-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+  }
+  .place-details-modal {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 98vw;
+    max-height: 95vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    padding: 12px 12px 12px 12px;
+    position: relative;
+    animation: modalIn 0.2s;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.97) translateY(30px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .place-details-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f2f2f2;
+    color: #666;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    z-index: 2;
+  }
+  .place-details-modal-close:hover {
+    background: #e0e0e0;
+    color: #333;
+  }
+  .place-details-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0d353a;
+    margin-bottom: 16px;
+  }
+  .place-details-gallery {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 180px 90px;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .place-details-gallery img, .place-details-gallery .placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 1.1rem;
+  }
+  .place-details-gallery .main {
+    grid-row: 1 / span 2;
+    grid-column: 1 / span 1;
+  }
+  .place-details-gallery .placeholder {
+    background: #e0e0e0;
+  }
+  .place-details-info {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .place-details-main {
+    flex: 2 1 0;
+    min-width: 320px;
+  }
+  .place-details-side {
+    flex: 1 1 220px;
+    min-width: 220px;
+    background: #f8f8f8;
+    border-radius: 12px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .place-details-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0d353a;
+    margin-bottom: 8px;
+  }
+  .place-details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    color: #222;
+    font-size: 1rem;
+  }
+  .place-details-list li {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  .place-details-weather {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .place-details-weather-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0d353a;
+    margin-bottom: 8px;
+  }
+  .place-details-weather-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  .place-details-btn {
+    background: #0d353a;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 24px;
+    align-self: flex-start;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    transition: background 0.2s;
+  }
+  .place-details-btn:hover {
+    background: #007c91;
+  }
+  .place-details-roteiro-container {
+    position: relative;
+    display: inline-block;
+  }
+  .roteiro-dropdown {
+    position: absolute;
+    left: 0;
+    top: 54px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+    min-width: 220px;
+    padding: 12px 0 0 0;
+    z-index: 10;
+  }
+  .roteiro-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .roteiro-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #0d353a;
+    transition: background 0.15s;
+  }
+  .roteiro-item:hover {
+    background: #f2f2f2;
+  }
+  .roteiro-criar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px 12px 16px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+    align-items: center;
+  }
+  .roteiro-input {
+    flex: 1 1 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 1rem;
+  }
+  .roteiro-salvar {
+    background: #0d353a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .roteiro-salvar:hover {
+    background: #007c91;
+  }
+  .roteiro-feedback {
+    margin-top: 16px;
+    color: #0d353a;
+    font-size: 1rem;
+    font-weight: 600;
+    background: #e0f7e9;
+    border-radius: 8px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    animation: feedbackIn 0.2s;
+  }
+  @keyframes feedbackIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 700px) {
+    .place-details-modal {
+      padding: 12px 2px 12px 2px;
+    }
+  }
+  .add-roteiro-btn {
+    background: #fff;
+    color: #0d353a;
+    border: #0d353a solid 1px;
+    border-radius: 24px;
+    padding: 10px 20px 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+    align-self: flex-start;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    transition: background 0.2s;
+  }
+  .add-roteiro-btn:hover {
+    background: #0d353a;
+    color: #fff
+  }
+  .floating-roteiro-dropdown {
+    position: absolute;
+    z-index: 99999;
+    min-width: 220px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+    padding: 12px 0 0 0;
+    display: none;
+  }
+  
