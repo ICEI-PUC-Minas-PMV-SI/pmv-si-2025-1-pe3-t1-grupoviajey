@@ -202,10 +202,11 @@ body {
   flex: 2 1 0;
 }
 .results-map {
-  flex: 1 1 0;
-  min-width: 320px;
-  max-width: 420px;
+  position: sticky;
+  top: 24px;
   height: 600px;
+  min-width: 400px;
+  max-width: 500px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
@@ -213,6 +214,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 #map {
   width: 100%;
