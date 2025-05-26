@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resultados da Busca | Viajey</title>
   <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/results.css">
   <link rel="stylesheet" href="components/header/header.css">
   <link rel="stylesheet" href="components/footer/footer.css">
   <link rel="stylesheet" href="components/search-bar/search-bar.css">
@@ -14,95 +15,6 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="components/cards/result-card.js"></script>
-  <style>
-    #search-area-btn {
-      position: absolute;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: #0d353a;
-      color: #fff;
-      border: none;
-      border-radius: 24px;
-      padding: 12px 28px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      display: none;
-    }
-
-    .floating-roteiro-dropdown {
-      position: fixed;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      padding: 12px;
-      margin-top: 30px;
-      margin-left: 190px;
-      min-width: 200px;
-      z-index: 9999;
-      display: none;
-    }
-
-    .roteiro-lista {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .roteiro-item {
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-      color: #333;
-    }
-
-    .roteiro-item:hover {
-      background: #f5f5f5;
-    }
-
-    .roteiro-criar {
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid #eee;
-    }
-
-    .roteiro-input {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-
-    .roteiro-salvar {
-      background: #0d353a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .roteiro-salvar:hover {
-      background: #0a2a2e;
-    }
-
-    .roteiro-feedback {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      color: #0d353a;
-      font-size: 0.9rem;
-    }
-  </style>
 </head>
 <body>
   <div id="header"></div>
@@ -293,8 +205,8 @@
 
         // Pega posição do botão
         const rect = btn.getBoundingClientRect();
-        floatingDropdown.style.top = `${rect.bottom + 8}px`;
-        floatingDropdown.style.left = `${rect.left}px`;
+        floatingDropdown.style.top = `${rect.top}px`;
+        floatingDropdown.style.right = `${window.innerWidth - rect.right + 56}px`;
         floatingDropdown.style.display = 'block';
 
         // Resetar estados do dropdown
