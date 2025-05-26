@@ -67,6 +67,7 @@
     </section>
   </main>
   <div id="footer"></div>
+  <div id="place-details-modal-include"></div>
   <script src="js/include.js"></script>
   <script>
     const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q';
@@ -88,11 +89,16 @@
           address: place.vicinity || '',
           price_level: undefined
         });
-        
-        // Adiciona classe para identificar o card
         card.classList.add('result-card');
         card.dataset.placeIndex = index;
-        
+
+        // Renomear o botão de 'result-btn' para 'add-roteiro-btn'
+        const addRoteiroBtn = card.querySelector('.result-btn');
+        if (addRoteiroBtn) {
+          addRoteiroBtn.classList.remove('result-btn');
+          addRoteiroBtn.classList.add('add-roteiro-btn');
+        }
+
         // Adiciona eventos de hover
         card.addEventListener('mouseenter', () => {
           if (markers[index]) {
@@ -100,16 +106,167 @@
             markers[index].setZIndex(1000);
           }
         });
-        
         card.addEventListener('mouseleave', () => {
           if (markers[index]) {
             markers[index].setAnimation(null);
             markers[index].setZIndex(1);
           }
         });
-        
+
+        // Modal só abre ao clicar no card, exceto no botão de roteiro
+        card.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('add-roteiro-btn')) {
+            if (typeof openPlaceDetailsModal === 'function') openPlaceDetailsModal();
+          }
+        });
+
+        // Dropdown de roteiro no botão do card
+        const btn = card.querySelector('.add-roteiro-btn');
+        const dropdown = card.querySelector('.roteiro-dropdown');
+        const lista = card.querySelector('.roteiro-lista');
+        const criar = card.querySelector('.roteiro-criar');
+        const input = card.querySelector('.roteiro-input');
+        const salvar = card.querySelector('.roteiro-salvar');
+        const feedback = card.querySelector('.roteiro-feedback');
+
+        if (btn && dropdown && lista && criar && input && salvar && feedback) {
+          btn.onclick = function(e) {
+            e.stopPropagation();
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            criar.style.display = 'none';
+            feedback.style.display = 'none';
+          };
+          document.addEventListener('click', function docClick(ev) {
+            if (!dropdown.contains(ev.target) && ev.target !== btn) {
+              dropdown.style.display = 'none';
+            }
+          });
+          lista.querySelectorAll('.roteiro-item').forEach(item => {
+            if (item.textContent === '+ Criar novo roteiro') {
+              item.onclick = function(e) {
+                e.stopPropagation();
+                criar.style.display = 'flex';
+                input.value = '';
+                input.focus();
+              };
+            } else {
+              item.onclick = function(e) {
+                e.stopPropagation();
+                dropdown.style.display = 'none';
+                mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+              };
+            }
+          });
+          salvar.onclick = function(e) {
+            e.stopPropagation();
+            const nome = input.value.trim();
+            if (nome) {
+              dropdown.style.display = 'none';
+              criar.style.display = 'none';
+              mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+            }
+          };
+          function mostrarFeedback(msg) {
+            feedback.innerHTML = msg;
+            feedback.style.display = 'flex';
+            setTimeout(() => { feedback.style.display = 'none'; }, 2200);
+          }
+        }
+
         grid.appendChild(card);
       });
+
+      // Cria o dropdown flutuante uma vez
+      let floatingDropdown = document.getElementById('floating-roteiro-dropdown');
+      if (!floatingDropdown) {
+        floatingDropdown = document.createElement('div');
+        floatingDropdown.id = 'floating-roteiro-dropdown';
+        floatingDropdown.className = 'floating-roteiro-dropdown';
+        floatingDropdown.innerHTML = `
+          <div class="roteiro-lista">
+            <div class="roteiro-item">Viagem SC</div>
+            <div class="roteiro-item">Férias 2024</div>
+            <div class="roteiro-item">+ Criar novo roteiro</div>
+          </div>
+          <div class="roteiro-criar" style="display:none;">
+            <input type="text" placeholder="Nome do roteiro" class="roteiro-input" />
+            <button class="roteiro-salvar">Salvar</button>
+          </div>
+          <div class="roteiro-feedback" style="display:none;"></div>
+        `;
+        document.body.appendChild(floatingDropdown);
+      }
+
+      // Função para mostrar o dropdown flutuante próximo ao botão
+      function showFloatingDropdown(btn) {
+        // Fecha outros dropdowns
+        floatingDropdown.style.display = 'none';
+
+        // Pega posição do botão
+        const rect = btn.getBoundingClientRect();
+        floatingDropdown.style.left = rect.left + window.scrollX + 'px';
+        floatingDropdown.style.top = rect.bottom + window.scrollY + 4 + 'px';
+        floatingDropdown.style.display = 'block';
+
+        // Resetar estados do dropdown
+        const criar = floatingDropdown.querySelector('.roteiro-criar');
+        const feedback = floatingDropdown.querySelector('.roteiro-feedback');
+        criar.style.display = 'none';
+        feedback.style.display = 'none';
+
+        // Atualizar eventos dos itens
+        const lista = floatingDropdown.querySelector('.roteiro-lista');
+        const input = floatingDropdown.querySelector('.roteiro-input');
+        const salvar = floatingDropdown.querySelector('.roteiro-salvar');
+        lista.querySelectorAll('.roteiro-item').forEach(item => {
+          item.onclick = function(ev) {
+            ev.stopPropagation();
+            if (item.textContent === '+ Criar novo roteiro') {
+              criar.style.display = 'flex';
+              input.value = '';
+              input.focus();
+            } else {
+              mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+              setTimeout(() => {
+                floatingDropdown.style.display = 'none';
+              }, 2200);
+            }
+          };
+        });
+        salvar.onclick = function(ev) {
+          ev.stopPropagation();
+          const nome = input.value.trim();
+          if (nome) {
+            mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+            setTimeout(() => {
+              floatingDropdown.style.display = 'none';
+              criar.style.display = 'none';
+            }, 2200);
+          }
+        };
+        function mostrarFeedback(msg) {
+          feedback.innerHTML = msg;
+          feedback.style.display = 'flex';
+          clearTimeout(feedback._timeout);
+          feedback._timeout = setTimeout(() => {
+            feedback.style.display = 'none';
+          }, 2200);
+        }
+      }
+
+      // Adiciona evento a todos os botões .add-roteiro-btn após renderização dos cards
+      function bindFloatingDropdownToCards() {
+        document.querySelectorAll('.add-roteiro-btn').forEach(btn => {
+          btn.onclick = function(e) {
+            e.stopPropagation();
+            showFloatingDropdown(btn);
+          };
+        });
+      }
+
+      // Chame bindFloatingDropdownToCards() sempre após renderResults
+      // Exemplo: logo após grid.appendChild(card);
+      bindFloatingDropdownToCards();
     }
 
     function createInfoWindowContent(place) {

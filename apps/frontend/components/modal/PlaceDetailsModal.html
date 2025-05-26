@@ -1,0 +1,54 @@
+<link rel="stylesheet" href="components/modal/PlaceDetailsModal.css">
+
+<div id="place-details-modal" class="place-details-modal-overlay" style="display:none;">
+    <div class="place-details-modal">
+      <button class="place-details-modal-close">×</button>
+      <div class="place-details-title">Balneário Camboriú: nome da atração/local</div>
+      <div class="place-details-gallery">
+        <div class="main placeholder">Imagens do google expansível</div>
+        <div class="placeholder"></div>
+        <div class="placeholder"></div>
+        <div class="placeholder"></div>
+      </div>
+      <div class="place-details-info">
+        <div class="place-details-main">
+          <div class="place-details-section-title">Sobre esse local</div>
+          <div style="color:#444; font-size:1rem; margin-bottom:16px;"></div>
+          <ul class="place-details-list">
+            <li><b>Endereço</b> <span>Av. Atlântica, 5700 - Balneário Camboriú, SC</span></li>
+            <li><b>Horário de Funcionamento</b> <span>09:00 - 22:00</span></li>
+            <li><b>Preço</b> <span>$$$ – 60,00 por pessoa</span></li>
+            <li><b>Avaliações</b> <span>★★★★★ 4.6/5</span></li>
+          </ul>
+          <div class="place-details-roteiro-container">
+            <button class="place-details-btn" id="abrir-roteiro-dropdown">Adicionar ao meu roteiro</button>
+            <div class="roteiro-dropdown" id="roteiro-dropdown" style="display:none;">
+              <div class="roteiro-lista">
+                <div class="roteiro-item">Viagem SC</div>
+                <div class="roteiro-item">Férias 2024</div>
+                <div class="roteiro-item">+ Criar novo roteiro</div>
+              </div>
+              <div class="roteiro-criar" style="display:none;">
+                <input type="text" placeholder="Nome do roteiro" class="roteiro-input" />
+                <button class="roteiro-salvar">Salvar</button>
+              </div>
+            </div>
+            <div class="roteiro-feedback" id="roteiro-feedback" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="place-details-side">
+          <div class="place-details-weather">
+            <div class="place-details-weather-title">Balneário Camboriú</div>
+            <div style="font-size:2rem;font-weight:700;">28°C</div>
+            <div style="color:#888; font-size:0.95rem; margin-bottom:8px;">Ensolarado</div>
+            <div class="place-details-weather-row"><span>14:00</span><span>28°C</span></div>
+            <div class="place-details-weather-row"><span>17:00</span><span>29°C</span></div>
+            <div class="place-details-weather-row"><span>19:00</span><span>26°C</span></div>
+            <div class="place-details-weather-row"><span>22:00</span><span>24°C</span></div>
+          </div>
+          <div style="color:#888; font-size:0.95rem;">Previsão mockada</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
