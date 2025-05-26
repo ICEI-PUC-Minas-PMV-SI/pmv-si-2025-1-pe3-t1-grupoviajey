@@ -239,6 +239,29 @@ Exibir informações detalhadas sobre um item/local específico selecionado. Aju
 
 ![tela-de-detalhes-do-item-selecionado](../assets/Telas/Detalhes%20do%20local.png)
 
+## Tela de Avaliação de Local
+### Objetivo da Tela
+Permitir que o usuário visualize avaliações feitas por outras pessoas sobre um local/atração e escreva sua própria avaliação.
+
+### Princípios Gestálticos
+- **Proximidade**: A avaliação de outros usuários está agrupada visualmente acima do campo para nova avaliação, facilitando o entendimento da função de cada parte;
+- **Similaridade**: Avatares e caixas de texto com o mesmo estilo criam coesão visual e indicam elementos da mesma categoria;
+- **Continuidade**: O fluxo de leitura é natural (de cima para baixo), guiando o usuário para realizar sua própria avaliação ao final;
+- **Figura-fundo**: O modal destaca-se com fundo branco sobreposto a um fundo escurecido, facilitando o foco da atenção;
+- **Fechamento**: O modal é delimitado, com bordas visíveis e conteúdo centralizado, reforçando a sensação de unidade.
+
+### Regras de Ouro
+- **Controle ao Usuário**: Possibilidade de escolha ao usuário entre apenas visualizar todas as avaliações do local selecionado ou elaborar a sua própria avaliação;
+- **Reversão de Ações**: Ícone de 'X' indica possibilidade de fechar esta visualização.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Feedback imediato**: Esta tela é um feedback imediato ao clique no campo "Avaliações". Ademais, todos os botões, quando acionados, fornecem feedback imediato ao usuário;
+- **Minimização da carga de trabalho do usuário**: Layout limpo e com a utilização de ícones conhecidos reduz o esforço cognitivo do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-avaliação](../assets/Telas/Criar%20avaliação.png)
+
 ## Tela de Resultados da Busca
 ### Objetivo da Tela
 Exibir os locais ou destinos encontrados com base nos critérios informados pelo usuário na busca, permitindo comparar e selecionar opções.
@@ -289,6 +312,30 @@ Apresentar e permitir a edição de um roteiro de viagem personalizado, com info
 
 ![tela-gerenciar-itinerario](../assets/Telas/Roteiro%20detalhes.png)
 
+## Tela de Criação de Checklist
+### Objetivo da Tela
+Permitir que o usuário crie e edite uma checklist personalizada para uma viagem específica, adicionando itens que deseja lembrar ou realizar durante o passeio.
+
+### Princípios Gestálticos
+- **Proximidade**: Itens da checklist estão agrupados de forma coesa, o que facilita a percepção de que pertencem à mesma categoria;
+- **Similaridade**: Uso de ícones de checkbox e estilo uniforme nos campos facilita a leitura e associação;
+- **Continuidade**: A estrutura em coluna e o fluxo de cima para baixo orientam corretamente a execução da tarefa;
+- **Figura-fundo**: O modal sobre fundo escurecido realça o conteúdo, facilitando o foco;
+- **Fechamento**: A moldura clara do modal reforça a percepção de unidade.
+
+### Regras de Ouro
+- **Consistência**: Elementos visuais seguem o mesmo padrão usado nas outras partes da plataforma;
+- **Minimizar Carga de Memória**: Todos os elementos são visíveis e explícitos. Nenhuma instrução depende de memória;
+- **Controle ao Usuário**: Possibilidade de escolha ao usuário entre apenas visualizar o checklist, incluir novos itens ou realizar o check em itens existentes.
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: O agrupamento dos itens do checklist auxilia a leitura do checklist e há uma clara distinção entre os itens pendentes e os itens já realizados;
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Minimização da carga de trabalho do usuário**: Layout limpo reduz o esforço cognitivo do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-gerenciamento-de-checklist](../assets/Telas/Gerenciar%20Checklist.png)
+
 ## Tela de Itinerário criado por IA
 ### Objetivo da Tela
 Exibir ao usuário um itinerário de viagem gerado automaticamente com base nas preferências que ele informou previamente. A tela apresenta sugestões de locais e suas informações, facilitando o planejamento rápido e automatizado da viagem.
@@ -310,4 +357,145 @@ Exibir ao usuário um itinerário de viagem gerado automaticamente com base nas 
 - **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
 
 ![tela-itinerário-gerado-por-IA](../assets/Telas/Roteiro%20gerado%20por%20IA.png)
+
+## Tela de Dicas de Viagem
+### Objetivo da Tela
+Oferecer aos usuários conteúdos informativos, sugestões e orientações úteis relacionadas a viagens, destinos, cultura local, planejamento e segurança.
+
+### Princípios Gestálticos
+- **Proximidade**: Título, subtítulo e conteúdos estão bem agrupados, favorecendo leitura sequencial;
+- **Similaridade**: Todos os botões de categorias e os cards seguem estilos extremamente similares;
+- **Simetria**: Os cards dos conteúdos possuem estrutura simétrica, reforçando a organização do sistema;
+- **Fechamento**: Os cards dos conteúdos têm contornos completos que facilitam a identificação como unidades distintas;
+- **Região comum**: Os conteúdos estão agrupados em uma seção clara e distinta.
+
+### Regras de Ouro
+- **Consistência**: Os elementos seguem padrões visuais e estruturais, mantendo a coesão;
+- **Atalhos**: As categorias permitem ao usuário filtrar conteúdos rapidamente;
+- **Prevenção de Erros**: A navegação é simples e direta, reduzindo chances de erro;
+- **Controle ao Usuário**: Usuário decide o que ler e como filtrar;
+- **Minimizar Carga de Memória**: Conteúdos organizados em páginas e categorias facilitam a navegação do usuário, reduzindo a carga cognitiva do usuário.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-dicas-de-viagem](../assets/Telas/Tela%20de%20Dicas%20de%20viagem.png)
+
+## Tela de Criação de Conteúdos
+### Objetivo da Tela
+Permitir que o usuário administrador crie uma nova postagem no blog da plataforma, adicionando informações relevantes sobre a sua experiência de viagem, pesquisas ou dicas para outros viajantes.
+
+### Princípios Gestálticos
+- **Proximidade**: Os campos de “Título”, “Categoria”, “Descrição” e “Adicionar capa” estão bem agrupados, evidenciando que fazem parte do mesmo fluxo de preenchimento;
+- **Similaridade**: Os campos seguem o mesmo estilo visual: bordas arredondadas, espaçamento uniforme, tipografia padrão, reforçando que são elementos de mesma natureza;
+- **Fechamento**: Os botões e caixas são claramente delimitados, com contornos e espaçamentos que ajudam o usuário a perceber facilmente cada componente;
+- **Continuidade**: Todos os campos estão perfeitamente alinhados verticalmente, facilitando o acompanhamento natural do usuário de cima para baixo.
+
+### Regras de Ouro
+- **Consistência**: Todos os campos, botões e estilos seguem o padrão visual da plataforma;
+- **Atalhos**: Botão de “Adicionar Categoria" sugere ao usuário uma série de categorias já cadastradas e de uso comum na plataforma, agilizando o preenchimento deste campo;
+- **Minimizar Carga de Memória**: A estrutura linear e objetiva reduz a necessidade de lembrar onde ou como realizar cada ação.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Agrupamento e distinção entre itens**: O agrupamento das informações indica que são todas parte de uma mesma seção de edição do conteúdo, facilitando a escrita do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-criação-de-conteúdos](../assets/Telas/Criar%20postagem.png)
+
+## Tela de Gerenciamento de Conteúdos
+### Objetivo da Tela
+Oferecer ao usuário administrador uma interface para gerenciar as postagens do blog da plataforma. Permite criar, editar e excluir conteúdos.
+
+### Princípios Gestálticos
+- **Proximidade**: Cada post (conteúdo) está agrupado com sua imagem e descrição, reforçando a relação entre os elementos;
+- **Similaridade**: Todos os cards seguem o mesmo layout, o que facilita a identificação de padrões;
+- **Fechamento**: Os cards de locais têm contornos completos que facilitam a identificação como unidades distintas;
+- **Continuidade**: Os elementos seguem um alinhamento claro, horizontal para os conteúdos dos cards e vertical entre os cards;
+- **Região comum**: Cada card está dentro de uma caixa com bordas arredondadas, delimitando visualmente cada grupo de informações como um todo;
+- **Conectividade**: O botão de edição e exclusão estão visualmente conectados ao card, indicando que são ações relacionadas àquela postagem.
+
+### Regras de Ouro
+- **Consistência**: Os cards têm layout, cores, tipografia e ícones consistentes;
+- **Atalhos**: Os ícones de edição e exclusão permitem o usuário realizar estas ações de forma simplificada, bem como o botão de "Criar";
+- **Controle ao Usuário**: O usuário pode editar, excluir ou adicionar postagens quando quiser de forma simples;
+- **Minimizar Carga de Memória**: As ações estão visíveis e agrupadas por postagem, o que dispensa a memorização.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Agrupamento e distinção entre itens**: O agrupamento consciente dos cards auxilia na leitura do usuário, assim como paginação controla a quantidade de informação exibida por vez, facilitando a navegação;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-gerenciar-conteudos](../assets/Telas/Gerenciar%20postagens.png)
+
+## Tela de Gerenciamento de Publicação de Anúncios
+### Objetivo da Tela
+Permitir que o usuário administrador visualize todos os anúncios pendentes e decida se aprova ou rejeita a publicação de cada um. É uma etapa de moderação de conteúdo.
+
+### Princípios Gestálticos
+- **Proximidade**: Título, descrição, avaliação e preço estão agrupados em cada card, reforçando a identidade de cada anúncio;
+- **Similaridade**: Todos os anúncios seguem o mesmo padrão de layout;
+- **Região comum**: Cada anúncio está em uma “caixa” com borda, agrupando os elementos relacionados.
+
+### Regras de Ouro
+- **Consistência**: Os elementos seguem padrões visuais e estruturais, mantendo a coesão;
+- **Atalhos**: O layout fornece ícones de ação rápida para aprovar ou rejeitar a publicação de cada anúncio;
+- **Prevenção de Erros**: O sistema exige a confirmação da ação de aprovação ou rejeição ao clicar em um dos botões mencionados;
+- **Controle ao Usuário**: O usuário decide quando e quais anúncios aprovar;
+- **Reversão de Ações**: Mensagem de confirmação da ação selecionada indica a reversibilidade de ações realizadas;
+- **Minimizar Carga de Memória**: Informações essenciais do anúncio estão visíveis no card, facilitando a análise do usuário.
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: O agrupamento de informações principais em um espaço limitado otimizam a visualização;
+- **Hierarquia visual**: O título está em negrito, seguido de descrição, avaliação e preço, em ordem de importância;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-gerenciamento-de-publicação-de-anúncios](../assets/Telas/Tela%20de%20Aprovar%20anúncios%20-%20Admin.png)
+
+## Tela de Criação de Anúncios
+### Objetivo da Tela
+Permitir que o usuário parceiro crie um novo anúncio fornecendo as informações necessárias.
+
+### Princípios Gestálticos
+- **Proximidade**: Os campos de entrada estão agrupados verticalmente, separados por espaçamentos proporcionais, o que indica claramente suas associações;
+- **Similaridade**: Campos de entrada seguem o mesmo estilo visual (mesma borda, ícones, etc), sugerindo que têm a mesma função de coleta de dados;
+- **Continuidade**: Os campos e botões estão bem alinhados, reforçando a fluidez do olhar do usuário de cima para baixo;
+- **Região comum**: Todos os elementos do formulário estão delimitados dentro de uma área branca clara, reforçando que pertencem à mesma funcionalidade.
+
+### Regras de Ouro
+- **Consistência**: Toda a estrutura e estilo visual seguem o padrão já estabelecido nas outras telas;
+- **Prevenção de Erros**: Campos bem definidos e com rótulos ajudam a evitar entradas erradas;
+- **Minimizar Carga de Memória**: Os campos e suas funções são visíveis na tela toda, sem necessidade de lembrar etapas anteriores;
+- **Atalhos**: Botão de “Adicionar Categoria", bem como o de "Observações importantes" sugerem ao usuário uma série de categorias e observações já cadastradas e de uso comum na plataforma, agilizando o preenchimento destes campos.
+
+### Recomendações Ergonômicas
+- **Consistência**: Ícones, estilo de campos e botões seguem o padrão adotado em outras telas do projeto;
+- **Agrupamento e distinção entre itens**: O agrupamento das informações indica que são todas parte de uma mesma seção de edição do anúncio, facilitando a escrita do usuário;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-criação-de-anúncios](../assets/Telas/Criar%20anúncio.png)
+
+## Tela de Gerenciamento de Anúncios
+### Objetivo da Tela
+Permitir que o usuário parceiro visualize e gerencie os anúncios que ele criou. Essa tela serve como um painel de controle para editar, excluir ou ver detalhes dos anúncios publicados.
+
+### Princípios Gestálticos
+- **Proximidade**: Cada anúncio é agrupado em um card, separando visualmente diferentes unidades;
+- **Similaridade**: Todos os anúncios seguem o mesmo padrão de layout;
+- **Continuidade**: A disposição linear dos anúncios e a barra de paginação na parte inferior guiam a navegação naturalmente;
+- **Simetria**: Os cards têm layouts simétricos, proporcionando equilíbrio visual;
+- **Região comum**: Cada anúncio está em uma “caixa” com borda, agrupando os elementos relacionados.
+
+### Regras de Ouro
+- **Consistência**: Os elementos seguem padrões visuais e estruturais, mantendo a coesão;
+- **Atalhos**: Ícones de editar e deletar agilizam ações recorrentes, bem como o ícone de relógio indica que o anúncio está aguardando aprovação sem o usuário precisar entrar no anúncio para visualizar esta informação;
+- **Controle ao Usuário**: O usuário pode optar por apenas visualizar, editar ou excluir um anúncio;
+- **Minimizar Carga de Memória**: O título, imagem e breve descrição ajudam o usuário a reconhecer o anúncio sem precisar lembrar detalhes.
+
+### Recomendações Ergonômicas
+- **Agrupamento e distinção entre itens**: O agrupamento de informações principais em um espaço limitado otimizam a visualização;
+- **Legibilidade**: Textos e ícones com cores que se destacam do fundo, garantindo legibilidade.
+
+![tela-de-gerenciamento-de-anúncios](../assets/Telas/Gerenciar%20anúncios.png)
 
