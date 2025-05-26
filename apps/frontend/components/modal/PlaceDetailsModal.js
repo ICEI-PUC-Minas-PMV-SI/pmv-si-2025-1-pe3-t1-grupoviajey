@@ -20,6 +20,35 @@
     }
   }
 
+  // Função para buscar previsão do tempo usando WeatherAPI
+  async function getWeatherForecast(city, checkin, checkout) {
+    try {
+      const API_KEY = '02e99a578428467aa2b61554252605'; // Substitua pela sua chave do WeatherAPI
+      const response = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${encodeURIComponent(city)}&days=3&lang=pt`);
+      const data = await response.json();
+
+      const weatherContainer = modal.querySelector('.place-details-weather');
+      if (data && data.forecast && data.forecast.forecastday && weatherContainer) {
+        let html = `<div class="place-details-weather-title">Previsão do Tempo (3 dias)</div>`;
+        data.forecast.forecastday.forEach(day => {
+          html += `
+            <div class="weather-info" style="margin-bottom:8px;">
+              <span>${new Date(day.date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}</span>
+              <img src="https:${day.day.condition.icon}" alt="${day.day.condition.text}">
+              <span>${Math.round(day.day.maxtemp_c)}°C / ${Math.round(day.day.mintemp_c)}°C</span>
+              <span>${day.day.condition.text}</span>
+            </div>
+          `;
+        });
+        weatherContainer.innerHTML = html;
+      } else {
+        weatherContainer.innerHTML = '<span>Não foi possível obter a previsão do tempo.</span>';
+      }
+    } catch (error) {
+      console.error('Erro ao buscar previsão do tempo:', error);
+    }
+  }
+
   // Função global para abrir o modal
   window.openPlaceDetailsModal = function(data) {
     modal.style.display = 'flex';
@@ -57,6 +86,15 @@
 
       if (checkinElement) checkinElement.textContent = checkin;
       if (checkoutElement) checkoutElement.textContent = checkout;
+
+      // Buscar previsão do tempo
+      const cidadeBusca = storageData.cidade;
+      if (cidadeBusca) {
+        console.log('Buscando previsão do tempo para cidade:', cidadeBusca); // Debug
+        getWeatherForecast(cidadeBusca, checkin, checkout);
+      } else {
+        console.log('Cidade não disponível para buscar previsão do tempo'); // Debug
+      }
     }
   };
 

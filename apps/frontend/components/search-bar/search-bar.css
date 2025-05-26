@@ -1,12 +1,13 @@
 .search-bar-container {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: #fff;
   border-radius: 28px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   max-width: 700px;
   height: 48px;
-  margin: 24px 0;
+  margin: 24px auto;
   padding: 0 8px;
   width: 100%;
   gap: 0;

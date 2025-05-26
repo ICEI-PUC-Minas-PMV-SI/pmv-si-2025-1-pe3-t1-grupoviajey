@@ -127,18 +127,36 @@
     gap: 18px;
   }
   .place-details-weather {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     width: 100%;
-    margin-bottom: 8px;
   }
   .place-details-weather-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #0d353a;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .weather-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .weather-info img {
+    width: 50px;
+    height: 50px;
+  }
+  .weather-info span {
+    font-size: 1.1em;
+    color: #333;
+  }
+  .weather-info span:first-of-type {
+    font-weight: 600;
+    font-size: 1.3em;
+    color: #0d353a;
   }
   .place-details-weather-row {
     display: flex;
