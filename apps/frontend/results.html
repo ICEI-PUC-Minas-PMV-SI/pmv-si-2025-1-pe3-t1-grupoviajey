@@ -17,7 +17,7 @@
   <style>
     #search-area-btn {
       position: absolute;
-      top: 110px;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
@@ -32,7 +32,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       display: none;
     }
-    .results-map { position: relative; }
   </style>
 </head>
 <body>
@@ -113,6 +112,28 @@
       });
     }
 
+    function createInfoWindowContent(place) {
+      const rating = place.rating ? `
+        <div class="info-window-rating">
+          <span class="rating-stars">${'★'.repeat(Math.floor(place.rating))}${'☆'.repeat(5-Math.floor(place.rating))}</span>
+          <span class="rating-value">${place.rating.toFixed(1)}</span>
+        </div>
+      ` : '';
+
+      const types = place.types ? place.types.slice(0, 2).map(type => 
+        `<span class="info-window-tag">${type.replace(/_/g, ' ')}</span>`
+      ).join('') : '';
+
+      return `
+        <div class="info-window">
+          <h3 class="info-window-title">${place.name}</h3>
+          ${rating}
+          <div class="info-window-tags">${types}</div>
+          <p class="info-window-address">${place.vicinity || ''}</p>
+        </div>
+      `;
+    }
+
     function clearMarkers() {
       markers.forEach(m => m.setMap(null));
       markers = [];
@@ -146,6 +167,7 @@
       clearMarkers();
       document.querySelector('.results-grid').innerHTML = 'Carregando...';
       const cacheKey = getCacheKey(center, RADIUS, selectedType);
+      
       // 1. Verifica se já existe cache para esta região, raio e tipo
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
@@ -162,18 +184,35 @@
               title: place.name,
               icon: getPinIcon(place)
             });
+
+            // Adiciona InfoWindow ao marcador
+            const infoWindow = new google.maps.InfoWindow({
+              content: createInfoWindowContent(place),
+              pixelOffset: new google.maps.Size(0, -32)
+            });
+
+            marker.addListener('click', () => {
+              // Fecha qualquer InfoWindow aberto
+              if (window.currentInfoWindow) {
+                window.currentInfoWindow.close();
+              }
+              infoWindow.open(map, marker);
+              window.currentInfoWindow = infoWindow;
+            });
+
             markers.push(marker);
           }
         });
-        console.log('Dados carregados do cache:', cacheObj);
         return;
       }
+
       // 3. Se não existe cache, faz a requisição Nearby Search
       const request = {
         location: center,
         radius: RADIUS,
         type: selectedType === 'restaurant' ? ['restaurant', 'food', 'cafe', 'bakery', 'bar'] : selectedType
       };
+
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           // 4. Salva no cache com timestamp
@@ -193,10 +232,25 @@
                 title: place.name,
                 icon: getPinIcon(place)
               });
+
+              // Adiciona InfoWindow ao marcador
+              const infoWindow = new google.maps.InfoWindow({
+                content: createInfoWindowContent(place),
+                pixelOffset: new google.maps.Size(0, -32)
+              });
+
+              marker.addListener('click', () => {
+                // Fecha qualquer InfoWindow aberto
+                if (window.currentInfoWindow) {
+                  window.currentInfoWindow.close();
+                }
+                infoWindow.open(map, marker);
+                window.currentInfoWindow = infoWindow;
+              });
+
               markers.push(marker);
             }
           });
-          console.log('Dados buscados da API e salvos no cache:', cacheObj);
         } else {
           document.querySelector('.results-grid').innerHTML = 'Nenhum resultado encontrado.';
         }
@@ -297,11 +351,30 @@
             lastCenter = location;
             map = new google.maps.Map(document.getElementById('map'), {
               center: location,
-              zoom: lastZoom
+              zoom: lastZoom,
+              gestureHandling: 'cooperative'
             });
             service = new google.maps.places.PlacesService(map);
             searchNearby(location);
             btn = document.getElementById('search-area-btn');
+            
+            // Função para verificar se o mapa está em tela cheia
+            const checkMapFullscreen = () => {
+              const mapContainer = document.querySelector('.results-map');
+              const isFullscreen = window.innerWidth <= 1100;
+              if (isFullscreen) {
+                btn.style.display = 'block';
+              } else {
+                btn.style.display = moved ? 'block' : 'none';
+              }
+            };
+
+            // Verifica inicialmente
+            checkMapFullscreen();
+
+            // Adiciona listener para redimensionamento da janela
+            window.addEventListener('resize', checkMapFullscreen);
+
             map.addListener('idle', () => {
               const center = map.getCenter();
               const zoom = map.getZoom();
@@ -311,20 +384,29 @@
                 center.lng() !== lastCenter.lng ||
                 zoom !== lastZoom
               ) {
-                btn.style.display = 'block';
                 moved = true;
+                checkMapFullscreen();
               }
             });
+
             btn.addEventListener('click', () => {
               const center = map.getCenter();
               lastCenter = { lat: center.lat(), lng: center.lng() };
               lastZoom = map.getZoom();
-              btn.style.display = 'none';
               moved = false;
+              checkMapFullscreen();
               searchNearby(center);
             });
-            map.addListener('dragstart', () => { btn.style.display = 'none'; });
-            map.addListener('zoom_changed', () => { btn.style.display = 'none'; });
+
+            map.addListener('dragstart', () => { 
+              moved = true;
+              checkMapFullscreen();
+            });
+            map.addListener('zoom_changed', () => { 
+              moved = true;
+              checkMapFullscreen();
+            });
+
             document.querySelectorAll('.filters-left .filter-btn').forEach(btn => {
               btn.addEventListener('click', function() {
                 document.querySelectorAll('.filters-left .filter-btn').forEach(b => b.classList.remove('active'));
@@ -387,9 +469,21 @@
         'coffee_shop'
       ];
 
-      if (selectedType === 'lodging') return place.types[0] === 'lodging';
-      if (selectedType === 'restaurant') return place.types.some(type => foodTypes.includes(type));
-      if (selectedType === 'tourist_attraction') return place.types[0] === 'tourist_attraction';
+      if (selectedType === 'lodging') {
+        // Para hotéis, verifica se o primeiro tipo é exatamente 'lodging'
+        return place.types[0] === 'lodging';
+      }
+      
+      if (selectedType === 'restaurant') {
+        // Para restaurantes, verifica se tem algum tipo de comida E não é hotel
+        return place.types.some(type => foodTypes.includes(type)) && 
+               !place.types.includes('lodging');
+      }
+      
+      if (selectedType === 'tourist_attraction') {
+        return place.types[0] === 'tourist_attraction';
+      }
+      
       return false;
     }
   </script>
