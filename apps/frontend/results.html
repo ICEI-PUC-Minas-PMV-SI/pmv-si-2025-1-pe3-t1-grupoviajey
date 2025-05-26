@@ -80,7 +80,7 @@
       const grid = document.querySelector('.results-grid');
       grid.innerHTML = '';
       const filtered = results.filter(place => isTypeMatch(place, selectedType));
-      filtered.forEach(place => {
+      filtered.forEach((place, index) => {
         const card = window.createResultCard({
           image: '',
           title: place.name,
@@ -89,6 +89,26 @@
           address: place.vicinity || '',
           price_level: undefined
         });
+        
+        // Adiciona classe para identificar o card
+        card.classList.add('result-card');
+        card.dataset.placeIndex = index;
+        
+        // Adiciona eventos de hover
+        card.addEventListener('mouseenter', () => {
+          if (markers[index]) {
+            markers[index].setAnimation(google.maps.Animation.BOUNCE);
+            markers[index].setZIndex(1000);
+          }
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          if (markers[index]) {
+            markers[index].setAnimation(null);
+            markers[index].setZIndex(1);
+          }
+        });
+        
         grid.appendChild(card);
       });
     }
@@ -100,11 +120,17 @@
 
     function getPinIcon(place) {
       const types = place.types || [];
-      if (types.includes('lodging')) return 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-      if (types.includes('restaurant') || types.includes('food')) return 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
-      if (types.includes('tourist_attraction')) return 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
-      // fallback
-      return 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      let iconUrl = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      if (types.includes('lodging')) iconUrl = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      if (types.includes('restaurant') || types.includes('food')) iconUrl = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+      if (types.includes('tourist_attraction')) iconUrl = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+      
+      return {
+        url: iconUrl,
+        scaledSize: new google.maps.Size(32, 32),
+        anchor: new google.maps.Point(16, 32),
+        labelOrigin: new google.maps.Point(16, 0)
+      };
     }
 
     // Função utilitária para gerar a chave de cache baseada em centro, raio e tipo
@@ -125,7 +151,6 @@
       if (cached) {
         // 2. Se existe, carrega do cache
         const cacheObj = JSON.parse(cached);
-        // (Opcional: pode validar timestamp aqui se quiser expirar o cache)
         renderResults(cacheObj.results);
         // Renderiza marcadores
         const filtered = cacheObj.results.filter(place => isTypeMatch(place, selectedType));
@@ -147,7 +172,7 @@
       const request = {
         location: center,
         radius: RADIUS,
-        type: selectedType
+        type: selectedType === 'restaurant' ? ['restaurant', 'food', 'cafe', 'bakery', 'bar'] : selectedType
       };
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -346,8 +371,24 @@
     // Função para checar se o local pertence ao tipo selecionado (prioridade pelo primeiro tipo)
     function isTypeMatch(place, selectedType) {
       if (!place.types || !place.types.length) return false;
+      
+      // Lista de tipos relacionados a comida
+      const foodTypes = [
+        'restaurant',
+        'food',
+        'cafe',
+        'bakery',
+        'bar',
+        'meal_delivery',
+        'meal_takeaway',
+        'bistro',
+        'pizzeria',
+        'ice_cream_parlor',
+        'coffee_shop'
+      ];
+
       if (selectedType === 'lodging') return place.types[0] === 'lodging';
-      if (selectedType === 'restaurant') return place.types[0] === 'restaurant' || place.types[0] === 'food';
+      if (selectedType === 'restaurant') return place.types.some(type => foodTypes.includes(type));
       if (selectedType === 'tourist_attraction') return place.types[0] === 'tourist_attraction';
       return false;
     }
