@@ -32,6 +32,76 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       display: none;
     }
+
+    .floating-roteiro-dropdown {
+      position: fixed;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 12px;
+      margin-top: 30px;
+      margin-left: 190px;
+      min-width: 200px;
+      z-index: 9999;
+      display: none;
+    }
+
+    .roteiro-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .roteiro-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: #333;
+    }
+
+    .roteiro-item:hover {
+      background: #f5f5f5;
+    }
+
+    .roteiro-criar {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+    }
+
+    .roteiro-input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .roteiro-salvar {
+      background: #0d353a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .roteiro-salvar:hover {
+      background: #0a2a2e;
+    }
+
+    .roteiro-feedback {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      color: #0d353a;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -215,13 +285,16 @@
 
       // Função para mostrar o dropdown flutuante próximo ao botão
       function showFloatingDropdown(btn) {
+        const floatingDropdown = document.getElementById('floating-roteiro-dropdown');
+        if (!floatingDropdown) return;
+
         // Fecha outros dropdowns
         floatingDropdown.style.display = 'none';
 
         // Pega posição do botão
         const rect = btn.getBoundingClientRect();
-        floatingDropdown.style.left = rect.left + window.scrollX + 'px';
-        floatingDropdown.style.top = rect.bottom + window.scrollY + 4 + 'px';
+        floatingDropdown.style.top = `${rect.bottom + 8}px`;
+        floatingDropdown.style.left = `${rect.left}px`;
         floatingDropdown.style.display = 'block';
 
         // Resetar estados do dropdown
@@ -234,6 +307,7 @@
         const lista = floatingDropdown.querySelector('.roteiro-lista');
         const input = floatingDropdown.querySelector('.roteiro-input');
         const salvar = floatingDropdown.querySelector('.roteiro-salvar');
+
         lista.querySelectorAll('.roteiro-item').forEach(item => {
           item.onclick = function(ev) {
             ev.stopPropagation();
@@ -249,6 +323,7 @@
             }
           };
         });
+
         salvar.onclick = function(ev) {
           ev.stopPropagation();
           const nome = input.value.trim();
@@ -260,6 +335,7 @@
             }, 2200);
           }
         };
+
         function mostrarFeedback(msg) {
           feedback.innerHTML = msg;
           feedback.style.display = 'flex';
@@ -268,6 +344,14 @@
             feedback.style.display = 'none';
           }, 2200);
         }
+
+        // Fechar o dropdown ao clicar fora
+        document.addEventListener('click', function closeDropdown(e) {
+          if (!floatingDropdown.contains(e.target) && e.target !== btn) {
+            floatingDropdown.style.display = 'none';
+            document.removeEventListener('click', closeDropdown);
+          }
+        });
       }
 
       // Adiciona evento a todos os botões .add-roteiro-btn após renderização dos cards

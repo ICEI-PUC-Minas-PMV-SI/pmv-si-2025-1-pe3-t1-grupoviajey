@@ -27,6 +27,7 @@
   justify-content: center;
   overflow: hidden;
   border-radius: 12px;
+  position: relative;
 }
 .result-image img, .result-image span {
   max-width: 100%;
@@ -101,4 +102,52 @@
   box-shadow: 0 6px 24px rgba(0,0,0,0.16);
   transform: scale(1.03);
   z-index: 2;
+}
+.favorite-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  padding: 0;
+}
+.favorite-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #666;
+  transition: all 0.2s ease;
+}
+.favorite-btn:hover {
+  background: #fff;
+  transform: scale(1.1);
+}
+.favorite-btn.active svg {
+  color: #ff4d4d;
+}
+.favorite-feedback {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 9999;
+}
+.favorite-feedback.show {
+  opacity: 1;
+  transform: translateX(0);
 } 
