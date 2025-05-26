@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Exemplo Google Maps</title>
+  <meta name="description" content="Exemplo de integração com Google Maps">
+  
+  <!-- Bootstrap CSS (Replit Theme) -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    #map {
+      height: 500px;
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .map-placeholder {
+      height: 500px;
+      width: 100%;
+      background-color: #343a40;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="/">
+        <i class="fas fa-map-marked-alt me-2"></i>Viajey
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Início</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/explorar"><i class="fas fa-search me-1"></i> Explorar</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/itinerary-kanban"><i class="fas fa-route me-1"></i> Meus Roteiros</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    <h1 class="mb-4">Exemplo de Integração com Google Maps</h1>
+    
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Como funciona</h5>
+        <p>Este exemplo mostra como integrar o Google Maps no Viajey. Abaixo está um mapa interativo que usa a API do Google Maps.</p>
+        <p>Para funcionar corretamente, você precisa configurar a variável de ambiente <code>GOOGLE_MAPS_API_KEY</code> com uma chave válida da API do Google Maps.</p>
+      </div>
+    </div>
+    
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Configuração do Google Maps</h5>
+            <ol>
+              <li>Crie um projeto no <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+              <li>Ative as APIs necessárias:
+                <ul>
+                  <li>Maps JavaScript API</li>
+                  <li>Places API</li>
+                  <li>Geocoding API</li>
+                  <li>Directions API</li>
+                </ul>
+              </li>
+              <li>Crie uma chave de API com as restrições apropriadas</li>
+              <li>Configure a variável de ambiente <code>GOOGLE_MAPS_API_KEY</code></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Inclusão do Google Maps</h5>
+            <p>Inclua o script do Google Maps no final do seu HTML:</p>
+            <pre><code>&lt;script async
+  src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"&gt;
+&lt;/script&gt;</code></pre>
+            <p>Substitua <code>YOUR_API_KEY</code> pela variável de ambiente usando server-side rendering:</p>
+            <pre><code>&lt;script async
+  src="https://maps.googleapis.com/maps/api/js?key=&lt;%= process.env.GOOGLE_MAPS_API_KEY %&gt;&callback=initMap"&gt;
+&lt;/script&gt;</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Google Maps Script -->
+  <script>
+    // Initialize the map
+    function initMap() {
+      // Check if map container exists
+      const mapContainer = document.getElementById('map');
+      if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+      }
+      
+      try {
+        // Initialize the map with default options
+        const map = new google.maps.Map(mapContainer, {
+          center: { lat: 48.8566, lng: 2.3522 }, // Default to Paris
+          zoom: 12,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+            {
+              featureType: "administrative.locality",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "geometry",
+              stylers: [{ color: "#263c3f" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#6b9a76" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#38414e" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#212a37" }],
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9ca5b3" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry",
+              stylers: [{ color: "#746855" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#1f2835" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#f3d19c" }],
+            },
+            {
+              featureType: "transit",
+              elementType: "geometry",
+              stylers: [{ color: "#2f3948" }],
+            },
+            {
+              featureType: "transit.station",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#17263c" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#515c6d" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#17263c" }],
+            },
+          ],
+          mapTypeControl: false,
+          fullscreenControl: false,
+          streetViewControl: false
+        });
+        
+        // Add a marker for Paris
+        new google.maps.Marker({
+          position: { lat: 48.8566, lng: 2.3522 },
+          map: map,
+          title: "Paris"
+        });
+        
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        showMapPlaceholder();
+      }
+    }
+    
+    // Show a placeholder when map can't be loaded
+    function showMapPlaceholder() {
+      const mapContainer = document.getElementById('map');
+      if (mapContainer) {
+        mapContainer.outerHTML = `
+          <div class="map-placeholder">
+            <i class="fas fa-map-marked-alt fa-3x mb-3 text-muted"></i>
+            <h5 class="text-center">Mapa não disponível</h5>
+            <p class="text-center text-muted">Configure a chave de API do Google Maps para visualizar o mapa.</p>
+          </div>
+        `;
+      }
+    }
+    
+    // Check if the API key is missing and show placeholder
+    if (!window.googleMapsApiLoaded) {
+      showMapPlaceholder();
+    }
+  </script>
+  
+  <!-- Placeholder for the Google Maps API script -->
+  <!-- In a real implementation, this would be rendered by the server with the actual API key -->
+  <script>
+    // This is a placeholder. In production, this script tag would be generated by the server
+    // with the actual Google Maps API key from environment variables
+    window.googleMapsApiLoaded = false;
+    
+    // Comment out the following line and uncomment the next one for testing with your own API key
+    // window.googleMapsApiLoaded = true;
+    // const script = document.createElement('script');
+    // script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap';
+    // script.async = true;
+    // document.body.appendChild(script);
+  </script>
+</body>
+</html>

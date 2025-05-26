@@ -1,0 +1,375 @@
+/* Viajey App - Main CSS */
+
+:root {
+  --header-height: 60px;
+  --footer-height: 60px;
+  --screen-height: calc(100vh - var(--header-height) - var(--footer-height));
+}
+
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.app-container {
+  max-width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+.screen {
+  min-height: 100vh;
+  position: relative;
+  transition: transform 0.3s ease-in-out;
+}
+
+.screen-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--bs-body-bg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.screen-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.spacer {
+  width: 40px;
+}
+
+/* Loading Screen */
+#loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bs-body-bg);
+  z-index: 2000;
+}
+
+.loading-content {
+  padding: 30px;
+}
+
+.app-logo {
+  max-width: 150px;
+  margin-bottom: 20px;
+}
+
+/* Onboarding Screen */
+.onboarding-content {
+  padding: 30px 20px;
+}
+
+.welcome-title {
+  font-size: 2rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.welcome-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+.onboarding-carousel {
+  margin-bottom: 40px;
+}
+
+.onboarding-illustration {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.carousel-caption {
+  position: static;
+  padding: 20px 0;
+}
+
+.onboarding-form {
+  padding: 0 10px;
+}
+
+/* Home Screen */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.travel-stats {
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  padding: 10px 0;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.create-trip {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.recommendation-card {
+  overflow: hidden;
+  height: 100%;
+}
+
+.recommendation-card img {
+  height: 120px;
+  object-fit: cover;
+}
+
+/* Itinerary Builder Screen */
+.itinerary-details {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.days-header {
+  margin: 0 0 15px 0;
+}
+
+.day-card {
+  margin-bottom: 15px;
+}
+
+.activity-card {
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.activity-type-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.activity-placeholder {
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  text-align: center;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+/* Checklist Screen */
+.checklist-items {
+  margin-bottom: 70px;
+}
+
+.checklist-item-text {
+  flex-grow: 1;
+}
+
+.category-filter {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 10px;
+}
+
+/* Map Screen */
+.map-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  background-color: #ccc;
+}
+
+.map-filters {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 100;
+}
+
+.filter-pills {
+  display: flex;
+  overflow-x: auto;
+  padding: 5px;
+  gap: 5px;
+}
+
+.filter-pills .badge {
+  cursor: pointer;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.map-poi-list {
+  max-height: calc(var(--screen-height) - 300px - var(--header-height));
+  overflow-y: auto;
+}
+
+.poi-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* Share Screen */
+.share-preview-card {
+  margin-top: 20px;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.social-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+/* Profile Screen */
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.badges-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.badge-item {
+  padding: 10px;
+  border-radius: 10px;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.badge-item.locked {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.badge-name {
+  margin: 5px 0 0 0;
+  font-size: 0.8rem;
+}
+
+/* Navigation */
+.bottom-nav, .itinerary-nav {
+  height: var(--footer-height);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  background-color: var(--bs-body-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  flex: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-item.active {
+  color: var(--bs-primary);
+}
+
+.nav-item i {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.nav-item span {
+  font-size: 0.7rem;
+}
+
+/* Drag and Drop */
+.dragging {
+  opacity: 0.5;
+  border: 2px dashed var(--bs-primary) !important;
+}
+
+.drop-target {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

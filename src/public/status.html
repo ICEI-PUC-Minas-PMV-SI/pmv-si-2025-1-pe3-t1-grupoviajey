@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status do Sistema - Viajey</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .status-card {
+            transition: all 0.3s ease;
+        }
+        .status-card.success {
+            border-left: 5px solid var(--bs-success);
+        }
+        .status-card.warning {
+            border-left: 5px solid var(--bs-warning);
+        }
+        .status-card.danger {
+            border-left: 5px solid var(--bs-danger);
+        }
+        .json-viewer {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .refresh-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-dark py-3">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <a href="/" class="text-decoration-none">
+                        <span class="text-info">Viajey</span>
+                        <small class="text-white-50"> - Diagnóstico do Sistema</small>
+                    </a>
+                </h1>
+                <button id="refreshAll" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Atualizar Tudo
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-4">
+        <div class="row g-4">
+            <!-- Status do Servidor -->
+            <div class="col-md-6">
+                <div class="card status-card h-100 position-relative" id="serverStatusCard">
+                    <div class="refresh-button">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="checkServerStatus()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Status do Servidor</h5>
+                        <div class="d-flex align-items-center mb-3" id="serverStatusIndicator">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <span>Verificando...</span>
+                        </div>
+                        <div id="serverStatusDetails" class="json-viewer d-none">
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status do Banco de Dados -->
+            <div class="col-md-6">
+                <div class="card status-card h-100 position-relative" id="dbStatusCard">
+                    <div class="refresh-button">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="checkDbStatus()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Status do Banco de Dados</h5>
+                        <div class="d-flex align-items-center mb-3" id="dbStatusIndicator">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <span>Verificando...</span>
+                        </div>
+                        <div id="dbStatusDetails" class="json-viewer d-none">
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações do Sistema -->
+            <div class="col-12">
+                <div class="card status-card h-100 position-relative" id="systemInfoCard">
+                    <div class="refresh-button">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="getSystemInfo()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Informações do Sistema</h5>
+                        <div class="d-flex align-items-center mb-3" id="systemInfoIndicator">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <span>Verificando...</span>
+                        </div>
+                        <div id="systemInfoDetails" class="json-viewer d-none">
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Link para navegação -->
+            <div class="col-12 mt-4">
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="/" class="btn btn-primary">Voltar para Home</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar todos os status
+            checkAllStatus();
+            
+            // Configurar botão de atualização
+            document.getElementById('refreshAll').addEventListener('click', checkAllStatus);
+        });
+
+        function checkAllStatus() {
+            checkServerStatus();
+            checkDbStatus();
+            getSystemInfo();
+        }
+
+        // Verificação do status do servidor
+        function checkServerStatus() {
+            const statusCard = document.getElementById('serverStatusCard');
+            const statusIndicator = document.getElementById('serverStatusIndicator');
+            const statusDetails = document.getElementById('serverStatusDetails');
+            
+            // Reset UI
+            statusCard.className = 'card status-card h-100 position-relative';
+            statusIndicator.innerHTML = `
+                <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <span>Verificando...</span>
+            `;
+            statusDetails.classList.add('d-none');
+            
+            // Fazer requisição de status
+            fetch('/ping')
+                .then(response => response.json())
+                .then(data => {
+                    statusCard.classList.add('success');
+                    statusIndicator.innerHTML = `
+                        <div class="bg-success rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                        <span class="text-success">Online</span>
+                    `;
+                    statusDetails.classList.remove('d-none');
+                    statusDetails.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    statusCard.classList.add('danger');
+                    statusIndicator.innerHTML = `
+                        <div class="bg-danger rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                        <span class="text-danger">Offline</span>
+                    `;
+                    statusDetails.classList.remove('d-none');
+                    statusDetails.textContent = `Erro ao verificar status do servidor: ${error.message}`;
+                });
+        }
+
+        // Verificação do status do banco de dados
+        function checkDbStatus() {
+            const statusCard = document.getElementById('dbStatusCard');
+            const statusIndicator = document.getElementById('dbStatusIndicator');
+            const statusDetails = document.getElementById('dbStatusDetails');
+            
+            // Reset UI
+            statusCard.className = 'card status-card h-100 position-relative';
+            statusIndicator.innerHTML = `
+                <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <span>Verificando...</span>
+            `;
+            statusDetails.classList.add('d-none');
+            
+            // Fazer requisição de status
+            fetch('/api/healthcheck')
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Erro ao verificar banco de dados');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    statusCard.classList.add('success');
+                    statusIndicator.innerHTML = `
+                        <div class="bg-success rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                        <span class="text-success">Conectado</span>
+                    `;
+                    statusDetails.classList.remove('d-none');
+                    statusDetails.textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    statusCard.classList.add('danger');
+                    statusIndicator.innerHTML = `
+                        <div class="bg-danger rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                        <span class="text-danger">Desconectado</span>
+                    `;
+                    statusDetails.classList.remove('d-none');
+                    statusDetails.textContent = `Erro ao verificar banco de dados: ${error.message}`;
+                });
+        }
+
+        // Obter informações do sistema
+        function getSystemInfo() {
+            const statusCard = document.getElementById('systemInfoCard');
+            const statusIndicator = document.getElementById('systemInfoIndicator');
+            const statusDetails = document.getElementById('systemInfoDetails');
+            
+            // Reset UI
+            statusCard.className = 'card status-card h-100 position-relative';
+            statusIndicator.innerHTML = `
+                <div class="spinner-border spinner-border-sm text-secondary me-2" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <span>Verificando...</span>
+            `;
+            statusDetails.classList.add('d-none');
+            
+            // Coletar informações do sistema
+            const systemInfo = {
+                browser: navigator.userAgent,
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                date: new Date().toLocaleString(),
+                url: window.location.href,
+                host: window.location.host
+            };
+            
+            statusCard.classList.add('success');
+            statusIndicator.innerHTML = `
+                <div class="bg-success rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                <span class="text-success">Informações Disponíveis</span>
+            `;
+            statusDetails.classList.remove('d-none');
+            statusDetails.textContent = JSON.stringify(systemInfo, null, 2);
+        }
+    </script>
+</body>
+</html>

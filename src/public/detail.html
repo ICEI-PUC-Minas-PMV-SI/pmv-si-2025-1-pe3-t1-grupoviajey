@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viajey - Hotel Sibara Flat - Balneário Camboriú</title>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/desktop-style.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    /* Place Detail Styles */
+    .place-header {
+      padding: 30px 0 20px;
+      position: relative;
+    }
+    
+    .place-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .place-location {
+      font-size: 1.1rem;
+      color: #adb5bd;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .place-gallery {
+      position: relative;
+      margin-bottom: 30px;
+    }
+    
+    .main-image {
+      border-radius: 12px;
+      overflow: hidden;
+      height: 400px;
+      position: relative;
+    }
+    
+    .main-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .image-navigation {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .nav-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .nav-button:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    
+    .image-thumbnails {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+    
+    .thumbnail {
+      width: 100px;
+      height: 75px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .thumbnail.active {
+      border: 3px solid var(--primary-color);
+    }
+    
+    .thumbnail:not(.active):hover {
+      opacity: 0.8;
+    }
+    
+    .place-details-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .place-info {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: var(--box-shadow);
+    }
+    
+    .place-description {
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+    
+    .amenities-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    
+    .amenity-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .amenity-icon {
+      width: 30px;
+      height: 30px;
+      background-color: rgba(13, 110, 253, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+    }
+    
+    .place-details-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .detail-item {
+      flex: 1;
+      min-width: 200px;
+      background-color: rgba(43, 48, 53, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .detail-label {
+      font-size: 0.85rem;
+      color: #adb5bd;
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .sidebar-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: var(--box-shadow);
+      margin-bottom: 25px;
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    
+    .price-display {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .price-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+    
+    .price-period {
+      font-size: 0.9rem;
+      color: #adb5bd;
+    }
+    
+    .cta-button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    
+    .weather-forecast {
+      display: flex;
+      overflow-x: auto;
+      gap: 15px;
+      margin-top: 15px;
+      padding-bottom: 10px;
+    }
+    
+    .weather-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+      padding: 10px;
+      background-color: rgba(43, 48, 53, 0.5);
+      border-radius: 8px;
+    }
+    
+    .day-name {
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+    }
+    
+    .weather-icon {
+      font-size: 1.5rem;
+      margin: 5px 0;
+      color: #f1c40f;
+    }
+    
+    .temperature {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    .map-container {
+      margin-top: 40px;
+    }
+    
+    .map-frame {
+      width: 100%;
+      height: 350px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    @media (max-width: 992px) {
+      .place-details-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .main-image {
+        height: 300px;
+      }
+      
+      .place-title {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (Fixed) -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <a href="/">
+            <h1>Viajey</h1>
+          </a>
+        </div>
+        
+        <div class="search-bar">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar destinos, roteiros, locais...">
+          </div>
+        </div>
+        
+        <div class="user-actions">
+          <button class="btn btn-primary new-trip-btn">
+            <i class="fas fa-plus me-2"></i>Novo Roteiro
+          </button>
+          <div class="user-avatar" id="user-avatar-dropdown">
+            <img src="/static/img/avatar-placeholder.jpg" alt="Avatar do Usuário">
+            <span class="user-name">Oi, Roberta</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User Dropdown Menu -->
+    <div class="user-dropdown" id="user-dropdown">
+      <ul class="dropdown-menu">
+        <li><a href="#profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
+        <li><a href="#favorites"><i class="fas fa-heart me-2"></i>Favoritos</a></li>
+        <li><a href="/itinerary"><i class="fas fa-map-marked-alt me-2"></i>Roteiros</a></li>
+        <li><a href="#create-itinerary"><i class="fas fa-plus-circle me-2"></i>Criar roteiro</a></li>
+        <li class="divider"></li>
+        <li><a href="#logout"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mt-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/explorar">Balneário Camboriú</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Hotel Sibara Flat</li>
+        </ol>
+      </nav>
+      
+      <!-- Place Header -->
+      <div class="place-header">
+        <h1 class="place-title">Hotel Sibara Flat</h1>
+        <div class="place-location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Av. Brasil, 1500, Centro - Balneário Camboriú, SC</span>
+        </div>
+        <div class="badge bg-primary me-2">Hotel</div>
+        <div class="d-inline-flex align-items-center">
+          <i class="fas fa-star text-warning me-1"></i>
+          <span class="fw-bold me-2">4.8</span>
+          <span class="text-muted">(2120 avaliações)</span>
+        </div>
+      </div>
+      
+      <!-- Image Gallery -->
+      <div class="place-gallery">
+        <div class="main-image">
+          <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara Flat" id="main-image">
+          
+          <div class="image-navigation">
+            <div class="nav-button" id="prev-image">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="nav-button" id="next-image">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="image-thumbnails">
+          <div class="thumbnail active" data-src="/static/img/destinations/barcelona.jpg">
+            <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara - Vista externa">
+          </div>
+          <div class="thumbnail" data-src="/static/img/destinations/barcelona.jpg">
+            <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara - Quarto">
+          </div>
+          <div class="thumbnail" data-src="/static/img/destinations/barcelona.jpg">
+            <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara - Piscina">
+          </div>
+          <div class="thumbnail" data-src="/static/img/destinations/barcelona.jpg">
+            <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara - Restaurante">
+          </div>
+          <div class="thumbnail" data-src="/static/img/destinations/barcelona.jpg">
+            <img src="/static/img/destinations/barcelona.jpg" alt="Hotel Sibara - Spa">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Place Details -->
+      <div class="place-details-container">
+        <div class="content-column">
+          <div class="place-info">
+            <h2 class="mb-4">Informações sobre o local</h2>
+            
+            <div class="place-description">
+              <p>O Hotel Sibara Flat é um hotel moderno e confortável localizado no coração de Balneário Camboriú, a apenas 200 metros da Praia Central. Oferecemos quartos espaçosos com vista para o mar, uma piscina no terraço com vista para a cidade, restaurante com café da manhã incluído e fácil acesso às principais atrações da cidade.</p>
+              <p>Todas as suítes possuem ar-condicionado, TV LED com canais a cabo, minibar, cofre e internet Wi-Fi grátis. Ideal para viagens de lazer ou negócios.</p>
+            </div>
+            
+            <h3 class="mb-3">Comodidades</h3>
+            <div class="amenities-list">
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-wifi"></i>
+                </div>
+                <span>Wi-Fi gratuito</span>
+              </div>
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-swimming-pool"></i>
+                </div>
+                <span>Piscina</span>
+              </div>
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-utensils"></i>
+                </div>
+                <span>Restaurante</span>
+              </div>
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-coffee"></i>
+                </div>
+                <span>Café da manhã</span>
+              </div>
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-parking"></i>
+                </div>
+                <span>Estacionamento</span>
+              </div>
+              <div class="amenity-item">
+                <div class="amenity-icon">
+                  <i class="fas fa-dumbbell"></i>
+                </div>
+                <span>Academia</span>
+              </div>
+            </div>
+            
+            <h3 class="mb-3">Detalhes</h3>
+            <div class="place-details-row">
+              <div class="detail-item">
+                <div class="detail-label">Horário de check-in</div>
+                <div class="detail-value">14:00</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Horário de check-out</div>
+                <div class="detail-value">12:00</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Aceita cartão de crédito</div>
+                <div class="detail-value">Sim</div>
+              </div>
+            </div>
+            
+            <div class="place-details-row">
+              <div class="detail-item">
+                <div class="detail-label">Telefone</div>
+                <div class="detail-value">(47) 3366-5500</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Email</div>
+                <div class="detail-value">reservas@sibaraflat.com.br</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Website</div>
+                <div class="detail-value">
+                  <a href="#" target="_blank">www.sibaraflat.com.br</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="sidebar-column">
+          <!-- Reservation Card -->
+          <div class="sidebar-card">
+            <h3 class="card-title">Reserve sua estadia</h3>
+            
+            <div class="price-display">
+              <span class="price-value">R$ 520</span>
+              <span class="price-period">/ noite</span>
+            </div>
+            
+            <button class="btn btn-primary cta-button" id="add-to-itinerary">
+              <i class="fas fa-plus me-2"></i>Adicionar ao meu roteiro
+            </button>
+            
+            <a href="https://maps.google.com" target="_blank" class="btn btn-outline-secondary cta-button">
+              <i class="fas fa-map-marked-alt me-2"></i>Ver no Google Maps
+            </a>
+          </div>
+          
+          <!-- Weather Card -->
+          <div class="sidebar-card">
+            <h3 class="card-title">Clima nos próximos dias</h3>
+            
+            <div class="weather-forecast">
+              <div class="weather-day">
+                <div class="day-name">Hoje</div>
+                <i class="fas fa-sun weather-icon"></i>
+                <div class="temperature">28°C</div>
+              </div>
+              <div class="weather-day">
+                <div class="day-name">Sex</div>
+                <i class="fas fa-cloud-sun weather-icon"></i>
+                <div class="temperature">26°C</div>
+              </div>
+              <div class="weather-day">
+                <div class="day-name">Sáb</div>
+                <i class="fas fa-cloud weather-icon"></i>
+                <div class="temperature">24°C</div>
+              </div>
+              <div class="weather-day">
+                <div class="day-name">Dom</div>
+                <i class="fas fa-cloud-sun-rain weather-icon"></i>
+                <div class="temperature">25°C</div>
+              </div>
+              <div class="weather-day">
+                <div class="day-name">Seg</div>
+                <i class="fas fa-sun weather-icon"></i>
+                <div class="temperature">27°C</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Map -->
+      <div class="map-container">
+        <h2 class="mb-4">Localização</h2>
+        <div class="map-frame">
+          <img src="/static/img/map-placeholder.jpg" alt="Mapa de localização" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <h5>Sobre o Viajey</h5>
+          <ul class="footer-links">
+            <li><a href="#">Quem somos</a></li>
+            <li><a href="#">Missão</a></li>
+            <li><a href="#">Contato</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Comunidade</h5>
+          <ul class="footer-links">
+            <li><a href="#">Roteiros em destaque</a></li>
+            <li><a href="#">Enviar roteiro</a></li>
+            <li><a href="#">Avaliações</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Preferências</h5>
+          <ul class="footer-links">
+            <li><a href="#">Idioma</a></li>
+            <li><a href="#">Moeda</a></li>
+          </ul>
+        </div>
+        
+        <div class="col-md-3">
+          <h5>Sociais</h5>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Viajey. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JS -->
+  <script src="/static/js/desktop.js"></script>
+  <script>
+    // Storage functions for saving and retrieving itinerary data
+    const saveToLocalStorage = (key, data) => {
+      localStorage.setItem(key, JSON.stringify(data));
+    };
+    
+    const getFromLocalStorage = (key) => {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    };
+    
+    // Function to get URL parameters
+    const getUrlParam = (param) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    };
+    
+    // Function to initialize or get current itinerary
+    const getCurrentItinerary = () => {
+      let itinerary = getFromLocalStorage('currentItinerary');
+      if (!itinerary) {
+        // Create a new itinerary if none exists
+        itinerary = {
+          id: Date.now(),
+          name: 'Roteiro Balneário Camboriú',
+          destination: 'Balneário Camboriú',
+          startDate: '2026-01-12',
+          endDate: '2026-01-20',
+          preferences: ['Relaxamento', 'Praias', 'Luxo'],
+          places: []
+        };
+        saveToLocalStorage('currentItinerary', itinerary);
+      }
+      return itinerary;
+    };
+    
+    // Function to add a place to the current itinerary
+    const addPlaceToItinerary = (placeName, placeType, price, address, description) => {
+      const itinerary = getCurrentItinerary();
+      
+      // Check if this place is already in the itinerary
+      if (itinerary.places.some(place => place.name === placeName)) {
+        return false; // Place already exists
+      }
+      
+      // Add the place
+      itinerary.places.push({
+        id: Date.now(),
+        name: placeName,
+        type: placeType,
+        price: price,
+        address: address,
+        description: description,
+        addedAt: new Date().toISOString()
+      });
+      
+      // Save the updated itinerary
+      saveToLocalStorage('currentItinerary', itinerary);
+      return true;
+    };
+    
+    // Function to update page title and breadcrumb based on place name
+    const updateDetailPageInfo = () => {
+      const placeParam = getUrlParam('place');
+      if (placeParam) {
+        const decodedPlaceName = decodeURIComponent(placeParam);
+        
+        // Update page title if needed
+        document.title = `Viajey - ${decodedPlaceName} - Balneário Camboriú`;
+        
+        // Update breadcrumb if it exists
+        const breadcrumbPlace = document.querySelector('.breadcrumb-item.active');
+        if (breadcrumbPlace) {
+          breadcrumbPlace.textContent = decodedPlaceName;
+        }
+        
+        // Update place title if it doesn't match the URL parameter
+        const placeTitle = document.querySelector('.place-title');
+        if (placeTitle && placeTitle.textContent.trim() !== decodedPlaceName) {
+          placeTitle.textContent = decodedPlaceName;
+        }
+      }
+    };
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Setup user dropdown
+      if (typeof setupUserDropdown === 'function') {
+        setupUserDropdown();
+      }
+      
+      // Update page info based on URL parameter
+      updateDetailPageInfo();
+      
+      // Image gallery functionality
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      const mainImage = document.getElementById('main-image');
+      const prevButton = document.getElementById('prev-image');
+      const nextButton = document.getElementById('next-image');
+      let currentIndex = 0;
+      
+      // Set up thumbnail click handlers
+      thumbnails.forEach((thumbnail, index) => {
+        thumbnail.addEventListener('click', function() {
+          // Update main image
+          mainImage.src = this.getAttribute('data-src');
+          
+          // Update active thumbnail
+          thumbnails.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Update current index
+          currentIndex = index;
+        });
+      });
+      
+      // Previous image button
+      prevButton.addEventListener('click', function() {
+        currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+        updateMainImage();
+      });
+      
+      // Next image button
+      nextButton.addEventListener('click', function() {
+        currentIndex = (currentIndex + 1) % thumbnails.length;
+        updateMainImage();
+      });
+      
+      function updateMainImage() {
+        // Update main image
+        mainImage.src = thumbnails[currentIndex].getAttribute('data-src');
+        
+        // Update active thumbnail
+        thumbnails.forEach(t => t.classList.remove('active'));
+        thumbnails[currentIndex].classList.add('active');
+      }
+      
+      // Add to itinerary button
+      const addButton = document.getElementById('add-to-itinerary');
+      if (addButton) {
+        // Check if this place is already in the itinerary
+        const placeName = document.querySelector('.place-title').textContent.trim();
+        const itinerary = getCurrentItinerary();
+        
+        if (itinerary && itinerary.places.some(place => place.name === placeName)) {
+          // Already in itinerary, update button state
+          addButton.innerHTML = '<i class="fas fa-check me-2"></i>Adicionado ao roteiro';
+          addButton.classList.remove('btn-primary');
+          addButton.classList.add('btn-success');
+          addButton.disabled = true;
+        } else {
+          // Add event listener for adding to itinerary
+          addButton.addEventListener('click', function() {
+            // Get place details
+            const placeName = document.querySelector('.place-title').textContent.trim();
+            const placeType = document.querySelector('.badge').textContent.trim();
+            const priceElement = document.querySelector('.price-value');
+            const price = priceElement ? priceElement.textContent.trim() + '/noite' : 'Não informado';
+            const addressElement = document.querySelector('.place-location span');
+            const address = addressElement ? addressElement.textContent.trim() : 'Não informado';
+            const descriptionElement = document.querySelector('.place-description');
+            const description = descriptionElement ? descriptionElement.textContent.trim() : '';
+            
+            // Add to itinerary
+            const added = addPlaceToItinerary(placeName, placeType, price, address, description);
+            
+            if (added) {
+              // Change button state
+              this.innerHTML = '<i class="fas fa-check me-2"></i>Adicionado ao roteiro';
+              this.classList.remove('btn-primary');
+              this.classList.add('btn-success');
+              this.disabled = true;
+              
+              console.log('Added', placeName, 'to itinerary');
+              
+              // Show a toast or notification
+              alert(`${placeName} adicionado ao seu roteiro!`);
+              
+              // Offer to return to explore page
+              const returnToExplore = confirm("Deseja voltar para a página de exploração?");
+              if (returnToExplore) {
+                // Get the current itinerary
+                const itinerary = getCurrentItinerary();
+                window.location.href = `/explorar?roteiroId=${itinerary.id}`;
+              }
+            } else {
+              alert(`${placeName} já está no seu roteiro!`);
+            }
+          });
+        }
+      }
+      
+      // Add a return to explore button in the breadcrumb
+      const breadcrumbItem = document.querySelector('.breadcrumb-item a');
+      if (breadcrumbItem) {
+        breadcrumbItem.addEventListener('click', function(e) {
+          e.preventDefault();
+          const itinerary = getCurrentItinerary();
+          window.location.href = `/explorar?roteiroId=${itinerary.id}`;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
