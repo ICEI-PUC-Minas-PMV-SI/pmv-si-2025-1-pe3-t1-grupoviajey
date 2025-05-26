@@ -116,7 +116,23 @@
         // Modal só abre ao clicar no card, exceto no botão de roteiro
         card.addEventListener('click', (e) => {
           if (!e.target.classList.contains('add-roteiro-btn')) {
-            if (typeof openPlaceDetailsModal === 'function') openPlaceDetailsModal();
+            if (typeof openPlaceDetailsModal === 'function') {
+              // Salvar dados do local no localStorage
+              const buscaAtual = getBuscaPersistida();
+              const dadosAtualizados = {
+                ...buscaAtual,
+                rating: place.rating || 0,
+                address: place.vicinity || '',
+                placeName: place.name
+              };
+              localStorage.setItem('buscaViajey', JSON.stringify(dadosAtualizados));
+
+              openPlaceDetailsModal({
+                name: place.name,
+                address: place.vicinity || '',
+                rating: place.rating || 0
+              });
+            }
           }
         });
 
@@ -267,6 +283,19 @@
       // Chame bindFloatingDropdownToCards() sempre após renderResults
       // Exemplo: logo após grid.appendChild(card);
       bindFloatingDropdownToCards();
+
+      // Fechar o dropdown flutuante ao clicar fora dele ou do botão
+      document.addEventListener('click', function(ev) {
+        const floatingDropdown = document.getElementById('floating-roteiro-dropdown');
+        if (floatingDropdown && floatingDropdown.style.display === 'block') {
+          if (
+            !floatingDropdown.contains(ev.target) &&
+            !ev.target.classList.contains('add-roteiro-btn')
+          ) {
+            floatingDropdown.style.display = 'none';
+          }
+        }
+      });
     }
 
     function createInfoWindowContent(place) {

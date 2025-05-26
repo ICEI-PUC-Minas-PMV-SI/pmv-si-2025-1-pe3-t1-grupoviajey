@@ -7,18 +7,23 @@
     align-items: center;
     justify-content: center;
     transition: opacity 0.2s;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    gap: 20px;
   }
   .place-details-modal {
     background: #fff;
     border-radius: 16px;
     max-width: 900px;
     width: 98vw;
-    max-height: 95vh;
+    max-height: calc(90vh - 40px);
     overflow-y: auto;
     box-shadow: 0 4px 32px rgba(0,0,0,0.18);
-    padding: 12px 12px 12px 12px;
+    padding: 40px 40px 32px 40px;
     position: relative;
     animation: modalIn 0.2s;
+    margin: 20px;
   }
   @keyframes modalIn {
     from { transform: scale(0.97) translateY(30px); opacity: 0; }
@@ -81,23 +86,26 @@
   }
   .place-details-info {
     display: flex;
-    gap: 32px;
+    gap: 48px;
     flex-wrap: wrap;
+    margin-bottom: 32px;
   }
   .place-details-main {
     flex: 2 1 0;
     min-width: 320px;
+    padding-right: 24px;
   }
   .place-details-side {
     flex: 1 1 220px;
     min-width: 220px;
-    background: #f8f8f8;
+    background: #fff;
     border-radius: 12px;
-    padding: 20px 16px;
+    padding: 32px 24px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
     align-items: flex-start;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   }
   .place-details-section-title {
     font-size: 1.1rem;
@@ -108,15 +116,15 @@
   .place-details-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 12px 0;
+    margin: 0 0 24px 0;
     color: #222;
-    font-size: 1rem;
+    font-size: 1.08rem;
   }
   .place-details-list li {
-    margin-bottom: 6px;
+    margin-bottom: 18px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 18px;
   }
   .place-details-weather {
     background: #fff;
@@ -162,7 +170,7 @@
   .roteiro-dropdown {
     position: absolute;
     left: 0;
-    top: 54px;
+    bottom: 54px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.13);
@@ -233,8 +241,27 @@
     to { opacity: 1; transform: translateY(0); }
   }
   @media (max-width: 700px) {
+    .place-details-modal-overlay {
+      padding: 20px;
+    }
     .place-details-modal {
-      padding: 12px 2px 12px 2px;
+      padding: 18px 4vw 18px 4vw;
+      max-height: calc(100vh - 40px);
+    }
+    .place-details-info {
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .place-details-main {
+      padding-right: 0;
+    }
+    .place-details-side {
+      padding: 18px 8px;
+      gap: 10px;
+    }
+    .place-details-list li {
+      margin-bottom: 10px;
+      gap: 10px;
     }
   }
   .add-roteiro-btn {
