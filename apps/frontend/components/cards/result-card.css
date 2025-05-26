@@ -11,6 +11,7 @@
   height: 400px;
   min-height: 400px;
   max-height: 400px;
+  cursor: pointer;
 }
 .result-image {
   background: #e0e0e0;
@@ -70,28 +71,18 @@
   justify-content: center;
 }
 .result-btn {
-  background: #0d353a;
-  color: #fff;
-  border: none;
+  background: #ffffff;
+  color: #0d353a;
+  border: 1px solid #0d353a;
   border-radius: 20px;
-  padding: 6px 16px;
+  padding: 10px 16px;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s;
 }
 .result-btn:hover {
-  background: #14525a;
-}
-.result-btn-outline {
-  background: none;
-  color: #0d353a;
-  border: 1.5px solid #0d353a;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-}
-.result-btn-outline:hover {
   background: #0d353a;
   color: #fff;
-  border-color: #0d353a;
 }
 .result-address {
   color: #757575;
@@ -105,4 +96,9 @@
   color: #0d353a;
   font-size: 0.97rem;
   margin-bottom: 4px;
+}
+.result-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.16);
+  transform: scale(1.03);
+  z-index: 2;
 } 

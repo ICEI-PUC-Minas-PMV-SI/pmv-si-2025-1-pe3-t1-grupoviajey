@@ -36,8 +36,7 @@ window.createResultCard = function({ image, title, rating, tags, address, price_
   const actions = document.createElement('div');
   actions.className = 'result-actions';
   actions.innerHTML = `
-    <button class="result-btn result-btn-outline">Detalhes</button>
-    <button class="result-btn">+ Roteiro</button>
+    <button class="result-btn">Adicionar ao roteiro</button>
   `;
 
   info.appendChild(titleDiv);

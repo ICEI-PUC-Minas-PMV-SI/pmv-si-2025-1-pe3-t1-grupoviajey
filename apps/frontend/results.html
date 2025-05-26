@@ -14,6 +14,26 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="components/cards/result-card.js"></script>
+  <style>
+    #search-area-btn {
+      position: absolute;
+      top: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: #0d353a;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: none;
+    }
+    .results-map { position: relative; }
+  </style>
 </head>
 <body>
   <div id="header"></div>
@@ -40,7 +60,10 @@
     <section class="results-content-section">
       <div class="results-grid-map-container">
         <div class="results-grid"></div>
-        <div class="results-map"><div id="map" style="width:100%;height:100%;background:#e0e0e0;"></div></div>
+        <div class="results-map">
+          <button id="search-area-btn">Buscar nesta área</button>
+          <div id="map" style="width:100%;height:100%;background:#e0e0e0;"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -48,103 +71,119 @@
   <script src="js/include.js"></script>
   <script>
     const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q';
+    const RADIUS = 2000;
+    let map, service, markers = [], lastCenter = null, lastZoom = 14;
+    let btn, moved = false;
+    let selectedType = 'lodging';
+
+    function renderResults(results) {
+      const grid = document.querySelector('.results-grid');
+      grid.innerHTML = '';
+      const filtered = results.filter(place => isTypeMatch(place, selectedType));
+      filtered.forEach(place => {
+        const card = window.createResultCard({
+          image: '',
+          title: place.name,
+          rating: place.rating || 0,
+          tags: place.types ? place.types.slice(0, 2) : [],
+          address: place.vicinity || '',
+          price_level: undefined
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function clearMarkers() {
+      markers.forEach(m => m.setMap(null));
+      markers = [];
+    }
+
+    function getPinIcon(place) {
+      const types = place.types || [];
+      if (types.includes('lodging')) return 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+      if (types.includes('restaurant') || types.includes('food')) return 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+      if (types.includes('tourist_attraction')) return 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+      // fallback
+      return 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+    }
+
+    // Função utilitária para gerar a chave de cache baseada em centro, raio e tipo
+    function getCacheKey(center, radius, type) {
+      // Arredonda para 4 casas para evitar chaves demais
+      const lat = center.lat.toFixed ? center.lat.toFixed(4) : center.lat().toFixed(4);
+      const lng = center.lng.toFixed ? center.lng.toFixed(4) : center.lng().toFixed(4);
+      return `places_${lat},${lng}_${radius}_${type}`;
+    }
+
+    // Função para buscar do cache ou da API Nearby Search
+    function searchNearby(center) {
+      clearMarkers();
+      document.querySelector('.results-grid').innerHTML = 'Carregando...';
+      const cacheKey = getCacheKey(center, RADIUS, selectedType);
+      // 1. Verifica se já existe cache para esta região, raio e tipo
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        // 2. Se existe, carrega do cache
+        const cacheObj = JSON.parse(cached);
+        // (Opcional: pode validar timestamp aqui se quiser expirar o cache)
+        renderResults(cacheObj.results);
+        // Renderiza marcadores
+        const filtered = cacheObj.results.filter(place => isTypeMatch(place, selectedType));
+        filtered.forEach(place => {
+          if (place.geometry && place.geometry.location) {
+            const marker = new google.maps.Marker({
+              map,
+              position: place.geometry.location,
+              title: place.name,
+              icon: getPinIcon(place)
+            });
+            markers.push(marker);
+          }
+        });
+        console.log('Dados carregados do cache:', cacheObj);
+        return;
+      }
+      // 3. Se não existe cache, faz a requisição Nearby Search
+      const request = {
+        location: center,
+        radius: RADIUS,
+        type: selectedType
+      };
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          // 4. Salva no cache com timestamp
+          const cacheObj = {
+            results,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(cacheKey, JSON.stringify(cacheObj));
+          renderResults(results);
+          // Renderiza marcadores
+          const filtered = results.filter(place => isTypeMatch(place, selectedType));
+          filtered.forEach(place => {
+            if (place.geometry && place.geometry.location) {
+              const marker = new google.maps.Marker({
+                map,
+                position: place.geometry.location,
+                title: place.name,
+                icon: getPinIcon(place)
+              });
+              markers.push(marker);
+            }
+          });
+          console.log('Dados buscados da API e salvos no cache:', cacheObj);
+        } else {
+          document.querySelector('.results-grid').innerHTML = 'Nenhum resultado encontrado.';
+        }
+      });
+    }
+
     function getBuscaPersistida() {
       try {
         return JSON.parse(localStorage.getItem('buscaViajey')) || {};
       } catch {
         return {};
       }
-    }
-
-    function inicializarMapaComCidade(tipoInicial = 'hotel') {
-      const { cidade } = getBuscaPersistida();
-      if (!cidade) {
-        console.log('Cidade não definida');
-        return;
-      }
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cidade)}&key=${API_KEY}`)
-        .then(res => res.json())
-        .then(geo => {
-          if (geo.results && geo.results[0]) {
-            const location = geo.results[0].geometry.location;
-            const mapDiv = document.getElementById('map');
-            if (mapDiv) {
-              const map = new google.maps.Map(mapDiv, {
-                center: location,
-                zoom: 14
-              });
-
-              let markers = [];
-
-              function limparResultados() {
-                document.querySelector('.results-grid').innerHTML = '';
-                markers.forEach(m => m.setMap(null));
-                markers = [];
-              }
-
-              function buscarEAdicionar(tipo, iconUrl) {
-                limparResultados();
-                const lat = location.lat;
-                const lng = location.lng;
-                fetch(`http://localhost:3001/api/places?lat=${lat}&lng=${lng}&type=${tipo}`)
-                  .then(res => res.json())
-                  .then(data => {
-                    const results = data.results || [];
-                    results.forEach(place => {
-                      // Adiciona marcador no mapa
-                      if (place.location) {
-                        const marker = new google.maps.Marker({
-                          position: place.location,
-                          map: map,
-                          title: place.name,
-                          icon: iconUrl || undefined
-                        });
-                        markers.push(marker);
-                      }
-                      // Cria card sem foto, só dados gratuitos
-                      if (window.createResultCard) {
-                        document.querySelector('.results-grid').appendChild(
-                          window.createResultCard({
-                            image: '',
-                            title: place.name,
-                            rating: place.rating || 0,
-                            tags: place.types ? place.types.slice(0, 2) : [],
-                            address: place.address || '',
-                            price_level: place.price_level
-                          })
-                        );
-                      }
-                    });
-                  });
-              }
-              // Ícones
-              const hotelIcon = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-              const restaurantIcon = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
-              const attractionIcon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
-
-              // Filtro inicial
-              let tipoAtual = tipoInicial;
-              let iconAtual = hotelIcon;
-              if (tipoAtual === 'restaurant') iconAtual = restaurantIcon;
-              if (tipoAtual === 'tourist_attraction') iconAtual = attractionIcon;
-              buscarEAdicionar(tipoAtual, iconAtual);
-
-              // Filtros dinâmicos
-              document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                  this.classList.add('active');
-                  let tipo = 'hotel', icon = hotelIcon;
-                  if (this.textContent.includes('Restaurantes')) { tipo = 'restaurant'; icon = restaurantIcon; }
-                  if (this.textContent.includes('Atra')) { tipo = 'tourist_attraction'; icon = attractionIcon; }
-                  tipoAtual = tipo;
-                  iconAtual = icon;
-                  buscarEAdicionar(tipoAtual, iconAtual);
-                });
-              });
-            }
-          }
-        });
     }
 
     function preencherBusca({ cidade, checkin, checkout }) {
@@ -219,24 +258,70 @@
       }
     }
 
-    // Aguarda o search-bar, Flatpickr e Google Maps estarem prontos
+    function inicializarMapaComCidade() {
+      const { cidade } = getBuscaPersistida();
+      if (!cidade) {
+        console.log('Cidade não definida');
+        return;
+      }
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cidade)}&key=${API_KEY}`)
+        .then(res => res.json())
+        .then(geo => {
+          if (geo.results && geo.results[0]) {
+            const location = geo.results[0].geometry.location;
+            lastCenter = location;
+            map = new google.maps.Map(document.getElementById('map'), {
+              center: location,
+              zoom: lastZoom
+            });
+            service = new google.maps.places.PlacesService(map);
+            searchNearby(location);
+            btn = document.getElementById('search-area-btn');
+            map.addListener('idle', () => {
+              const center = map.getCenter();
+              const zoom = map.getZoom();
+              if (
+                !lastCenter ||
+                center.lat() !== lastCenter.lat ||
+                center.lng() !== lastCenter.lng ||
+                zoom !== lastZoom
+              ) {
+                btn.style.display = 'block';
+                moved = true;
+              }
+            });
+            btn.addEventListener('click', () => {
+              const center = map.getCenter();
+              lastCenter = { lat: center.lat(), lng: center.lng() };
+              lastZoom = map.getZoom();
+              btn.style.display = 'none';
+              moved = false;
+              searchNearby(center);
+            });
+            map.addListener('dragstart', () => { btn.style.display = 'none'; });
+            map.addListener('zoom_changed', () => { btn.style.display = 'none'; });
+            document.querySelectorAll('.filters-left .filter-btn').forEach(btn => {
+              btn.addEventListener('click', function() {
+                document.querySelectorAll('.filters-left .filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                if (this.textContent.includes('Hotel')) selectedType = 'lodging';
+                if (this.textContent.includes('Restaurantes')) selectedType = 'restaurant';
+                if (this.textContent.includes('Atra')) selectedType = 'tourist_attraction';
+                searchNearby(map.getCenter());
+              });
+            });
+          }
+        });
+    }
+
     function waitForMap() {
       const mapDiv = document.getElementById('map');
       const input = document.getElementById('autocomplete');
       const dateInput = document.getElementById('date-range');
       const flatpickrReady = dateInput && dateInput._flatpickr;
       
-      console.log('Estado dos componentes:', {
-        map: !!mapDiv,
-        googleMaps: !!(window.google && window.google.maps),
-        input: !!input,
-        dateInput: !!dateInput,
-        flatpickrReady
-      });
-
       if (mapDiv && window.google && window.google.maps && input && dateInput && flatpickrReady) {
         const params = getBuscaPersistida();
-        console.log('Parâmetros encontrados:', params);
         preencherBusca(params);
         setTituloDinamico();
         inicializarMapaComCidade();
@@ -256,6 +341,16 @@
         script.src = 'components/search-bar/search-bar.js';
         document.body.appendChild(script);
       });
+  </script>
+  <script>
+    // Função para checar se o local pertence ao tipo selecionado (prioridade pelo primeiro tipo)
+    function isTypeMatch(place, selectedType) {
+      if (!place.types || !place.types.length) return false;
+      if (selectedType === 'lodging') return place.types[0] === 'lodging';
+      if (selectedType === 'restaurant') return place.types[0] === 'restaurant' || place.types[0] === 'food';
+      if (selectedType === 'tourist_attraction') return place.types[0] === 'tourist_attraction';
+      return false;
+    }
   </script>
 </body>
 </html> 
