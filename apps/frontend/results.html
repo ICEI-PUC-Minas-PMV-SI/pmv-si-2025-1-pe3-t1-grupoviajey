@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="components/search-bar/search-bar.css">
   <link rel="stylesheet" href="components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q&libraries=places"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="components/cards/result-card.js"></script>
@@ -50,9 +50,10 @@
   </main>
   <div id="footer"></div>
   <div id="place-details-modal-include"></div>
+  <div id="reviews-modal-include"></div>
   <script src="js/include.js"></script>
   <script>
-    const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q';
+    const API_KEY = 'AIzaSyBYvz7j7Rj0AfCx15nW6a9Rcw-AYKoqw2k';
     const RADIUS = 2000;
     let map, service, markers = [], lastCenter = null, lastZoom = 14;
     let btn, moved = false;

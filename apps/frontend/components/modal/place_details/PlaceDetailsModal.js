@@ -3,6 +3,9 @@
   if (!modal) return;
   const closeBtn = modal.querySelector('.place-details-modal-close');
   const overlay = modal;
+  const addBtn = modal.querySelector('.place-details-action-btn[title="Adicionar ao roteiro"]');
+  const favoriteBtn = modal.querySelector('.place-details-action-btn[title="Favoritar"]');
+  const shareBtn = modal.querySelector('.place-details-action-btn[title="Compartilhar"]');
   const abrirRoteiroBtn = modal.querySelector('#abrir-roteiro-dropdown');
   const roteiroDropdown = modal.querySelector('#roteiro-dropdown');
   const roteiroLista = roteiroDropdown.querySelector('.roteiro-lista');
@@ -109,16 +112,35 @@
   }
 
   // Dropdown de roteiros
-  abrirRoteiroBtn.onclick = function(e) {
-    e.stopPropagation();
-    roteiroDropdown.style.display = roteiroDropdown.style.display === 'block' ? 'none' : 'block';
+  function toggleDropdown() {
+    const modalBox = document.querySelector('.place-details-modal');
+    const isOpen = roteiroDropdown.style.display === 'block';
+    roteiroDropdown.style.display = isOpen ? 'none' : 'block';
     roteiroCriar.style.display = 'none';
     roteiroFeedback.style.display = 'none';
+    if (!isOpen) {
+      modalBox.classList.add('dropdown-active');
+    } else {
+      modalBox.classList.remove('dropdown-active');
+    }
+  }
+
+  abrirRoteiroBtn.onclick = function(e) {
+    e.stopPropagation();
+    toggleDropdown();
+  };
+  addBtn.onclick = function(e) {
+    e.stopPropagation();
+    toggleDropdown();
   };
   // Fechar dropdown ao clicar fora
   document.addEventListener('click', function(e) {
-    if (!roteiroDropdown.contains(e.target) && e.target !== abrirRoteiroBtn) {
+    if (!roteiroDropdown.contains(e.target) && e.target !== abrirRoteiroBtn && e.target !== addBtn) {
       roteiroDropdown.style.display = 'none';
+      roteiroCriar.style.display = 'none';
+      roteiroFeedback.style.display = 'none';
+      const modalBox = document.querySelector('.place-details-modal');
+      modalBox.classList.remove('dropdown-active');
     }
   });
   // Selecionar roteiro existente
@@ -153,4 +175,51 @@
     roteiroFeedback.style.display = 'flex';
     setTimeout(() => { roteiroFeedback.style.display = 'none'; }, 2200);
   }
+
+  // Função para compartilhar
+  shareBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (navigator.share) {
+      navigator.share({
+        title: modal.querySelector('.place-details-title').textContent,
+        text: 'Confira este lugar incrível!',
+        url: window.location.href
+      })
+      .catch(console.error);
+    } else {
+      // Fallback para copiar o link
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+          const feedback = document.createElement('div');
+          feedback.textContent = 'Link copiado!';
+          feedback.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 20px;border-radius:4px;z-index:1000;';
+          document.body.appendChild(feedback);
+          setTimeout(() => feedback.remove(), 2000);
+        })
+        .catch(console.error);
+    }
+  };
+
+  // Função para favoritar
+  favoriteBtn.onclick = function(e) {
+    e.stopPropagation();
+    const icon = this.querySelector('i');
+    if (icon.classList.contains('far')) {
+      icon.classList.remove('far');
+      icon.classList.add('fas');
+      icon.style.color = '#ff4444';
+    } else {
+      icon.classList.remove('fas');
+      icon.classList.add('far');
+      icon.style.color = '#333';
+    }
+  };
+
+  document.querySelector('.ver-avaliacoes-btn').onclick = function() {
+    if (window.openReviewsModal) {
+      const title = document.querySelector('.place-details-title');
+      const localName = title ? title.textContent : '';
+      window.openReviewsModal(localName);
+    }
+  };
 })();

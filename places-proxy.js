@@ -4,7 +4,7 @@ const app = express();
 
 app.use(cors());
 
-const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q'; // Coloque sua chave aqui
+const API_KEY = 'YOUR_API_KEY'; // Coloque sua chave aqui
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
