@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="components/search-bar/search-bar.css">
   <link rel="stylesheet" href="components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q&libraries=places"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEYibraries=places"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="components/cards/result-card.js"></script>
@@ -22,7 +22,7 @@
     <section class="results-header-section">
       <div class="results-header-container">
         <h1 class="results-title">Explorando Balneário Camboriú</h1>
-        <div id="search-bar-include"></div>
+        <div id="search-bar-include" style="width: 100%; max-width: 600px;"></div>
       </div>
     </section>
     <section class="results-filters-section">
@@ -33,7 +33,7 @@
           <button class="filter-btn">Atrações</button>
         </div>
         <div class="filters-right">
-          <button class="filter-btn"><img src="/apps/frontend/images/funnel.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Filtros</button>
+          <button class="filter-btn" id="filters-btn"><img src="/apps/frontend/images/funnel.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Filtros</button>
           <button class="filter-btn"><img src="/apps/frontend/images/sort.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Organizar</button>
         </div>
       </div>
@@ -50,15 +50,143 @@
   </main>
   <div id="footer"></div>
   <div id="place-details-modal-include"></div>
+  <div id="reviews-modal-include"></div>
+  <div id="filters-modal" class="filters-modal">
+    <div class="filters-modal-content">
+      <div class="filters-modal-header">
+        <h3>Filtros</h3>
+        <button class="filters-modal-close">&times;</button>
+      </div>
+      <div class="filters-modal-body">
+        <!-- Filtros de Preço -->
+        <div class="filter-section">
+          <h4>Preço</h4>
+          <div class="price-filters">
+            <label class="price-filter">
+              <input type="checkbox" name="price" value="1">
+              <span class="price-dots">$</span>
+            </label>
+            <label class="price-filter">
+              <input type="checkbox" name="price" value="2">
+              <span class="price-dots">$$</span>
+            </label>
+            <label class="price-filter">
+              <input type="checkbox" name="price" value="3">
+              <span class="price-dots">$$$</span>
+            </label>
+            <label class="price-filter">
+              <input type="checkbox" name="price" value="4">
+              <span class="price-dots">$$$$</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Filtros de Avaliação -->
+        <div class="filter-section">
+          <h4>Avaliação</h4>
+          <div class="rating-filters">
+            <label class="rating-filter">
+              <input type="checkbox" name="rating" value="4">
+              <span class="rating-stars">★★★★☆</span>
+              <span class="rating-text">4+ estrelas</span>
+            </label>
+            <label class="rating-filter">
+              <input type="checkbox" name="rating" value="3">
+              <span class="rating-stars">★★★☆☆</span>
+              <span class="rating-text">3+ estrelas</span>
+            </label>
+            <label class="rating-filter">
+              <input type="checkbox" name="rating" value="2">
+              <span class="rating-stars">★★☆☆☆</span>
+              <span class="rating-text">2+ estrelas</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Filtros Específicos por Tipo -->
+        <div class="filter-section hotel-filters" style="display: none;">
+          <h4>Comodidades do Hotel</h4>
+          <div class="amenity-filters">
+            <label class="amenity-filter">
+              <input type="checkbox" name="amenity" value="wifi">
+              <span>Wi-Fi Grátis</span>
+            </label>
+            <label class="amenity-filter">
+              <input type="checkbox" name="amenity" value="pool">
+              <span>Piscina</span>
+            </label>
+            <label class="amenity-filter">
+              <input type="checkbox" name="amenity" value="breakfast">
+              <span>Café da Manhã</span>
+            </label>
+            <label class="amenity-filter">
+              <input type="checkbox" name="amenity" value="parking">
+              <span>Estacionamento</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section restaurant-filters" style="display: none;">
+          <h4>Tipo de Cozinha</h4>
+          <div class="cuisine-filters">
+            <label class="cuisine-filter">
+              <input type="checkbox" name="cuisine" value="brazilian">
+              <span>Brasileira</span>
+            </label>
+            <label class="cuisine-filter">
+              <input type="checkbox" name="cuisine" value="italian">
+              <span>Italiana</span>
+            </label>
+            <label class="cuisine-filter">
+              <input type="checkbox" name="cuisine" value="japanese">
+              <span>Japonesa</span>
+            </label>
+            <label class="cuisine-filter">
+              <input type="checkbox" name="cuisine" value="seafood">
+              <span>Frutos do Mar</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section attraction-filters" style="display: none;">
+          <h4>Tipo de Atração</h4>
+          <div class="attraction-type-filters">
+            <label class="attraction-type-filter">
+              <input type="checkbox" name="attraction_type" value="beach">
+              <span>Praia</span>
+            </label>
+            <label class="attraction-type-filter">
+              <input type="checkbox" name="attraction_type" value="park">
+              <span>Parque</span>
+            </label>
+            <label class="attraction-type-filter">
+              <input type="checkbox" name="attraction_type" value="museum">
+              <span>Museu</span>
+            </label>
+            <label class="attraction-type-filter">
+              <input type="checkbox" name="attraction_type" value="shopping">
+              <span>Shopping</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="filters-modal-footer">
+        <button class="clear-filters-btn">Limpar Filtros</button>
+        <button class="apply-filters-btn">Aplicar Filtros</button>
+      </div>
+    </div>
+  </div>
   <script src="js/include.js"></script>
   <script>
-    const API_KEY = 'AIzaSyCOU1l9BnOILgz5xEudJND1Rwlxcw8wP4Q';
+    const API_KEY = 'YOUR_API_KEY';
     const RADIUS = 2000;
     let map, service, markers = [], lastCenter = null, lastZoom = 14;
     let btn, moved = false;
     let selectedType = 'lodging';
+    let allResults = [];
 
     function renderResults(results) {
+      allResults = results; 
       const grid = document.querySelector('.results-grid');
       grid.innerHTML = '';
       const filtered = results.filter(place => isTypeMatch(place, selectedType));
@@ -151,7 +279,7 @@
               item.onclick = function(e) {
                 e.stopPropagation();
                 dropdown.style.display = 'none';
-                mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+                mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b>`);
               };
             }
           });
@@ -161,7 +289,7 @@
             if (nome) {
               dropdown.style.display = 'none';
               criar.style.display = 'none';
-              mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+              mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b>`);
             }
           };
           function mostrarFeedback(msg) {
@@ -228,7 +356,7 @@
               input.value = '';
               input.focus();
             } else {
-              mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+              mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b>`);
               setTimeout(() => {
                 floatingDropdown.style.display = 'none';
               }, 2200);
@@ -240,7 +368,7 @@
           ev.stopPropagation();
           const nome = input.value.trim();
           if (nome) {
-            mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+            mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b>`);
             setTimeout(() => {
               floatingDropdown.style.display = 'none';
               criar.style.display = 'none';
@@ -677,6 +805,130 @@
       
       return false;
     }
+
+    // Código do Modal de Filtros
+    const filtersBtn = document.getElementById('filters-btn');
+    const filtersModal = document.getElementById('filters-modal');
+    const closeFiltersBtn = filtersModal.querySelector('.filters-modal-close');
+    const clearFiltersBtn = filtersModal.querySelector('.clear-filters-btn');
+    const applyFiltersBtn = filtersModal.querySelector('.apply-filters-btn');
+    const hotelFilters = filtersModal.querySelector('.hotel-filters');
+    const restaurantFilters = filtersModal.querySelector('.restaurant-filters');
+    const attractionFilters = filtersModal.querySelector('.attraction-filters');
+
+    // Abrir modal de filtros
+    filtersBtn.onclick = function() {
+      filtersModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    // Fechar modal
+    closeFiltersBtn.onclick = function() {
+      filtersModal.style.display = 'none';
+      document.body.style.overflow = '';
+    };
+
+    // Fechar ao clicar fora
+    filtersModal.onclick = function(e) {
+      if (e.target === filtersModal) {
+        filtersModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    };
+
+    // Fechar com ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && filtersModal.style.display === 'flex') {
+        filtersModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Limpar filtros
+    clearFiltersBtn.onclick = function() {
+      const checkboxes = filtersModal.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+      
+      // Restaurar todos os resultados
+      renderResults(allResults);
+    };
+
+    // Aplicar filtros
+    applyFiltersBtn.onclick = function() {
+      // Coletar todos os filtros selecionados
+      const selectedPrices = Array.from(filtersModal.querySelectorAll('input[name="price"]:checked')).map(cb => parseInt(cb.value));
+      const selectedRatings = Array.from(filtersModal.querySelectorAll('input[name="rating"]:checked')).map(cb => parseInt(cb.value));
+      const selectedAmenities = Array.from(filtersModal.querySelectorAll('input[name="amenity"]:checked')).map(cb => cb.value);
+      const selectedCuisines = Array.from(filtersModal.querySelectorAll('input[name="cuisine"]:checked')).map(cb => cb.value);
+      const selectedAttractionTypes = Array.from(filtersModal.querySelectorAll('input[name="attraction_type"]:checked')).map(cb => cb.value);
+
+      // Filtrar os resultados
+      const filteredResults = allResults.filter(place => {
+        // Verificar preço
+        if (selectedPrices.length > 0) {
+          const placePrice = place.price_level || 0;
+          if (!selectedPrices.includes(placePrice)) return false;
+        }
+
+        // Verificar avaliação
+        if (selectedRatings.length > 0) {
+          const placeRating = place.rating || 0;
+          if (!selectedRatings.some(rating => placeRating >= rating)) return false;
+        }
+
+        // Verificar comodidades (para hotéis)
+        if (selectedAmenities.length > 0 && selectedType === 'lodging') {
+          if (!place.types || !place.types.includes('lodging')) return false;
+        }
+
+        // Verificar tipo de cozinha (para restaurantes)
+        if (selectedCuisines.length > 0 && selectedType === 'restaurant') {
+          if (!place.types || !place.types.some(type => ['restaurant', 'food'].includes(type))) return false;
+        }
+
+        // Verificar tipo de atração
+        if (selectedAttractionTypes.length > 0 && selectedType === 'tourist_attraction') {
+          if (!place.types || !place.types.includes('tourist_attraction')) return false;
+        }
+
+        return true;
+      });
+
+      // Atualizar os resultados na tela
+      renderResults(filteredResults);
+
+      // Fechar o modal
+      filtersModal.style.display = 'none';
+      document.body.style.overflow = '';
+
+      // Mostrar feedback do número de resultados
+      const feedback = document.createElement('div');
+      feedback.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 20px;border-radius:4px;z-index:1000;';
+      feedback.textContent = `${filteredResults.length} resultados encontrados`;
+      document.body.appendChild(feedback);
+      setTimeout(() => feedback.remove(), 2000);
+    };
+
+    // Mostrar filtros específicos baseado no tipo selecionado
+    document.querySelectorAll('.filters-left .filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const type = this.textContent.toLowerCase();
+        
+        // Esconder todos os filtros específicos
+        hotelFilters.style.display = 'none';
+        restaurantFilters.style.display = 'none';
+        attractionFilters.style.display = 'none';
+
+        // Mostrar filtros específicos do tipo selecionado
+        if (type.includes('hotel')) {
+          hotelFilters.style.display = 'block';
+        } else if (type.includes('restaurante')) {
+          restaurantFilters.style.display = 'block';
+        } else if (type.includes('atração')) {
+          attractionFilters.style.display = 'block';
+        }
+      });
+    });
   </script>
 </body>
 </html> 
