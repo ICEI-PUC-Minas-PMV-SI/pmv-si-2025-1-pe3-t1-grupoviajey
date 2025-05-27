@@ -68,15 +68,28 @@
       const title = modal.querySelector('.place-details-title');
       const address = modal.querySelector('.place-details-list li span');
       const rating = modal.querySelector('.place-details-list li:nth-child(4) span');
+      const starsContainer = modal.querySelector('.avaliacoes-estrelas');
       
       if (title) title.textContent = data.name || '';
       if (address) {
         address.textContent = data.address || storageData.address || '';
       }
-      if (rating) {
-        const ratingValue = data.rating || storageData.rating || 0;
-        const stars = '★'.repeat(Math.floor(ratingValue)) + '☆'.repeat(5-Math.floor(ratingValue));
-        rating.textContent = `${stars} ${ratingValue.toFixed(1)}/5`;
+      if (rating && starsContainer) {
+        // Usar a avaliação do data passado pelo card
+        const ratingValue = parseFloat(data.rating) || 0;
+        
+        // Atualizar o texto da avaliação
+        rating.textContent = `${ratingValue.toFixed(1)}/5`;
+        
+        // Atualizar as estrelas
+        starsContainer.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+          const star = document.createElement('span');
+          // Usar Math.round para arredondar corretamente
+          star.className = i <= Math.round(ratingValue) ? 'star filled' : 'star';
+          star.textContent = '★';
+          starsContainer.appendChild(star);
+        }
       }
 
       // Preencher informações adicionais do local storage
@@ -111,13 +124,22 @@
     document.body.style.overflow = '';
   }
 
+  // Adicionar listener para tecla ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.style.display === 'flex') {
+      fecharModal();
+    }
+  });
+
   // Dropdown de roteiros
   function toggleDropdown() {
     const modalBox = document.querySelector('.place-details-modal');
     const isOpen = roteiroDropdown.style.display === 'block';
+    
     roteiroDropdown.style.display = isOpen ? 'none' : 'block';
     roteiroCriar.style.display = 'none';
     roteiroFeedback.style.display = 'none';
+    
     if (!isOpen) {
       modalBox.classList.add('dropdown-active');
     } else {
@@ -156,7 +178,7 @@
       item.onclick = function(e) {
         e.stopPropagation();
         roteiroDropdown.style.display = 'none';
-        mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+        mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b>`);
       };
     }
   });
@@ -167,11 +189,11 @@
     if (nome) {
       roteiroDropdown.style.display = 'none';
       roteiroCriar.style.display = 'none';
-      mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b> <span style='color:green;font-size:1.2em;'>✔️</span>`);
+      mostrarFeedback(`Adicionado ao roteiro <b>${nome}</b>`);
     }
   };
   function mostrarFeedback(msg) {
-    roteiroFeedback.innerHTML = msg;
+    roteiroFeedback.innerHTML = `${msg} <i class="fas fa-check-circle" style="color:#2ecc71;font-size:1.2em;"></i>`;
     roteiroFeedback.style.display = 'flex';
     setTimeout(() => { roteiroFeedback.style.display = 'none'; }, 2200);
   }
@@ -179,25 +201,52 @@
   // Função para compartilhar
   shareBtn.onclick = function(e) {
     e.stopPropagation();
-    if (navigator.share) {
-      navigator.share({
-        title: modal.querySelector('.place-details-title').textContent,
-        text: 'Confira este lugar incrível!',
-        url: window.location.href
-      })
-      .catch(console.error);
-    } else {
-      // Fallback para copiar o link
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => {
-          const feedback = document.createElement('div');
-          feedback.textContent = 'Link copiado!';
-          feedback.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 20px;border-radius:4px;z-index:1000;';
-          document.body.appendChild(feedback);
-          setTimeout(() => feedback.remove(), 2000);
-        })
-        .catch(console.error);
-    }
+    const shareModal = document.getElementById('share-modal');
+    const shareLinkInput = document.getElementById('share-link-input');
+    const copyLinkBtn = document.getElementById('copy-link-btn');
+    const closeBtn = shareModal.querySelector('.share-modal-close');
+
+    // Preencher o input com a URL atual
+    shareLinkInput.value = window.location.href;
+
+    // Mostrar o modal
+    shareModal.style.display = 'flex';
+
+    // Função para copiar o link
+    copyLinkBtn.onclick = function() {
+      shareLinkInput.select();
+      document.execCommand('copy');
+      
+      // Feedback visual
+      const originalText = copyLinkBtn.innerHTML;
+      copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+      copyLinkBtn.style.background = '#27ae60';
+      
+      setTimeout(() => {
+        copyLinkBtn.innerHTML = originalText;
+        copyLinkBtn.style.background = '';
+      }, 2000);
+    };
+
+    // Fechar o modal
+    closeBtn.onclick = function() {
+      shareModal.style.display = 'none';
+    };
+
+    // Fechar ao clicar fora
+    shareModal.onclick = function(e) {
+      if (e.target === shareModal) {
+        shareModal.style.display = 'none';
+      }
+    };
+
+    // Fechar com ESC
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape' && shareModal.style.display === 'flex') {
+        shareModal.style.display = 'none';
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
   };
 
   // Função para favoritar
@@ -215,7 +264,8 @@
     }
   };
 
-  document.querySelector('.ver-avaliacoes-btn').onclick = function() {
+  // Tornar o bloco de avaliações clicável para abrir o modal de avaliações
+  document.querySelector('.avaliacoes-bloco-clicavel').onclick = function() {
     if (window.openReviewsModal) {
       const title = document.querySelector('.place-details-title');
       const localName = title ? title.textContent : '';

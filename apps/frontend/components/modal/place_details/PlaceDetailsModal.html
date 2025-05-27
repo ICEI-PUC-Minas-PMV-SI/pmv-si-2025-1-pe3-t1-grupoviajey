@@ -46,8 +46,17 @@
             <li><b>Horário de Funcionamento</b> <span>09:00 - 22:00</span></li>
             <li><b>Preço</b> <span>$$$ – 60,00 por pessoa</span></li>
             <li class="avaliacoes-row">
-              <b>Avaliações</b> <span>★★★★★ 4.6/5</span>
-              <button class="ver-avaliacoes-btn" type="button">Ver avaliações</button>
+              <b>Avaliações</b>
+              <div class="avaliacoes-bloco-clicavel" title="Ver avaliações">
+                <span class="avaliacoes-estrelas">
+                  <span class="star filled">&#9733;</span>
+                  <span class="star filled">&#9733;</span>
+                  <span class="star filled">&#9733;</span>
+                  <span class="star filled">&#9733;</span>
+                  <span class="star">&#9733;</span>
+                </span>
+                <i class="fa-regular fa-comment avaliacoes-icone"></i>
+              </div>
             </li>
           </ul>
           <div class="place-details-roteiro-container">
@@ -63,4 +72,24 @@
       </div>
     </div>
   </div>
+  
+  <div id="share-modal" class="share-modal">
+    <div class="share-modal-content">
+      <div class="share-modal-header">
+        <h3>Compartilhar</h3>
+        <button class="share-modal-close">&times;</button>
+      </div>
+      <div class="share-modal-body">
+        <div class="share-link-container">
+          <input type="text" id="share-link-input" readonly>
+          <button id="copy-link-btn" class="copy-link-btn">
+            <i class="fas fa-copy"></i>
+            Copiar link
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
   

@@ -98,7 +98,7 @@ hr {
   font-size: 1.05rem;
   font-weight: 600;
   color: #222;
-  margin-bottom: 0;
+  margin-bottom: 10px;
 }
 .review-form-row {
   display: flex;
@@ -122,27 +122,51 @@ hr {
 .review-stars {
   display: flex;
   gap: 4px;
-  margin-bottom: 0;
+  margin-bottom: 4px;
   justify-content: flex-start;
 }
 .star {
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   color: #ccc;
   cursor: pointer;
   transition: color 0.2s;
   user-select: none;
 }
-.star.selected,
 .star.filled {
   color: #FFD700;
 }
-.star:hover,
-.star:hover ~ .star {
+#review-stars {
+  display: flex;
+  justify-content: flex-start;
+}
+#review-stars .star {
+  font-size: 1.6rem;
+}
+#review-stars:hover .star {
+  color: #FFD700;
+}
+#review-stars .star:hover ~ .star {
+  color: #ccc;
+}
+#review-stars .star.selected ~ .star {
+  color: #ccc;
+}
+#review-stars .star.selected,
+#review-stars .star.selected ~ .star.selected {
   color: #FFD700;
 }
 .review-textarea {
   width: 100%;
-  min-width: 180px;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 .review-submit {
   background: #113c3f;
@@ -166,4 +190,10 @@ hr {
     align-items: stretch;
     gap: 8px;
   }
+}
+.review-user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
 } 
