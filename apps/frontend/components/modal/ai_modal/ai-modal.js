@@ -678,7 +678,6 @@ function initAiModal() {
         const minLeft = 8;
         const maxLeft = window.innerWidth - tooltip.offsetWidth - 8;
         const minTop = 8;
-        // Ajusta se sair da tela
         if (left < minLeft) left = minLeft;
         if (left > maxLeft) left = maxLeft;
         if (top < minTop) top = minTop;
@@ -691,6 +690,54 @@ function initAiModal() {
       tooltip.style.display = 'none';
     });
   });
+
+  // Garante que o botão '+ Adicionar interesse' funcione normalmente
+  const addInterestBtn = document.getElementById('show-add-interest');
+  const addInterestForm = document.getElementById('add-interest-form');
+  if (addInterestBtn && addInterestForm) {
+    addInterestBtn.onclick = function() {
+      addInterestForm.style.display = 'flex';
+      addInterestBtn.style.display = 'none';
+      // Foca no input ao abrir
+      const input = addInterestForm.querySelector('.interests-add-input');
+      if (input) setTimeout(() => input.focus(), 100);
+    };
+    // Adiciona o card ao clicar em 'Adicionar'
+    const addConfirmBtn = addInterestForm.querySelector('.interests-add-confirm');
+    const addInput = addInterestForm.querySelector('.interests-add-input');
+    const interestsCardsGrid = document.getElementById('interests-cards');
+    if (addConfirmBtn && addInput && interestsCardsGrid) {
+      addConfirmBtn.onclick = function() {
+        const value = addInput.value.trim();
+        if (value) {
+          // Cria o card
+          const card = document.createElement('div');
+          card.className = 'ai-modal-card selected';
+          card.setAttribute('data-value', value);
+          card.textContent = value;
+          // Seleciona/desseleciona ao clicar
+          card.onclick = function() {
+            card.classList.toggle('selected');
+            if (card.classList.contains('selected')) {
+              if (!state.interesses.includes(value)) state.interesses.push(value);
+            } else {
+              state.interesses = state.interesses.filter(i => i !== value);
+            }
+            interestsContinue.disabled = state.interesses.length === 0;
+          };
+          // Adiciona ao grid
+          interestsCardsGrid.appendChild(card);
+          // Adiciona ao state e habilita o continuar
+          if (!state.interesses.includes(value)) state.interesses.push(value);
+          interestsContinue.disabled = state.interesses.length === 0;
+          // Limpa input e fecha form
+          addInput.value = '';
+          addInterestForm.style.display = 'none';
+          addInterestBtn.style.display = '';
+        }
+      };
+    }
+  }
 }
 
 // Só inicializa quando o overlay estiver no DOM
