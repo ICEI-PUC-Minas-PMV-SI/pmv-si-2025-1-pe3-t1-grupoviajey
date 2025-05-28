@@ -664,4 +664,8 @@ h2 {
   background: #e0f2f1;
   color: #007c91;
   box-shadow: 0 4px 16px rgba(0,124,145,0.10);
+}
+
+.pac-container {
+  z-index: 99999 !important;
 } 

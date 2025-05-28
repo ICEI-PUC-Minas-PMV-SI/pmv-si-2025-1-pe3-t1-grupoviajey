@@ -32,6 +32,59 @@ function initAiModal() {
   let aiFp = null;
   // Pilha de navegação para Voltar
   let modalHistory = [];
+
+  // Definir destinationInput no escopo da função
+  let destinationInput = null;
+
+  // Inicializa o autocomplete do Google Places
+  function initAutocomplete() {
+    console.log('Inicializando autocomplete...');
+    if (!destinationInput) {
+      destinationInput = document.querySelector('#destination-modal .ai-modal-search-input');
+    }
+    if (!destinationInput) {
+      console.error('Input de destino não encontrado');
+      return;
+    }
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      console.error('Google Maps API não está disponível');
+      return;
+    }
+    try {
+      const autocomplete = new google.maps.places.Autocomplete(destinationInput, {
+        types: ['(cities)']
+      });
+      autocomplete.addListener('place_changed', function() {
+        console.log('Evento place_changed disparado');
+        const place = autocomplete.getPlace();
+        console.log('Place selected:', place);
+        if (place.address_components) {
+          const city = place.address_components.find(comp => comp.types.includes('locality'));
+          if (city) {
+            destinationInput.value = city.long_name;
+          } else {
+            destinationInput.value = place.name;
+          }
+          // Habilita o botão continuar apenas quando um local for selecionado
+          destinationContinue.disabled = false;
+        }
+      });
+      console.log('Autocomplete inicializado com sucesso');
+    } catch (error) {
+      console.error('Erro ao inicializar autocomplete:', error);
+    }
+  }
+
+  // Tenta inicializar o autocomplete quando o modal for aberto
+  function tryInitAutocomplete() {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      initAutocomplete();
+    } else {
+      console.log('Google Maps API não está disponível, tentando novamente em 100ms...');
+      setTimeout(tryInitAutocomplete, 100);
+    }
+  }
+
   function showModal(idx, pushHistory = true) {
     // Esconde todos os modais
     modalOrder.forEach((id, i) => {
@@ -40,6 +93,15 @@ function initAiModal() {
     
     // Mostra o modal atual
     document.getElementById(modalOrder[idx]).style.display = 'block';
+    
+    // Se for o modal de destino, atualiza o input e inicializa autocomplete
+    if (modalOrder[idx] === 'destination-modal') {
+      destinationInput = document.querySelector('#destination-modal .ai-modal-search-input');
+      tryInitAutocomplete();
+      setTimeout(() => {
+        destinationInput && destinationInput.focus();
+      }, 200);
+    }
     
     // Atualiza o histórico se necessário
     if (pushHistory && typeof currentModal === 'number' && idx !== currentModal) {
@@ -104,12 +166,10 @@ function initAiModal() {
   // Destino
   const destinationContinue = document.getElementById('destination-continue');
   destinationContinue.disabled = true;
-  const destinationInput = document.querySelector('#destination-modal .ai-modal-search-input');
-  destinationInput.addEventListener('input', function() {
-    destinationContinue.disabled = !this.value.trim();
-  });
+
+  // Destino
   destinationContinue.onclick = function() {
-    if (destinationInput.value.trim()) {
+    if (destinationInput && destinationInput.value.trim()) {
       state.destino = destinationInput.value.trim();
       showModal(1);
     }
@@ -397,16 +457,6 @@ function initAiModal() {
   window.openAiModal = function() {
     document.getElementById('ai-modal-overlay').style.display = 'flex';
     showModal(0);
-    // Inicializa autocomplete Google Places SEM _autocompleteInit
-    if (window.google && window.google.maps && window.google.maps.places) {
-      const destinationInput = document.querySelector('#destination-modal .ai-modal-search-input');
-      if (destinationInput) {
-        new google.maps.places.Autocomplete(destinationInput, {
-          types: ['(cities)'],
-          componentRestrictions: { country: 'br' }
-        });
-      }
-    }
   };
 
   // Fechar modal com ESC e clicando fora
