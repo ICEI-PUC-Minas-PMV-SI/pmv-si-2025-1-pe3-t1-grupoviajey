@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="components/search-bar/search-bar.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="js/config.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 </head>
@@ -100,6 +99,20 @@
           });
       });
     });
+
+    // Carrega a API key do backend antes de carregar o script do Google Maps
+    async function loadGoogleMapsScript() {
+      try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places`;
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Erro ao carregar API key:', error);
+      }
+    }
+    loadGoogleMapsScript();
   </script>
 </body>
 </html> 

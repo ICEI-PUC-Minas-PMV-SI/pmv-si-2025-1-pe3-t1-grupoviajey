@@ -12,7 +12,25 @@
   <link rel="stylesheet" href="components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="js/config.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+  <script>
+    // Carrega a API key do backend antes de carregar o script do Google Maps
+    async function loadGoogleMapsScript() {
+      try {
+        console.log('Tentando carregar API key...');
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        console.log('API key carregada com sucesso');
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places`;
+        script.onload = () => console.log('Script do Google Maps carregado com sucesso');
+        script.onerror = (error) => console.error('Erro ao carregar script do Google Maps:', error);
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Erro ao carregar API key:', error);
+      }
+    }
+    loadGoogleMapsScript();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="components/cards/result-card.js"></script>
@@ -179,12 +197,25 @@
   </div>
   <script src="js/include.js"></script>
   <script>
-    const API_KEY = 'YOUR_API_KEY'
     const RADIUS = 2000;
     let map, service, markers = [], lastCenter = null, lastZoom = 14;
     let btn, moved = false;
     let selectedType = 'lodging';
     let allResults = [];
+    let apiKey = null;
+
+    // Função para carregar a API key do backend
+    async function loadApiKey() {
+      try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        apiKey = data.apiKey;
+        return apiKey;
+      } catch (error) {
+        console.error('Erro ao carregar API key:', error);
+        return null;
+      }
+    }
 
     function renderResults(results) {
       allResults = results; 
@@ -655,7 +686,11 @@
         console.log('Cidade não definida');
         return;
       }
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cidade)}&key=${API_KEY}`)
+      if (!apiKey) {
+        console.error('API key não disponível');
+        return;
+      }
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cidade)}&key=${apiKey}`)
         .then(res => res.json())
         .then(geo => {
           if (geo.results && geo.results[0]) {
@@ -741,13 +776,21 @@
         });
     }
 
-    function waitForMap() {
+    async function waitForMap() {
       const mapDiv = document.getElementById('map');
       const input = document.getElementById('autocomplete');
       const dateInput = document.getElementById('date-range');
       const flatpickrReady = dateInput && dateInput._flatpickr;
       
       if (mapDiv && window.google && window.google.maps && input && dateInput && flatpickrReady) {
+        // Carrega a API key antes de prosseguir
+        if (!apiKey) {
+          await loadApiKey();
+        }
+        if (!apiKey) {
+          console.error('Não foi possível carregar a API key do Google Maps');
+          return;
+        }
         const params = getBuscaPersistida();
         preencherBusca(params);
         setTituloDinamico();
