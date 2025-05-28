@@ -156,7 +156,9 @@
           <span class="ai-modal-budget-ou">ou</span>
           <button type="button" class="ai-modal-btn-budget-type" id="budget-type-total">Adicionar orçamento total</button>
         </div>
-        <button type="button" class="ai-modal-btn-budget-type" id="budget-type-total">Prefiro não me limitar</button>
+        <div style="text-align: center; margin-top: 16px;">
+          <button id="budget-type-no-limit" class="ai-modal-btn-budget-type">Prefiro não me limitar</button>
+        </div>
         <div class="ai-modal-budget-row" id="budget-input-row" style="display:none;">
           <select class="ai-modal-currency-select">
             <option value="BRL">R$</option>
@@ -178,6 +180,9 @@
         <div class="ai-modal-summary-block">
           <div><strong>Destino:</strong> <span id="summary-destino"></span></div>
           <div><strong>Datas:</strong> <span id="summary-datas"></span></div>
+          <div><strong>Dias:</strong> <span id="summary-dias"></span></div>
+          <div><strong>Meses:</strong> <span id="summary-meses"></span></div>
+          <div><strong>Localização:</strong> <span id="summary-localizacao"></span></div>
           <div><strong>Orçamento:</strong> <span id="summary-orcamento"></span></div>
           <div><strong>Interesses:</strong> <span id="summary-interesses"></span></div>
           <div><strong>Companhia:</strong> <span id="summary-companhia"></span></div>
@@ -185,6 +190,17 @@
         <div class="ai-modal-nav-row">
           <button class="ai-modal-btn ai-modal-btn-back" id="summary-back">Voltar</button>
           <button class="ai-modal-btn ai-modal-btn-continue" id="summary-generate">Gerar roteiro</button>
+        </div>
+      </section>
+
+      <!-- Modal de Loading Final -->
+      <section id="loading-modal" class="ai-modal-section" style="display:none; text-align:center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h2 style="margin-top: 60px;">Aguenta aí...</h2>
+        <div style="font-size:1.35rem; font-weight:600; margin-top: 12px; margin-bottom: 32px;">
+          Estamos montando um roteiro incrível pra você em <span id="loading-cidade" style="font-weight:700;">[Cidade]</span>..."
+        </div>
+        <div style="font-style:italic; color:#444; font-size:1rem; margin-top: 32px;">
+          Animação divertida (aviãozinho, estrela, mapa carregando, etc.)
         </div>
       </section>
     </div>

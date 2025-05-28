@@ -615,7 +615,14 @@ h2 {
   box-shadow: 0 4px 16px rgba(0,124,145,0.10);
 }
 
-.ai-modal-btn-continue {
+.ai-modal-btn-continue:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #ccc;
+  color: #666;
+}
+
+.ai-modal-btn-continue:not(:disabled) {
   background: #0d4747;
   color: #fff;
   border: none;

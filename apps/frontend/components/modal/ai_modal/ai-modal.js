@@ -8,7 +8,8 @@ function initAiModal() {
     'budget-modal',
     'summary-modal',
     'months-modal',
-    'location-modal'
+    'location-modal',
+    'loading-modal'
   ];
   let currentModal = 0;
 
@@ -43,11 +44,14 @@ function initAiModal() {
     if (modalOrder[idx] === 'interests-modal') {
       const interestsTitle = document.querySelector('#interests-modal h2');
       const interestsBackBtn = document.getElementById('interests-back');
-      if (interestsTitle && interestsBackBtn) {
+      const interestsContinueBtn = document.getElementById('interests-continue');
+      if (interestsTitle && interestsBackBtn && interestsContinueBtn) {
         if (interestsTitle.textContent === 'Qual a sua vibe para essa viagem?') {
           interestsBackBtn.style.display = 'none';
+          interestsContinueBtn.style.marginLeft = 'auto';
         } else {
           interestsBackBtn.style.display = '';
+          interestsContinueBtn.style.marginLeft = '';
         }
       }
     }
@@ -85,15 +89,10 @@ function initAiModal() {
   // Navegação dos botões
   // Destino
   const destinationContinue = document.getElementById('destination-continue');
-  destinationContinue.onclick = function() {
-    const input = document.querySelector('#destination-modal .ai-modal-search-input');
-    if (input.value.trim()) {
-      state.destino = input.value.trim();
-      showModal(1);
-    } else {
-      input.focus();
-    }
-  };
+  destinationContinue.disabled = true;
+  document.querySelector('#destination-modal .ai-modal-search-input').addEventListener('input', function() {
+    destinationContinue.disabled = !this.value.trim();
+  });
   document.getElementById('destination-inspire').onclick = function() {
     state.destino = 'AI Sugerido';
     showModal(3); // 3 = interests-modal
@@ -104,35 +103,56 @@ function initAiModal() {
   // Datas
   const datesBack = document.getElementById('dates-back');
   datesBack.onclick = goBackModal;
-  document.getElementById('dates-continue').onclick = function() {
-    if (state.dataIda && state.dataVolta) {
-      showModal(2);
-    }
-  };
+  const datesContinue = document.getElementById('dates-continue');
+  datesContinue.disabled = true;
+  // Habilita o botão quando as datas forem selecionadas
+  if (aiFp) {
+    aiFp.config.onChange = function(selectedDates) {
+      datesContinue.disabled = selectedDates.length !== 2;
+    };
+  }
 
   // Companhia
   const companionsBack = document.getElementById('companions-back');
   companionsBack.onclick = goBackModal;
-  document.getElementById('companions-continue').onclick = function() {
-    if (state.companhia) showModal(3);
-  };
-  // Seleção única para cards de companhia
+  const companionsContinue = document.getElementById('companions-continue');
+  companionsContinue.disabled = true;
+  let companhiaSelecionada = false;
+  let petSelecionado = false;
+
+  // Atualiza o estado do botão continuar
+  function updateCompanionsContinue() {
+    companionsContinue.disabled = !(companhiaSelecionada && petSelecionado);
+  }
+
+  // Seleção de companhia
   Array.from(document.querySelectorAll('#companions-cards .ai-modal-card')).forEach(card => {
     card.onclick = function() {
       Array.from(document.querySelectorAll('#companions-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       state.companhia = card.getAttribute('data-value');
+      companhiaSelecionada = true;
+      updateCompanionsContinue();
     };
   });
-  // Seleção única para botões de pet
+
+  // Seleção de pet
   const petBtns = document.querySelectorAll('.companions-pet-btn');
   petBtns.forEach(btn => {
     btn.onclick = function() {
       petBtns.forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       state.pet = btn.getAttribute('data-value');
+      petSelecionado = true;
+      updateCompanionsContinue();
     };
   });
+
+  companionsContinue.onclick = function() {
+    if (companhiaSelecionada && petSelecionado) {
+      showModal(4); // 4 = budget-modal
+    }
+  };
 
   // Interesses
   const interestsBack = document.getElementById('interests-back');
@@ -147,10 +167,8 @@ function initAiModal() {
       }
     }
   };
-  document.getElementById('interests-continue').onclick = function() {
-    if (state.interesses.length > 0) showModal(6); // 6 = months-modal
-  };
-  // Seleção múltipla
+  const interestsContinue = document.getElementById('interests-continue');
+  interestsContinue.disabled = true;
   Array.from(document.querySelectorAll('#interests-cards .ai-modal-card')).forEach(card => {
     card.onclick = function() {
       card.classList.toggle('selected');
@@ -160,6 +178,7 @@ function initAiModal() {
       } else {
         state.interesses = state.interesses.filter(i => i !== value);
       }
+      interestsContinue.disabled = state.interesses.length === 0;
     };
   });
 
@@ -206,50 +225,70 @@ function initAiModal() {
   // Orçamento: seleção de tipo
   const budgetTypeDaily = document.getElementById('budget-type-daily');
   const budgetTypeTotal = document.getElementById('budget-type-total');
+  const budgetTypeNoLimit = document.getElementById('budget-type-no-limit');
   const budgetInputRow = document.getElementById('budget-input-row');
+  const budgetContinue = document.getElementById('budget-continue');
+  budgetContinue.disabled = true;
+
   function selectBudgetType(tipo) {
     state.orcamentoTipo = tipo;
-    budgetInputRow.style.display = 'flex';
-    if (tipo === 'diario') {
-      budgetTypeDaily.classList.add('selected');
-      budgetTypeTotal.classList.remove('selected');
+    if (tipo === 'diario' || tipo === 'total') {
+      budgetInputRow.style.display = 'flex';
+      // Só habilita se o input tiver valor
+      budgetContinue.disabled = !document.querySelector('#budget-modal .ai-modal-budget-input').value;
     } else {
-      budgetTypeTotal.classList.add('selected');
-      budgetTypeDaily.classList.remove('selected');
+      budgetInputRow.style.display = 'none';
+      budgetContinue.disabled = false; // Habilita para "Prefiro não me limitar"
     }
+    budgetTypeDaily.classList.toggle('selected', tipo === 'diario');
+    budgetTypeTotal.classList.toggle('selected', tipo === 'total');
+    budgetTypeNoLimit.classList.toggle('selected', tipo === 'no-limit');
   }
+
   budgetTypeDaily.onclick = function() { selectBudgetType('diario'); };
   budgetTypeTotal.onclick = function() { selectBudgetType('total'); };
+  budgetTypeNoLimit.onclick = function() { selectBudgetType('no-limit'); };
+
+  // Habilita/desabilita o botão ao digitar no input de valor
+  const budgetInput = document.querySelector('#budget-modal .ai-modal-budget-input');
+  budgetInput.addEventListener('input', function() {
+    if (state.orcamentoTipo === 'diario' || state.orcamentoTipo === 'total') {
+      budgetContinue.disabled = !this.value;
+    }
+  });
 
   // Orçamento
   const budgetBack = document.getElementById('budget-back');
   budgetBack.onclick = function() {
     goBackModal();
   };
-  document.getElementById('budget-continue').onclick = function() {
-    const input = document.querySelector('#budget-modal .ai-modal-budget-input');
-    if (input.value) {
-      state.orcamento = input.value;
-      showModal(5);
-      fillSummary();
-    } else {
-      input.focus();
-    }
-  };
 
   // Resumo
   const summaryBack = document.getElementById('summary-back');
   summaryBack.onclick = goBackModal;
   document.getElementById('summary-generate').onclick = function() {
-    alert('Geração de roteiro por IA acionada!');
+    // Mostra o modal de loading final
+    showModal(8); // 8 = loading-modal
+    // Preenche o nome da cidade
+    document.getElementById('loading-cidade').textContent = state.destino || '[Cidade]';
   };
 
   function fillSummary() {
     document.getElementById('summary-destino').textContent = state.destino;
     document.getElementById('summary-datas').textContent = `${state.dataIda} a ${state.dataVolta}`;
-    let orcamentoLabel = state.orcamentoTipo === 'total' ? 'Orçamento total' : 'Orçamento diário';
-    let valor = state.orcamentoFormatado || '';
-    document.getElementById('summary-orcamento').textContent = valor ? `${orcamentoLabel}: ${valor}` : '';
+    document.getElementById('summary-dias').textContent = `${state.dias} dias`;
+    document.getElementById('summary-meses').textContent = state.meses.length > 0 ? state.meses.join(', ') : 'Nenhum mês selecionado';
+    document.getElementById('summary-localizacao').textContent = state.localizacao;
+    let orcamentoLabel = '';
+    let valor = '';
+    if (state.orcamentoTipo === 'no-limit') {
+      orcamentoLabel = 'Sem limite';
+    } else if (state.orcamentoTipo === 'total') {
+      orcamentoLabel = state.orcamentoFormatado || '';
+    } else if (state.orcamentoTipo === 'diario') {
+      orcamentoLabel = state.orcamentoFormatado || '';
+    }
+    document.getElementById('summary-orcamento').textContent = orcamentoLabel;
     document.getElementById('summary-companhia').textContent = state.companhia;
     document.getElementById('summary-interesses').textContent = state.interesses.join(', ');
   }
@@ -357,7 +396,6 @@ function initAiModal() {
   });
 
   // Máscara de moeda no input de orçamento
-  const budgetInput = document.querySelector('.ai-modal-budget-input');
   const currencySelect = document.querySelector('.ai-modal-currency-select');
   function formatCurrency(value, currency) {
     let locale = 'pt-BR', curr = 'BRL';
@@ -397,7 +435,9 @@ function initAiModal() {
 
   // Interesses -> Meses/Dias
   document.getElementById('interests-continue').onclick = function() {
-    if (state.interesses.length > 0) showModal(6); // 6 = months-modal
+    if (state.interesses.length > 0) {
+      showModal(6); // 6 = months-modal
+    }
   };
 
   // Meses/Dias
@@ -471,19 +511,34 @@ function initAiModal() {
   // Localização
   const locationBack = document.getElementById('location-back');
   locationBack.onclick = function() { showModal(6); };
-  document.getElementById('location-continue').onclick = function() {
-    // Avançar para o próximo modal (orçamento)
-    showModal(4);
-  };
-  // Seleção única dos cards de localização
-  state.localizacao = '';
+  const locationContinue = document.getElementById('location-continue');
+  locationContinue.disabled = true;
   Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(card => {
     card.onclick = function() {
       Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       state.localizacao = card.getAttribute('data-value');
+      locationContinue.disabled = false;
     };
   });
+  locationContinue.onclick = function() {
+    if (state.localizacao) {
+      showModal(2); // 2 = companions-modal
+    }
+  };
+
+  budgetContinue.onclick = function() {
+    // Atualiza o state.orcamento e state.orcamentoFormatado se necessário
+    if (state.orcamentoTipo === 'diario' || state.orcamentoTipo === 'total') {
+      const input = document.querySelector('#budget-modal .ai-modal-budget-input');
+      state.orcamento = input.value;
+    } else if (state.orcamentoTipo === 'no-limit') {
+      state.orcamento = '';
+      state.orcamentoFormatado = '';
+    }
+    showModal(5); // 5 = summary-modal
+    fillSummary();
+  };
 }
 
 // Só inicializa quando o overlay estiver no DOM
