@@ -641,6 +641,56 @@ function initAiModal() {
       }
     };
   }
+
+  // Tooltip para todos os botões continuar desabilitados
+  const tooltip = document.createElement('div');
+  tooltip.className = 'ai-modal-tooltip';
+  document.body.appendChild(tooltip);
+  tooltip.style.display = 'none';
+
+  // Mensagens específicas para cada modal
+  const continueTooltips = {
+    'destination-modal': 'Selecione um destino da lista para continuar',
+    'travel-dates-modal': 'Selecione o período da viagem para continuar',
+    'companions-modal': 'Selecione a companhia e se vai levar pet para continuar',
+    'interests-modal': 'Selecione pelo menos um interesse para continuar',
+    'budget-modal': 'Preencha o orçamento ou escolha uma opção para continuar',
+    'months-modal': 'Selecione a quantidade de dias para continuar',
+    'location-modal': 'Selecione uma opção para continuar',
+    'summary-modal': 'Revise suas preferências antes de continuar',
+    'loading-modal': ''
+  };
+
+  // Adiciona tooltip para todos os botões continuar
+  document.querySelectorAll('.ai-modal-btn-continue').forEach(btn => {
+    btn.addEventListener('mouseenter', function(e) {
+      if (btn.disabled) {
+        // Descobre em qual modal o botão está
+        let modal = btn.closest('.ai-modal-section');
+        let modalId = modal ? modal.id : '';
+        let msg = continueTooltips[modalId] || 'Preencha os campos obrigatórios para continuar';
+        tooltip.innerText = msg;
+        const rect = btn.getBoundingClientRect();
+        // Posição inicial
+        let left = rect.left + window.scrollX + rect.width / 2 - tooltip.offsetWidth / 2;
+        let top = rect.top + window.scrollY - tooltip.offsetHeight - 8;
+        // Limites da tela
+        const minLeft = 8;
+        const maxLeft = window.innerWidth - tooltip.offsetWidth - 8;
+        const minTop = 8;
+        // Ajusta se sair da tela
+        if (left < minLeft) left = minLeft;
+        if (left > maxLeft) left = maxLeft;
+        if (top < minTop) top = minTop;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.display = 'block';
+      }
+    });
+    btn.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
 }
 
 // Só inicializa quando o overlay estiver no DOM

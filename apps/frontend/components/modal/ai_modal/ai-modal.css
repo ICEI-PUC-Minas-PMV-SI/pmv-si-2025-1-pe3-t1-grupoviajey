@@ -668,4 +668,23 @@ h2 {
 
 .pac-container {
   z-index: 99999 !important;
+}
+
+/* Tooltip customizado para botão continuar desabilitado */
+.ai-modal-tooltip {
+  position: absolute;
+  background: #222;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  z-index: 100000;
+  pointer-events: none;
+  max-width: 220px;
+  white-space: normal;
+  word-break: break-word;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  opacity: 0.95;
+  transition: opacity 0.2s;
+  text-align: center;
 } 
