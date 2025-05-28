@@ -462,7 +462,9 @@ function initAiModal() {
   // Fechar modal com ESC e clicando fora
   const overlay = document.getElementById('ai-modal-overlay');
   overlay.addEventListener('mousedown', function(e) {
-    if (e.target === overlay) {
+    // Só fecha se o modal visível não for o loading-modal
+    const isLoadingModal = document.getElementById('loading-modal').style.display === 'block';
+    if (e.target === overlay && !isLoadingModal) {
       overlay.style.display = 'none';
       // Resetar estado e campos (igual ao botão X)
       state.destino = '';
@@ -489,7 +491,9 @@ function initAiModal() {
     }
   });
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && overlay.style.display === 'flex') {
+    // Só fecha se o modal visível não for o loading-modal
+    const isLoadingModal = document.getElementById('loading-modal').style.display === 'block';
+    if (e.key === 'Escape' && overlay.style.display === 'flex' && !isLoadingModal) {
       overlay.style.display = 'none';
       // Resetar estado e campos (igual ao botão X)
       state.destino = '';
