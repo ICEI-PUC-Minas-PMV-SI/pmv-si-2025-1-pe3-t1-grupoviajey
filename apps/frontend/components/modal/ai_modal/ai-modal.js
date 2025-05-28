@@ -215,10 +215,6 @@ function initAiModal() {
         fillSummary();
       }
     };
-    document.getElementById('summary-generate').onclick = function() {
-      showModal(8); // 8 = loading-modal
-      document.getElementById('loading-cidade').textContent = state.destino || '[Cidade]';
-    };
   };
 
   // Datas
@@ -489,6 +485,11 @@ function initAiModal() {
     const isMeInspire = state.destino === 'AI Sugerido' || state.mesesDatas === 'nao-sei';
     const isPadrao = state.mesesDatas === 'exatas' || (!isMeInspire && state.dataIda && state.dataVolta);
 
+    // Oculta destino no Me Inspire
+    if (isMeInspire) {
+      elDestino.parentElement.style.display = 'none';
+    }
+
     if (isMeInspire) {
       // Me Inspire: mostra dias/meses, esconde datas
       elDatas.parentElement.style.display = 'none';
@@ -516,7 +517,6 @@ function initAiModal() {
     if (!elDatas.textContent) elDatas.parentElement.style.display = 'none';
     if (!elDias.textContent) elDias.parentElement.style.display = 'none';
     if (!elMeses.textContent) elMeses.parentElement.style.display = 'none';
-    if (!elDestino.textContent) elDestino.parentElement.style.display = 'none';
     if (!elLocalizacao.textContent) elLocalizacao.parentElement.style.display = 'none';
     if (!elOrcamento.textContent) elOrcamento.parentElement.style.display = 'none';
     if (!elCompanhia.textContent) elCompanhia.parentElement.style.display = 'none';
@@ -702,15 +702,19 @@ function initAiModal() {
       modalOrder.forEach(id => {
         document.getElementById(id).style.display = 'none';
       });
-      
       // Mostra o modal de loading
       const loadingModal = document.getElementById('loading-modal');
       if (loadingModal) {
         loadingModal.style.display = 'block';
-        // Atualiza o nome da cidade no loading
-        const loadingCidade = document.getElementById('loading-cidade');
-        if (loadingCidade) {
-          loadingCidade.textContent = state.destino || '[Cidade]';
+        // Aqui deve estar a lógica do texto:
+        const loadingTextDiv = document.getElementById('loading-text');
+        const isMeInspire = state.destino === 'AI Sugerido' || state.mesesDatas === 'nao-sei';
+        if (loadingTextDiv) {
+          if (isMeInspire) {
+            loadingTextDiv.textContent = 'Nossa IA está montando um roteiro incrível para você curtir!';
+          } else {
+            loadingTextDiv.innerHTML = 'Estamos montando um roteiro incrível pra você em <span id=\"loading-cidade\" style=\"font-weight:700;\">' + (state.destino || '[Cidade]') + '</span>...';
+          }
         }
       }
     };

@@ -414,6 +414,11 @@ h2 {
   gap: 18px;
 }
 
+#summary-modal .ai-modal-summary-block p:nth-child(2) {
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
 /* ===== Responsividade mínima ===== */
 @media (max-width: 700px) {
   #ai-modal-container {
@@ -722,3 +727,8 @@ h2 {
   margin-bottom: 28px;
   margin-top: 24px;
 } 
+#loading-text {
+  font-size: 1.25em;
+  font-style: italic;
+  margin-top: 40px;
+}
