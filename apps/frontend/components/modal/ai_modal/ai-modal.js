@@ -69,12 +69,14 @@ function initAiModal() {
           showMonths: 2,
           inline: true,
           onChange: function(selectedDates) {
-            if (selectedDates.length === 2) {
-              state.dataIda = selectedDates[0].toISOString().split('T')[0];
-              state.dataVolta = selectedDates[1].toISOString().split('T')[0];
-            }
+            state.dataIda = selectedDates[0]?.toISOString().split('T')[0] || '';
+            state.dataVolta = selectedDates[1]?.toISOString().split('T')[0] || '';
+            datesContinue.disabled = selectedDates.length !== 2;
           }
         });
+      } else if (aiFp) {
+        // Garante que o listener está correto mesmo se já inicializado
+        setupFlatpickrListener();
       }
     }
   }
@@ -90,9 +92,16 @@ function initAiModal() {
   // Destino
   const destinationContinue = document.getElementById('destination-continue');
   destinationContinue.disabled = true;
-  document.querySelector('#destination-modal .ai-modal-search-input').addEventListener('input', function() {
+  const destinationInput = document.querySelector('#destination-modal .ai-modal-search-input');
+  destinationInput.addEventListener('input', function() {
     destinationContinue.disabled = !this.value.trim();
   });
+  destinationContinue.onclick = function() {
+    if (destinationInput.value.trim()) {
+      state.destino = destinationInput.value.trim();
+      showModal(1);
+    }
+  };
   document.getElementById('destination-inspire').onclick = function() {
     state.destino = 'AI Sugerido';
     showModal(3); // 3 = interests-modal
@@ -105,12 +114,32 @@ function initAiModal() {
   datesBack.onclick = goBackModal;
   const datesContinue = document.getElementById('dates-continue');
   datesContinue.disabled = true;
-  // Habilita o botão quando as datas forem selecionadas
-  if (aiFp) {
-    aiFp.config.onChange = function(selectedDates) {
-      datesContinue.disabled = selectedDates.length !== 2;
-    };
+
+  // Sempre que o modal de datas for exibido, garanta o listener:
+  function setupFlatpickrListener() {
+    if (aiFp) {
+      aiFp.config.onChange = function(selectedDates) {
+        datesContinue.disabled = selectedDates.length !== 2;
+      };
+      // Se já houver datas selecionadas, atualize o botão
+      if (aiFp.selectedDates && aiFp.selectedDates.length === 2) {
+        datesContinue.disabled = false;
+      }
+    }
   }
+
+  // FLUXO PADRÃO: Datas → Companhia
+  datesContinue.onclick = function() {
+    if (state.dataIda && state.dataVolta) {
+      // Antes de avançar, garanta que o botão de interesses está no fluxo padrão
+      interestsContinue.onclick = function() {
+        if (state.interesses.length > 0) {
+          showModal(4); // 4 = budget-modal
+        }
+      };
+      showModal(2); // 2 = companions-modal
+    }
+  };
 
   // Companhia
   const companionsBack = document.getElementById('companions-back');
@@ -120,12 +149,10 @@ function initAiModal() {
   let companhiaSelecionada = false;
   let petSelecionado = false;
 
-  // Atualiza o estado do botão continuar
   function updateCompanionsContinue() {
     companionsContinue.disabled = !(companhiaSelecionada && petSelecionado);
   }
 
-  // Seleção de companhia
   Array.from(document.querySelectorAll('#companions-cards .ai-modal-card')).forEach(card => {
     card.onclick = function() {
       Array.from(document.querySelectorAll('#companions-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
@@ -136,7 +163,6 @@ function initAiModal() {
     };
   });
 
-  // Seleção de pet
   const petBtns = document.querySelectorAll('.companions-pet-btn');
   petBtns.forEach(btn => {
     btn.onclick = function() {
@@ -148,9 +174,10 @@ function initAiModal() {
     };
   });
 
+  // FLUXO PADRÃO: Companhia → Interesses
   companionsContinue.onclick = function() {
     if (companhiaSelecionada && petSelecionado) {
-      showModal(4); // 4 = budget-modal
+      showModal(3); // 3 = interests-modal
     }
   };
 
@@ -160,7 +187,6 @@ function initAiModal() {
     if (modalHistory.length > 0) {
       const prev = modalHistory[modalHistory.length - 1];
       goBackModal();
-      // Só restaura o título se realmente voltou para outro modal
       if (modalOrder[prev] === 'destination-modal') {
         const interestsTitle = document.querySelector('#interests-modal h2');
         if (interestsTitle) interestsTitle.textContent = 'Quais são seus interesses?';
@@ -182,44 +208,46 @@ function initAiModal() {
     };
   });
 
-  // Adicionar interesse customizado
-  const showAddInterestBtn = document.getElementById('show-add-interest');
-  const addInterestForm = document.getElementById('add-interest-form');
-  const addInterestInput = addInterestForm.querySelector('.interests-add-input');
-  const addInterestConfirm = addInterestForm.querySelector('.interests-add-confirm');
-  const interestsCardsGrid = document.getElementById('interests-cards');
-
-  showAddInterestBtn.onclick = function() {
-    addInterestForm.style.display = 'flex';
-    addInterestInput.focus();
-  };
-  addInterestConfirm.onclick = function() {
-    const value = addInterestInput.value.trim();
-    if (!value) return addInterestInput.focus();
-    // Não permite duplicados
-    if ([...interestsCardsGrid.querySelectorAll('.ai-modal-card')].some(card => card.getAttribute('data-value').toLowerCase() === value.toLowerCase())) {
-      addInterestInput.value = '';
-      addInterestInput.focus();
-      return;
+  // FLUXO PADRÃO: Interesses → Orçamento
+  interestsContinue.onclick = function() {
+    if (state.interesses.length > 0) {
+      showModal(4); // 4 = budget-modal
     }
-    // Cria novo card
-    const card = document.createElement('div');
-    card.className = 'ai-modal-card selected';
-    card.setAttribute('data-value', value);
-    card.innerHTML = `<div class='icon-placeholder'></div>${value}`;
-    interestsCardsGrid.appendChild(card);
-    // Seleciona e adiciona ao estado
-    state.interesses.push(value);
-    card.onclick = function() {
-      card.classList.toggle('selected');
-      if (card.classList.contains('selected')) {
-        if (!state.interesses.includes(value)) state.interesses.push(value);
-      } else {
-        state.interesses = state.interesses.filter(i => i !== value);
+  };
+
+  // FLUXO 'ME INSPIRE':
+  document.getElementById('destination-inspire').onclick = function() {
+    state.destino = 'AI Sugerido';
+    showModal(3); // 3 = interests-modal
+    const interestsTitle = document.querySelector('#interests-modal h2');
+    if (interestsTitle) interestsTitle.textContent = 'Qual a sua vibe para essa viagem?';
+    // Ajusta o botão continuar para ir para meses/dias
+    interestsContinue.onclick = function() {
+      if (state.interesses.length > 0) {
+        showModal(6); // 6 = months-modal
       }
     };
-    addInterestInput.value = '';
-    addInterestForm.style.display = 'none';
+  };
+
+  // FLUXO 'ME INSPIRE': Meses/Dias → Localização
+  document.getElementById('months-continue').onclick = function() {
+    showModal(7); // 7 = location-modal
+  };
+  // FLUXO 'ME INSPIRE': Localização → Companhia
+  const locationContinue = document.getElementById('location-continue');
+  locationContinue.disabled = true;
+  Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(card => {
+    card.onclick = function() {
+      Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.localizacao = card.getAttribute('data-value');
+      locationContinue.disabled = false;
+    };
+  });
+  locationContinue.onclick = function() {
+    if (state.localizacao) {
+      showModal(2); // 2 = companions-modal
+    }
   };
 
   // Orçamento: seleção de tipo
@@ -503,29 +531,6 @@ function initAiModal() {
       }
     };
   });
-
-  // Meses/Dias -> Localização
-  document.getElementById('months-continue').onclick = function() {
-    showModal(7); // 7 = location-modal
-  };
-  // Localização
-  const locationBack = document.getElementById('location-back');
-  locationBack.onclick = function() { showModal(6); };
-  const locationContinue = document.getElementById('location-continue');
-  locationContinue.disabled = true;
-  Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(card => {
-    card.onclick = function() {
-      Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      state.localizacao = card.getAttribute('data-value');
-      locationContinue.disabled = false;
-    };
-  });
-  locationContinue.onclick = function() {
-    if (state.localizacao) {
-      showModal(2); // 2 = companions-modal
-    }
-  };
 
   budgetContinue.onclick = function() {
     // Atualiza o state.orcamento e state.orcamentoFormatado se necessário
