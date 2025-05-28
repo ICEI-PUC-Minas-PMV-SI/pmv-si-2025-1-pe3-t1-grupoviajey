@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resultados da Busca | Viajey</title>
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/results.css">
-  <link rel="stylesheet" href="components/header/header.css">
-  <link rel="stylesheet" href="components/footer/footer.css">
-  <link rel="stylesheet" href="components/search-bar/search-bar.css">
-  <link rel="stylesheet" href="components/cards/result-card.css">
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="search-results.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="js/config.js"></script>
+  <script src="../../assets/js/config.js"></script>
   <script>
     // Carrega a API key do backend antes de carregar o script do Google Maps
     async function loadGoogleMapsScript() {
@@ -33,7 +33,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-  <script src="components/cards/result-card.js"></script>
+  <script src="../../components/cards/result-card.js"></script>
 </head>
 <body>
   <div id="header"></div>
@@ -52,8 +52,8 @@
           <button class="filter-btn">Atrações</button>
         </div>
         <div class="filters-right">
-          <button class="filter-btn" id="filters-btn"><img src="/apps/frontend/images/funnel.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Filtros</button>
-          <button class="filter-btn"><img src="/apps/frontend/images/sort.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Organizar</button>
+          <button class="filter-btn" id="filters-btn"><img src="../../assets/images/funnel.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Filtros</button>
+          <button class="filter-btn"><img src="../../assets/images/sort.svg" style="width:18px;height:18px;vertical-align:middle;margin-right:4px;">Organizar</button>
         </div>
       </div>
     </section>
@@ -195,7 +195,7 @@
       </div>
     </div>
   </div>
-  <script src="js/include.js"></script>
+  <script src="../../assets/js/include.js"></script>
   <script>
     const RADIUS = 2000;
     let map, service, markers = [], lastCenter = null, lastZoom = 14;
@@ -803,12 +803,12 @@
   </script>
   <script>
     // Inclui o componente search-bar
-    fetch('components/search-bar/search-bar.html')
+    fetch('../../components/search-bar/search-bar.html')
       .then(res => res.text())
       .then(html => {
         document.getElementById('search-bar-include').innerHTML = html;
         var script = document.createElement('script');
-        script.src = 'components/search-bar/search-bar.js';
+        script.src = '../../components/search-bar/search-bar.js';
         document.body.appendChild(script);
       });
   </script>

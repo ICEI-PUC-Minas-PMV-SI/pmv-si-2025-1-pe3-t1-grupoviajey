@@ -84,6 +84,6 @@ if (searchBtn) {
     localStorage.setItem('buscaViajey', JSON.stringify({ cidade, checkin, checkout, tipo }));
     // Monta a query string
     const params = new URLSearchParams({ cidade, checkin, checkout, tipo });
-    window.location.href = `results.html?${params.toString()}`;
+    window.location.href = '../search-results/search-results.html?' + params.toString();
   });
 }

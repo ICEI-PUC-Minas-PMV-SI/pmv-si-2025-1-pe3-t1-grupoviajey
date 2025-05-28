@@ -49,7 +49,7 @@ app.get('/api/places', async (req, res) => {
 });
 
 // Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, 'apps/frontend')));
+app.use(express.static(path.join(__dirname, 'frontend/public')));
 
 const PORT = 3001;
 app.listen(PORT, () => {

@@ -9,16 +9,16 @@ function includeHTML(id, file, callback) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  includeHTML('header', 'components/header/header.html');
-  includeHTML('footer', 'components/footer/footer.html');
-  includeHTML('place-details-modal-include', 'components/modal/place_details/PlaceDetailsModal.html', function() {
+  includeHTML('header', '../../components/header/header.html');
+  includeHTML('footer', '../../components/footer/footer.html');
+  includeHTML('place-details-modal-include', '../../components/modal/place_details/PlaceDetailsModal.html', function() {
     const script = document.createElement('script');
-    script.src = 'components/modal/place_details/PlaceDetailsModal.js';
+    script.src = '../../components/modal/place_details/PlaceDetailsModal.js';
     document.body.appendChild(script);
   });
-  includeHTML('reviews-modal-include', 'components/modal/reviews/ReviewsModal.html', function() {
+  includeHTML('reviews-modal-include', '../../components/modal/reviews/ReviewsModal.html', function() {
     const script = document.createElement('script');
-    script.src = 'components/modal/reviews/ReviewsModal.js';
+    script.src = '../../components/modal/reviews/ReviewsModal.js';
     document.body.appendChild(script);
   });
 }); 
