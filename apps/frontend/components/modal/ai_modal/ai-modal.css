@@ -1,0 +1,567 @@
+/* ===== Estilos Gerais ===== */
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+#ai-modal-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 40px 32px;
+  overflow: visible;
+  position: relative;
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+}
+.ai-modal-section {
+  display: block;
+  overflow-y: auto;
+  max-height: 70vh;
+  min-height: 320px;
+}
+.ai-modal-section h2 {
+  text-align: center;
+}
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222;
+}
+.ai-modal-desc {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 24px;
+}
+.ai-modal-subdesc {
+  font-size: 0.95rem;
+  color: #888;
+  margin: 24px 0 12px 0;
+  text-align: center;
+}
+.ai-modal-btn {
+  border: none;
+  border-radius: 24px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0 5x;
+  transition: background 0.2s;
+}
+.ai-modal-btn-back, .ai-modal-btn-continue {
+  background: #e6f2f2;
+  color: #0d4747;
+  border: none;
+  font-weight: 600;
+  box-shadow: none;
+  padding: 10px 24px;
+  border-radius: 24px;
+  transition: background 0.2s, color 0.2s;
+}
+.ai-modal-btn-back:hover, .ai-modal-btn-continue:hover {
+  background: #0d4747;
+  color: #fff;
+}
+.ai-modal-nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+/* ===== Modal de Destino ===== */
+#destination-modal {
+  line-height: 2.1;
+  padding-bottom: 48px;
+}
+#destination-modal .ai-modal-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 60px;
+  border: 1px solid #cfd8dc;
+  padding: 0 4px 0 0;
+  position: relative;
+}
+.ai-modal-search-icon {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  margin-right: 4px;
+}
+.ai-modal-search-input {
+  flex: 1;
+  padding: 12px 5px 12px 5px;
+  border: none;
+  border-radius: 60px;
+  font-size: 1rem;
+  outline: none;
+  background: transparent;
+}
+#destination-modal .ai-modal-btn-secondary {
+  display: block;
+  margin: 0 auto;
+  margin-top: 12px;
+  width: fit-content;
+  background: #fff;
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 20px 32px 12px 32px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+#destination-modal .ai-modal-btn-secondary:hover {
+  background: #e0f2f1;
+  color: #007c91;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+}
+#destination-modal .ai-modal-btn-secondary:active {
+  background: #e0f2f1;
+  color: #007c91;
+}
+#destination-modal .ai-modal-subdesc {
+  color: #444;
+}
+#destination-modal .ai-modal-btn-continue {
+  margin-right: 2px;
+}
+
+/* ===== Modal de Datas (Calendário Flatpickr) ===== */
+#travel-dates-modal .ai-modal-calendar-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 32px 0 0 0;
+}
+#ai-date-range {
+  width: 1px;
+  height: 1px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: transparent;
+  position: absolute;
+  left: -9999px;
+  pointer-events: none;
+}
+#travel-dates-modal .flatpickr-calendar {
+  position: static !important;
+  margin: 0 auto;
+  box-shadow: none;
+  top: auto !important;
+  left: auto !important;
+  z-index: 10;
+  max-width: 100%;
+  min-width: 340px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 0;
+}
+
+#travel-dates-modal .flatpickr-calendar .flatpickr-months {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#travel-dates-modal .flatpickr-calendar .flatpickr-prev-month,
+#travel-dates-modal .flatpickr-calendar .flatpickr-next-month {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+#travel-dates-modal .flatpickr-calendar .flatpickr-prev-month {
+  left: 0;
+}
+
+#travel-dates-modal .flatpickr-calendar .flatpickr-next-month {
+  right: 0;
+}
+
+#travel-dates-modal .flatpickr-calendar .flatpickr-month {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== Modal de Companhia ===== */
+#companions-modal .ai-modal-cards-row {
+  display: flex;
+  gap: 18px;
+  margin: 32px 0 0 0;
+  justify-content: space-between;
+}
+#companions-modal .ai-modal-card {
+  background: #ffffff;
+  border: 2px solid #cfd8dc;
+  border-radius: 16px;
+  padding: 24px 18px 16px 18px;
+  text-align: center;
+  font-size: 1rem;
+  color: #222;
+  cursor: pointer;
+  min-width: 80px;
+  flex: 1;
+  transition: border 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+#companions-modal .ai-modal-card.selected {
+  border: 2px solid #F9C33F;
+  background: #F9C33F;
+  color: #015A5E;
+}
+#companions-modal .ai-modal-card.selected svg {
+  stroke: #015A5E;
+  fill: #F9C33F;
+}
+.icon-placeholder {
+  width: 36px;
+  height: 36px;
+  background: #cfd8dc;
+  border-radius: 50%;
+  margin-bottom: 6px;
+}
+
+.companions-pet-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 0 0;
+}
+.companions-pet-label {
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 0;
+  text-align: center;
+}
+.companions-pet-btns {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  justify-content: center;
+}
+.companions-pet-btn {
+  border: 2px solid #cfd8dc;
+  background: #f5f7fa;
+  color: #222;
+  border-radius: 32px;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s, color 0.2s;
+  outline: none;
+}
+.companions-pet-btn.selected {
+  border: 2px solid #0d4747;
+  background: #e6f2f2;
+  color: #0d4747;
+}
+
+/* ===== Modal de Interesses ===== */
+#interests-modal .ai-modal-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 32px 0 0 0;
+}
+#interests-modal .ai-modal-card {
+  background: #f5f7fa;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 20px 10px 12px 10px;
+  text-align: center;
+  font-size: 1rem;
+  color: #222;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#interests-modal .ai-modal-card.selected {
+  border: 2px solid #F9C33F;
+  background: #F9C33F;
+  color: #015A5E;
+}
+#interests-modal .ai-modal-card.selected svg {
+  stroke: #015A5E;
+  fill: #F9C33F;
+}
+
+/* ===== Modal de Orçamento ===== */
+#budget-modal .ai-modal-budget-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40px 0 24px 0;
+  gap: 10px;
+  position: relative;
+}
+.ai-modal-currency-select {
+  height: 44px;
+  border: 1px solid #cfd8dc;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  padding: 0 12px;
+  background: #fff;
+  color: #222;
+  margin-right: 8px;
+}
+.ai-modal-budget-input {
+  padding: 12px 16px;
+  border: 1px solid #cfd8dc;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  width: 180px;
+  text-align: left;
+}
+
+.ai-modal-budget-type-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.ai-modal-btn-budget-type {
+  background: #e6f2f2;
+  color: #0d4747;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.ai-modal-btn-budget-type.selected, .ai-modal-btn-budget-type:active {
+  background: #0d4747;
+  color: #fff;
+}
+.ai-modal-btn-budget-type:hover {
+  background: #b2dfdb;
+  color: #007c91;
+}
+.ai-modal-budget-ou {
+  color: #888;
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin: 0 4px;
+}
+#budget-input-row {
+  margin-bottom: 18px;
+}
+
+/* ===== Modal de Resumo ===== */
+#summary-modal .ai-modal-summary-block {
+  background: #f5f7fa;
+  border-radius: 14px;
+  padding: 28px 24px;
+  margin: 32px 0 24px 0;
+  font-size: 1.05rem;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ===== Responsividade mínima ===== */
+@media (max-width: 700px) {
+  #ai-modal-container {
+    max-width: 98vw;
+    padding: 16px 4vw;
+    max-height: calc(100vh - 32px);
+  }
+  .ai-modal-section {
+    max-height: 60vh;
+    min-height: 200px;
+  }
+  #interests-modal .ai-modal-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  #companions-modal .ai-modal-cards-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+#ai-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.ai-modal-btn-close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: #0d4747;
+  font-size: 2rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 20;
+  line-height: 1;
+  padding: 0 8px;
+  transition: color 0.2s;
+  margin-bottom: 25px
+}
+.ai-modal-btn-close:hover {
+  color: #0b3939;
+  background: #e6f2f2;
+  border-radius: 50%;
+}
+
+#companions-modal .ai-modal-card,
+#interests-modal .ai-modal-card {
+  background: #fff;
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+#companions-modal .ai-modal-card svg,
+#interests-modal .ai-modal-card svg {
+  stroke: #607D8B;
+  fill: none;
+  transition: stroke 0.2s;
+}
+#companions-modal .ai-modal-card.selected,
+#interests-modal .ai-modal-card.selected {
+  background: #e0f2f1;
+  color: #007c91;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  font-weight: 600;
+}
+#companions-modal .ai-modal-card.selected svg,
+#interests-modal .ai-modal-card.selected svg {
+  stroke: #007c91;
+  fill: none;
+}
+
+.interests-add-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 24px 0 0 0;
+  gap: 10px;
+  position: relative;
+}
+.interests-add-btn {
+  background: #e6f2f2;
+  color: #0d4747;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.interests-add-form {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+.interests-add-form[style*="display: flex"] {
+  display: flex !important;
+}
+.interests-add-form[style*="display: flex"]:not(:first-child) {
+  /* Garante que não é o primeiro filho */
+}
+.interests-add-form[style*="display: flex"] {
+  /* Esconde o botão anterior */
+}
+.interests-add-form[style*="display: flex"] {
+  /* Esconde o botão anterior usando + selector */
+}
+.interests-add-btn:has(+ .interests-add-form[style*="display: flex"]) {
+  display: none !important;
+}
+.interests-add-input {
+  padding: 10px 16px;
+  border: 1px solid #cfd8dc;
+  border-radius: 20px;
+  font-size: 1rem;
+  outline: none;
+}
+.interests-add-confirm {
+  background: #e6f2f2;
+  color: #0d4747;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.interests-add-confirm:hover {
+  background: #0d4747;
+  color: #fff;
+}
+
+#interests-modal.ai-modal-section {
+  overflow-y: auto;
+  max-height: 70vh;
+  min-height: 400px;
+}
+
+#companions-modal .ai-modal-card:hover,
+#interests-modal .ai-modal-card:hover {
+  background: #e0f2f1;
+  color: #007c91;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  font-weight: 600;
+}
+#companions-modal .ai-modal-card:hover svg,
+#interests-modal .ai-modal-card:hover svg {
+  stroke: #007c91;
+  fill: none;
+} 

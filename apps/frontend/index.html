@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="components/footer/footer.css">
   <link rel="stylesheet" href="components/search-bar/search-bar.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwffTCExVoNeo7iR4QsAwxPZKs5HjWcKU&libraries=places"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 </head>
@@ -25,7 +25,7 @@
       <div class="ia-banner-bg"></div>
       <div class="ia-banner-content">
         <h2>Deixar com a nossa IA!<br>Ela te ajuda a descobrir onde ir,<br>o que fazer e quanto gastar.</h2>
-        <button class="cta-btn">Gerar meu roteiro agora!</button>
+        <button id="open-ai-modal" class="cta-btn">Gerar meu roteiro agora!</button>
       </div>
     </section>
     <section class="cards-section">
@@ -35,6 +35,7 @@
     </section>
   </main>
   <div id="footer"></div>
+  <div id="ai-modal-root"></div>
   <script src="js/include.js"></script>
   <script>
     // Inclui o componente search-bar
@@ -46,6 +47,46 @@
         var script = document.createElement('script');
         script.src = 'components/search-bar/search-bar.js';
         document.body.appendChild(script);
+      });
+
+    function waitForFlatpickr(cb) {
+      if (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.pt) {
+        cb();
+      } else {
+        setTimeout(() => waitForFlatpickr(cb), 50);
+      }
+    }
+
+    fetch('components/modal/ai_modal/ai-modal.html')
+      .then(res => res.text())
+      .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const overlay = temp.querySelector('#ai-modal-overlay');
+        document.getElementById('ai-modal-root').appendChild(overlay);
+
+        // Carrega o CSS do modal
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'components/modal/ai_modal/ai-modal.css';
+        document.head.appendChild(link);
+
+        // Só carrega o JS do modal depois do Flatpickr estar disponível
+        waitForFlatpickr(() => {
+          var script = document.createElement('script');
+          script.src = 'components/modal/ai_modal/ai-modal.js';
+          document.body.appendChild(script);
+        });
+
+        // Garante que o botão do banner abre o modal
+        const openBtn = document.getElementById('open-ai-modal');
+        if (openBtn) {
+          openBtn.addEventListener('click', function() {
+            if (window.openAiModal) {
+              window.openAiModal();
+            }
+          });
+        }
       });
   </script>
 </body>
