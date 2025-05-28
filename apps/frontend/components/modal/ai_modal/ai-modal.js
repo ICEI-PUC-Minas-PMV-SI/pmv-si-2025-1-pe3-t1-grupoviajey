@@ -439,22 +439,88 @@ function initAiModal() {
   summaryBack.onclick = goBackModal;
 
   function fillSummary() {
-    document.getElementById('summary-destino').textContent = state.destino;
-    document.getElementById('summary-datas').textContent = `${state.dataIda} a ${state.dataVolta}`;
-    document.getElementById('summary-dias').textContent = `${state.dias} dias`;
-    document.getElementById('summary-meses').textContent = state.meses.length > 0 ? state.meses.join(', ') : 'Nenhum mês selecionado';
-    document.getElementById('summary-localizacao').textContent = state.localizacao;
-    let orcamentoLabel = '';
-    if (state.orcamentoTipo === 'no-limit') {
-      orcamentoLabel = 'Sem limite';
-    } else if (state.orcamentoTipo === 'total') {
-      orcamentoLabel = state.orcamentoFormatado || '';
-    } else if (state.orcamentoTipo === 'diario') {
-      orcamentoLabel = state.orcamentoFormatado || '';
+    // Elementos do resumo
+    const elDestino = document.getElementById('summary-destino');
+    const elDatas = document.getElementById('summary-datas');
+    const elDias = document.getElementById('summary-dias');
+    const elMeses = document.getElementById('summary-meses');
+    const elLocalizacao = document.getElementById('summary-localizacao');
+    const elOrcamento = document.getElementById('summary-orcamento');
+    const elCompanhia = document.getElementById('summary-companhia');
+    const elInteresses = document.getElementById('summary-interesses');
+
+    // Limpa todos
+    elDestino.parentElement.style.display = '';
+    elDatas.parentElement.style.display = '';
+    elDias.parentElement.style.display = '';
+    elMeses.parentElement.style.display = '';
+    elLocalizacao.parentElement.style.display = '';
+    elOrcamento.parentElement.style.display = '';
+    elCompanhia.parentElement.style.display = '';
+    elInteresses.parentElement.style.display = '';
+
+    // Preenche campos comuns
+    elDestino.textContent = state.destino;
+    // Companhia + pet
+    if (state.companhia) {
+      if (state.pet === 'Sim') {
+        elCompanhia.textContent = `${state.companhia} (com pet)`;
+      } else if (state.pet === 'Não') {
+        elCompanhia.textContent = `${state.companhia} (sem pet)`;
+      } else {
+        elCompanhia.textContent = state.companhia;
+      }
+    } else {
+      elCompanhia.textContent = '';
     }
-    document.getElementById('summary-orcamento').textContent = orcamentoLabel;
-    document.getElementById('summary-companhia').textContent = state.companhia;
-    document.getElementById('summary-interesses').textContent = state.interesses.join(', ');
+    elInteresses.textContent = state.interesses.join(', ');
+    if (state.orcamentoTipo === 'no-limit') {
+      elOrcamento.textContent = 'Ilimitado';
+    } else if (state.orcamentoTipo === 'total') {
+      elOrcamento.textContent = (state.orcamentoFormatado || '') + ' (total)';
+    } else if (state.orcamentoTipo === 'diario') {
+      elOrcamento.textContent = (state.orcamentoFormatado || '') + ' (diário)';
+    } else {
+      elOrcamento.textContent = state.orcamentoFormatado || '';
+    }
+    elLocalizacao.textContent = state.localizacao;
+
+    // Lógica de fluxo
+    const isMeInspire = state.destino === 'AI Sugerido' || state.mesesDatas === 'nao-sei';
+    const isPadrao = state.mesesDatas === 'exatas' || (!isMeInspire && state.dataIda && state.dataVolta);
+
+    if (isMeInspire) {
+      // Me Inspire: mostra dias/meses, esconde datas
+      elDatas.parentElement.style.display = 'none';
+      elDias.parentElement.style.display = '';
+      elMeses.parentElement.style.display = '';
+      elDias.textContent = state.dias ? `${state.dias} dias` : '';
+      elMeses.textContent = state.meses.length > 0 ? state.meses.join(', ') : 'Nenhum mês selecionado';
+    } else if (isPadrao) {
+      // Padrão: mostra datas, esconde dias/meses
+      elDatas.parentElement.style.display = '';
+      elDias.parentElement.style.display = 'none';
+      elMeses.parentElement.style.display = 'none';
+      elDatas.textContent = (state.dataIda && state.dataVolta) ? `${state.dataIda} a ${state.dataVolta}` : '';
+    } else {
+      // Fallback: mostra tudo
+      elDatas.parentElement.style.display = '';
+      elDias.parentElement.style.display = '';
+      elMeses.parentElement.style.display = '';
+      elDatas.textContent = (state.dataIda && state.dataVolta) ? `${state.dataIda} a ${state.dataVolta}` : '';
+      elDias.textContent = state.dias ? `${state.dias} dias` : '';
+      elMeses.textContent = state.meses.length > 0 ? state.meses.join(', ') : 'Nenhum mês selecionado';
+    }
+
+    // Esconde campos vazios
+    if (!elDatas.textContent) elDatas.parentElement.style.display = 'none';
+    if (!elDias.textContent) elDias.parentElement.style.display = 'none';
+    if (!elMeses.textContent) elMeses.parentElement.style.display = 'none';
+    if (!elDestino.textContent) elDestino.parentElement.style.display = 'none';
+    if (!elLocalizacao.textContent) elLocalizacao.parentElement.style.display = 'none';
+    if (!elOrcamento.textContent) elOrcamento.parentElement.style.display = 'none';
+    if (!elCompanhia.textContent) elCompanhia.parentElement.style.display = 'none';
+    if (!elInteresses.textContent) elInteresses.parentElement.style.display = 'none';
   }
 
   // Função para abrir o modal (pode ser chamada externamente)
