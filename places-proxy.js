@@ -4,9 +4,14 @@ const app = express();
 
 app.use(cors());
 
-const API_KEY = 'YOUR_API_KEY';  // Coloque sua chave aqui
+const API_KEY = process.env.GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY';  // Use environment variable
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+// Endpoint para fornecer a API key de forma segura
+app.get('/api/config', (req, res) => {
+    res.json({ apiKey: API_KEY });
+});
 
 app.get('/api/places', async (req, res) => {
   const { lat, lng, type } = req.query;
