@@ -6,7 +6,9 @@ function initAiModal() {
     'companions-modal',
     'interests-modal',
     'budget-modal',
-    'summary-modal'
+    'summary-modal',
+    'months-modal',
+    'location-modal'
   ];
   let currentModal = 0;
 
@@ -20,15 +22,35 @@ function initAiModal() {
     orcamento: '',
     pet: '',
     orcamentoTipo: '',
-    orcamentoFormatado: ''
+    orcamentoFormatado: '',
+    dias: 7,
+    meses: [],
+    localizacao: ''
   };
 
   let aiFp = null;
-  function showModal(idx) {
+  // Pilha de navegação para Voltar
+  let modalHistory = [];
+  function showModal(idx, pushHistory = true) {
     modalOrder.forEach((id, i) => {
       document.getElementById(id).style.display = (i === idx) ? 'block' : 'none';
     });
+    if (pushHistory && typeof currentModal === 'number' && idx !== currentModal) {
+      modalHistory.push(currentModal);
+    }
     currentModal = idx;
+    // Desativa o botão Voltar no modal de interesses se for "Qual a sua vibe para essa viagem?"
+    if (modalOrder[idx] === 'interests-modal') {
+      const interestsTitle = document.querySelector('#interests-modal h2');
+      const interestsBackBtn = document.getElementById('interests-back');
+      if (interestsTitle && interestsBackBtn) {
+        if (interestsTitle.textContent === 'Qual a sua vibe para essa viagem?') {
+          interestsBackBtn.style.display = 'none';
+        } else {
+          interestsBackBtn.style.display = '';
+        }
+      }
+    }
 
     // Inicializa o Flatpickr somente quando o modal de datas for exibido
     if (modalOrder[idx] === 'travel-dates-modal') {
@@ -53,6 +75,13 @@ function initAiModal() {
     }
   }
 
+  function goBackModal() {
+    if (modalHistory.length > 0) {
+      const prev = modalHistory.pop();
+      showModal(prev, false);
+    }
+  }
+
   // Navegação dos botões
   // Destino
   const destinationContinue = document.getElementById('destination-continue');
@@ -66,14 +95,15 @@ function initAiModal() {
     }
   };
   document.getElementById('destination-inspire').onclick = function() {
-    // Inspiração: apenas avança para o próximo modal
     state.destino = 'AI Sugerido';
-    showModal(1);
+    showModal(3); // 3 = interests-modal
+    const interestsTitle = document.querySelector('#interests-modal h2');
+    if (interestsTitle) interestsTitle.textContent = 'Qual a sua vibe para essa viagem?';
   };
 
   // Datas
   const datesBack = document.getElementById('dates-back');
-  datesBack.onclick = function() { showModal(0); };
+  datesBack.onclick = goBackModal;
   document.getElementById('dates-continue').onclick = function() {
     if (state.dataIda && state.dataVolta) {
       showModal(2);
@@ -82,7 +112,7 @@ function initAiModal() {
 
   // Companhia
   const companionsBack = document.getElementById('companions-back');
-  companionsBack.onclick = function() { showModal(1); };
+  companionsBack.onclick = goBackModal;
   document.getElementById('companions-continue').onclick = function() {
     if (state.companhia) showModal(3);
   };
@@ -106,9 +136,19 @@ function initAiModal() {
 
   // Interesses
   const interestsBack = document.getElementById('interests-back');
-  interestsBack.onclick = function() { showModal(2); };
+  interestsBack.onclick = function() {
+    if (modalHistory.length > 0) {
+      const prev = modalHistory[modalHistory.length - 1];
+      goBackModal();
+      // Só restaura o título se realmente voltou para outro modal
+      if (modalOrder[prev] === 'destination-modal') {
+        const interestsTitle = document.querySelector('#interests-modal h2');
+        if (interestsTitle) interestsTitle.textContent = 'Quais são seus interesses?';
+      }
+    }
+  };
   document.getElementById('interests-continue').onclick = function() {
-    if (state.interesses.length > 0) showModal(4);
+    if (state.interesses.length > 0) showModal(6); // 6 = months-modal
   };
   // Seleção múltipla
   Array.from(document.querySelectorAll('#interests-cards .ai-modal-card')).forEach(card => {
@@ -183,7 +223,9 @@ function initAiModal() {
 
   // Orçamento
   const budgetBack = document.getElementById('budget-back');
-  budgetBack.onclick = function() { showModal(3); };
+  budgetBack.onclick = function() {
+    goBackModal();
+  };
   document.getElementById('budget-continue').onclick = function() {
     const input = document.querySelector('#budget-modal .ai-modal-budget-input');
     if (input.value) {
@@ -197,7 +239,7 @@ function initAiModal() {
 
   // Resumo
   const summaryBack = document.getElementById('summary-back');
-  summaryBack.onclick = function() { showModal(4); };
+  summaryBack.onclick = goBackModal;
   document.getElementById('summary-generate').onclick = function() {
     alert('Geração de roteiro por IA acionada!');
   };
@@ -351,6 +393,96 @@ function initAiModal() {
     if ((e.key >= '0' && e.key <= '9')) return;
     // Bloqueia o resto
     e.preventDefault();
+  });
+
+  // Interesses -> Meses/Dias
+  document.getElementById('interests-continue').onclick = function() {
+    if (state.interesses.length > 0) showModal(6); // 6 = months-modal
+  };
+
+  // Meses/Dias
+  const monthsBack = document.getElementById('months-back');
+  monthsBack.onclick = function() { showModal(3); };
+  document.getElementById('months-continue').onclick = function() {
+    showModal(7); // 7 = location-modal
+  };
+  // Checkbox para mostrar/esconder meses e descrição
+  const monthsCheckbox = document.getElementById('months-checkbox');
+  const monthsCards = document.getElementById('months-cards');
+  const monthsDesc = document.getElementById('months-desc');
+  if (monthsCheckbox && monthsCards && monthsDesc) {
+    monthsCheckbox.checked = false;
+    monthsCards.style.display = 'none';
+    monthsDesc.style.display = 'none';
+    monthsCheckbox.addEventListener('change', function() {
+      const show = monthsCheckbox.checked;
+      monthsCards.style.display = show ? 'grid' : 'none';
+      monthsDesc.style.display = show ? 'block' : 'none';
+    });
+  }
+  // Slider + input sincronizados + alerta se > 30 dias
+  const daysSlider = document.getElementById('days-slider');
+  const daysInput = document.getElementById('days-input');
+  const daysSliderValue = document.getElementById('days-slider-value');
+  const daysAlert = document.getElementById('days-alert');
+  state.dias = 7;
+  if (daysSlider && daysInput && daysAlert) {
+    function checkLongTrip(val) {
+      if (val > 30) {
+        daysAlert.style.display = 'block';
+        daysAlert.textContent = 'Nosso roteiro funciona melhor até 30 dias. Para viagens longas, crie por partes!';
+      } else {
+        daysAlert.style.display = 'none';
+        daysAlert.textContent = '';
+      }
+    }
+    daysSlider.addEventListener('input', function() {
+      daysInput.value = daysSlider.value;
+      state.dias = Number(daysSlider.value);
+      checkLongTrip(state.dias);
+    });
+    daysInput.addEventListener('input', function() {
+      let val = Math.max(1, Math.min(60, Number(daysInput.value) || 1));
+      daysSlider.value = val;
+      state.dias = val;
+      checkLongTrip(val);
+    });
+    // Chama ao abrir para garantir estado inicial
+    checkLongTrip(Number(daysSlider.value));
+  }
+  // Seleção múltipla dos meses
+  state.meses = [];
+  Array.from(document.querySelectorAll('#months-cards .ai-modal-card')).forEach(card => {
+    card.onclick = function() {
+      card.classList.toggle('selected');
+      const value = card.getAttribute('data-value');
+      if (card.classList.contains('selected')) {
+        if (!state.meses.includes(value)) state.meses.push(value);
+      } else {
+        state.meses = state.meses.filter(m => m !== value);
+      }
+    };
+  });
+
+  // Meses/Dias -> Localização
+  document.getElementById('months-continue').onclick = function() {
+    showModal(7); // 7 = location-modal
+  };
+  // Localização
+  const locationBack = document.getElementById('location-back');
+  locationBack.onclick = function() { showModal(6); };
+  document.getElementById('location-continue').onclick = function() {
+    // Avançar para o próximo modal (orçamento)
+    showModal(4);
+  };
+  // Seleção única dos cards de localização
+  state.localizacao = '';
+  Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(card => {
+    card.onclick = function() {
+      Array.from(document.querySelectorAll('#location-cards .ai-modal-card')).forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.localizacao = card.getAttribute('data-value');
+    };
   });
 }
 

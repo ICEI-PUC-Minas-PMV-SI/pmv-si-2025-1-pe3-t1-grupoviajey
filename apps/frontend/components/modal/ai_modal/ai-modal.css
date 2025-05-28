@@ -6,23 +6,18 @@ body {
   padding: 0;
 }
 #ai-modal-container {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
   padding: 40px 32px;
-  overflow: visible;
+  overflow-y: auto;
   position: relative;
-  max-height: calc(100vh - 96px);
-  display: flex;
-  flex-direction: column;
+  max-height: 90vh;
 }
 .ai-modal-section {
   display: block;
-  overflow-y: auto;
-  max-height: 70vh;
-  min-height: 320px;
 }
 .ai-modal-section h2 {
   text-align: center;
@@ -72,7 +67,27 @@ h2 {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 32px;
+  margin-top: 18px;
+  margin-bottom: 0;
+  position: static;
+  background: none;
+  z-index: 10;
+  padding-top: 16px;
+}
+.ai-modal-btn-back {
+  background: transparent;
+  color: #0d4747;
+  border: 2px solid #0d4747;
+  font-weight: 600;
+  box-shadow: none;
+  padding: 10px 24px;
+  border-radius: 24px;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.ai-modal-btn-back:hover {
+  background: #0d4747;
+  color: #fff;
+  border: 2px solid #0d4747;
 }
 
 /* ===== Modal de Destino ===== */
@@ -109,26 +124,25 @@ h2 {
 #destination-modal .ai-modal-btn-secondary {
   display: block;
   margin: 0 auto;
-  margin-top: 12px;
   width: fit-content;
-  background: #fff;
-  color: #222;
+  background: #FBC541;
+  color: #015962;
   border: none;
-  border-radius: 8px;
+  border-radius: 40px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1rem;
-  padding: 20px 32px 12px 32px;
+  padding: 16px 32px 16px 32px;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 #destination-modal .ai-modal-btn-secondary:hover {
   background: #e0f2f1;
-  color: #007c91;
+  color: #0d4747;
   box-shadow: 0 2px 8px rgba(0,0,0,0.13);
 }
 #destination-modal .ai-modal-btn-secondary:active {
   background: #e0f2f1;
-  color: #007c91;
+  color: #015962;
 }
 #destination-modal .ai-modal-subdesc {
   color: #444;
@@ -291,34 +305,36 @@ h2 {
 
 /* ===== Modal de Interesses ===== */
 #interests-modal .ai-modal-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   margin: 32px 0 0 0;
+  justify-content: center;
 }
 #interests-modal .ai-modal-card {
-  background: #f5f7fa;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  padding: 20px 10px 12px 10px;
-  text-align: center;
-  font-size: 1rem;
+  background: #fff;
   color: #222;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 16px 28px;
   cursor: pointer;
-  transition: border 0.2s, background 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  min-width: 80px;
+  text-align: center;
+  display: inline-block;
 }
-#interests-modal .ai-modal-card.selected {
-  border: 2px solid #F9C33F;
-  background: #F9C33F;
-  color: #015A5E;
+#interests-modal .ai-modal-card.selected,
+#interests-modal .ai-modal-card:hover {
+  background: #e0f2f1;
+  color: #007c91;
+  box-shadow: 0 4px 16px rgba(0,124,145,0.10);
 }
-#interests-modal .ai-modal-card.selected svg {
-  stroke: #015A5E;
-  fill: #F9C33F;
+#interests-modal .ai-modal-card .icon-placeholder,
+#interests-modal .ai-modal-card svg {
+  display: none !important;
 }
 
 /* ===== Modal de Orçamento ===== */
@@ -403,11 +419,6 @@ h2 {
   #ai-modal-container {
     max-width: 98vw;
     padding: 16px 4vw;
-    max-height: calc(100vh - 32px);
-  }
-  .ai-modal-section {
-    max-height: 60vh;
-    min-height: 200px;
   }
   #interests-modal .ai-modal-cards-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -564,4 +575,86 @@ h2 {
 #interests-modal .ai-modal-card:hover svg {
   stroke: #007c91;
   fill: none;
+}
+
+#months-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin: 32px 0 0 0;
+  justify-items: center;
+  width: 100%;
+  overflow-x: hidden;
+}
+@media (max-width: 700px) {
+  #months-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+#months-cards .ai-modal-card {
+  background: #fff;
+  color: #222;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  min-width: 0;
+  max-width: 100%;
+  text-align: center;
+  display: inline-block;
+  word-break: break-word;
+}
+#months-cards .ai-modal-card.selected,
+#months-cards .ai-modal-card:hover {
+  background: #e0f2f1;
+  color: #007c91;
+  box-shadow: 0 4px 16px rgba(0,124,145,0.10);
+}
+
+.ai-modal-btn-continue {
+  background: #0d4747;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  box-shadow: none;
+  padding: 10px 24px;
+  border-radius: 24px;
+  transition: background 0.2s, color 0.2s;
+}
+.ai-modal-btn-continue:hover {
+  background: #093133;
+  color: #fff;
+}
+
+#location-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 32px 0 0 0;
+  justify-content: center;
+}
+#location-cards .ai-modal-card {
+  background: #fff;
+  color: #222;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 16px 28px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  min-width: 80px;
+  text-align: center;
+  display: inline-block;
+}
+#location-cards .ai-modal-card.selected,
+#location-cards .ai-modal-card:hover {
+  background: #e0f2f1;
+  color: #007c91;
+  box-shadow: 0 4px 16px rgba(0,124,145,0.10);
 } 
