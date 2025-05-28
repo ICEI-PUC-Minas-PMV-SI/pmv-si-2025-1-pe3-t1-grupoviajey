@@ -436,9 +436,7 @@ function initAiModal() {
 
   // Resumo
   const summaryBack = document.getElementById('summary-back');
-  summaryBack.onclick = function() {
-    showModal(4); // 4 = budget-modal
-  };
+  summaryBack.onclick = goBackModal;
 
   function fillSummary() {
     document.getElementById('summary-destino').textContent = state.destino;
