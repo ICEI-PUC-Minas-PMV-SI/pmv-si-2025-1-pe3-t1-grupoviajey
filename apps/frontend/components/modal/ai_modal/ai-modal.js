@@ -153,6 +153,12 @@ function initAiModal() {
         setupFlatpickrListener();
       }
     }
+
+    // Resetar radios e blocos ao abrir o modal de meses/dias
+    if (modalOrder[idx] === 'months-modal') {
+      setupMonthsRadios();
+      state.mesesDatas = '';
+    }
   }
 
   function goBackModal() {
@@ -741,6 +747,118 @@ function initAiModal() {
         }
       };
     }
+  }
+
+  // --- Controle robusto dos radios do modal de meses/dias ---
+  function setupMonthsRadios() {
+    const monthsRadioExact = document.getElementById('months-radio-exact');
+    const monthsRadioUnknown = document.getElementById('months-radio-unknown');
+    const monthsCalendarRow = document.getElementById('months-calendar-row');
+    const monthsFlexibleRow = document.getElementById('months-flexible-row');
+    const monthsContinue = document.getElementById('months-continue');
+    let monthsFp = null;
+    if (!monthsRadioExact || !monthsRadioUnknown || !monthsCalendarRow || !monthsFlexibleRow || !monthsContinue) return;
+
+    function hideAllMonthsBlocks() {
+      monthsCalendarRow.classList.remove('active');
+      monthsFlexibleRow.classList.remove('active');
+    }
+    function showMonthsCalendar() {
+      hideAllMonthsBlocks();
+      monthsCalendarRow.classList.add('active');
+      // Inicializa o Flatpickr se ainda não foi
+      const monthsCalendarAlert = document.getElementById('months-calendar-alert');
+      if (!monthsFp) {
+        monthsFp = flatpickr(document.getElementById('months-date-range'), {
+          mode: 'range',
+          minDate: 'today',
+          dateFormat: 'd/m/Y',
+          locale: 'pt',
+          showMonths: 2,
+          inline: true,
+          onChange: function(selectedDates) {
+            monthsContinue.disabled = !(selectedDates.length === 2);
+            if (monthsCalendarAlert) {
+              if (selectedDates.length === 2) {
+                const diff = Math.ceil((selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24)) + 1;
+                if (diff > 30) {
+                  monthsCalendarAlert.style.display = 'block';
+                  monthsCalendarAlert.textContent = 'Nosso roteiro funciona melhor até 30 dias. Para viagens longas, crie por partes!';
+                } else {
+                  monthsCalendarAlert.style.display = 'none';
+                  monthsCalendarAlert.textContent = '';
+                }
+              } else {
+                monthsCalendarAlert.style.display = 'none';
+                monthsCalendarAlert.textContent = '';
+              }
+            }
+          }
+        });
+      } else {
+        // Garante que o botão está correto se já inicializado
+        monthsFp.config.onChange = function(selectedDates) {
+          monthsContinue.disabled = !(selectedDates.length === 2);
+          if (monthsCalendarAlert) {
+            if (selectedDates.length === 2) {
+              const diff = Math.ceil((selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24)) + 1;
+              if (diff > 30) {
+                monthsCalendarAlert.style.display = 'block';
+                monthsCalendarAlert.textContent = 'Nosso roteiro funciona melhor até 30 dias. Para viagens longas, crie por partes!';
+              } else {
+                monthsCalendarAlert.style.display = 'none';
+                monthsCalendarAlert.textContent = '';
+              }
+            } else {
+              monthsCalendarAlert.style.display = 'none';
+              monthsCalendarAlert.textContent = '';
+            }
+          }
+        };
+        // Atualiza o botão se já houver datas
+        if (monthsFp.selectedDates && monthsFp.selectedDates.length === 2) {
+          monthsContinue.disabled = false;
+        } else {
+          monthsContinue.disabled = true;
+        }
+      }
+      // Estado inicial
+      monthsContinue.disabled = true;
+      if (monthsCalendarAlert) {
+        monthsCalendarAlert.style.display = 'none';
+        monthsCalendarAlert.textContent = '';
+      }
+    }
+    function showMonthsFlexible() {
+      hideAllMonthsBlocks();
+      monthsFlexibleRow.classList.add('active');
+      // Ativa o botão se dias > 0
+      const daysSlider = document.getElementById('days-slider');
+      monthsContinue.disabled = !(daysSlider && Number(daysSlider.value) > 0);
+      if (daysSlider) {
+        daysSlider.oninput = function() {
+          monthsContinue.disabled = !(Number(daysSlider.value) > 0);
+        };
+      }
+    }
+    // Estado inicial: tudo oculto
+    hideAllMonthsBlocks();
+    monthsRadioExact.checked = false;
+    monthsRadioUnknown.checked = false;
+    monthsContinue.disabled = true;
+    // Listeners
+    monthsRadioExact.onchange = function() {
+      if (this.checked) {
+        state.mesesDatas = 'exatas';
+        showMonthsCalendar();
+      }
+    };
+    monthsRadioUnknown.onchange = function() {
+      if (this.checked) {
+        state.mesesDatas = 'nao-sei';
+        showMonthsFlexible();
+      }
+    };
   }
 }
 

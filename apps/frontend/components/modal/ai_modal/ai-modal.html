@@ -99,32 +99,48 @@
       <section id="months-modal" class="ai-modal-section" style="display:none;">
         <button class="ai-modal-btn-close" id="modal-close-btn" aria-label="Fechar">&times;</button>
         <h2>Me conta, quanto tempo você separou pra essa trip?</h2>
-        <div class="ai-modal-days-slider-row" style="text-align:center; margin: 24px 0 32px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 16px; width: 60%; justify-content: center;">
-            <input type="range" min="1" max="60" value="7" id="days-slider" style="flex:2;">
-            <input type="number" min="1" max="60" value="7" id="days-input" style="width: 60px; font-size:1.1rem; padding: 6px 8px; border-radius: 8px; border: 1px solid #cfd8dc; text-align: center;">
-          </div>
-          <div id="days-alert" style="margin-top: 8px; font-size:1rem; color:#e65100; display:none;"></div>
-        </div>
-        <div style="text-align:center; margin-bottom: 8px;">
-          <label style="font-size:1rem; cursor:pointer;">
-            <input type="checkbox" id="months-checkbox" style="margin-right:8px;">Tenho preferência de mês
+        <div class="ai-modal-radio-row" style="display: flex; gap: 24px; justify-content: center; margin-bottom: 18px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 1rem; cursor: pointer;">
+            <input type="radio" name="months-date-choice" id="months-radio-exact" value="exatas">
+            Já tenho as datas exatas
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 1rem; cursor: pointer;">
+            <input type="radio" name="months-date-choice" id="months-radio-unknown" value="nao-sei">
+            Não sei as datas ainda
           </label>
         </div>
-        <p class="ai-modal-desc" id="months-desc" style="margin-bottom: 0; margin-top: 8px; text-align: center; display:none;">Selecione todos os meses que você gostaria de fazer essa viagem.</p>
-        <div class="ai-modal-cards-grid" id="months-cards" style="display:none;">
-          <div class="ai-modal-card" data-value="Janeiro" style="white-space:nowrap;">Janeiro</div>
-          <div class="ai-modal-card" data-value="Fevereiro" style="white-space:nowrap;">Fevereiro</div>
-          <div class="ai-modal-card" data-value="Março" style="white-space:nowrap;">Março</div>
-          <div class="ai-modal-card" data-value="Abril" style="white-space:nowrap;">Abril</div>
-          <div class="ai-modal-card" data-value="Maio" style="white-space:nowrap;">Maio</div>
-          <div class="ai-modal-card" data-value="Junho" style="white-space:nowrap;">Junho</div>
-          <div class="ai-modal-card" data-value="Julho" style="white-space:nowrap;">Julho</div>
-          <div class="ai-modal-card" data-value="Agosto" style="white-space:nowrap;">Agosto</div>
-          <div class="ai-modal-card" data-value="Setembro" style="white-space:nowrap;">Setembro</div>
-          <div class="ai-modal-card" data-value="Outubro" style="white-space:nowrap;">Outubro</div>
-          <div class="ai-modal-card" data-value="Novembro" style="white-space:nowrap;">Novembro</div>
-          <div class="ai-modal-card" data-value="Dezembro" style="white-space:nowrap;">Dezembro</div>
+        <div id="months-calendar-row" style="display:none; flex-direction: column; align-items: center; margin: 32px 0 0 0;">
+          <input type="text" id="months-date-range" />
+          <div id="months-calendar-alert"></div>
+        </div>
+        <div id="months-flexible-row" style="display:none;">
+          <div class="ai-modal-days-slider-row" style="text-align:center; margin: 24px 0 32px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 16px; width: 60%; justify-content: center;">
+              <input type="range" min="1" max="60" value="7" id="days-slider" style="flex:2;">
+              <input type="number" min="1" max="60" value="7" id="days-input" style="width: 60px; font-size:1.1rem; padding: 6px 8px; border-radius: 8px; border: 1px solid #cfd8dc; text-align: center;">
+            </div>
+            <div id="days-alert" style="margin-top: 8px; font-size:1rem; color:#e65100; display:none;"></div>
+          </div>
+          <div style="text-align:center; margin-bottom: 8px;">
+            <label style="font-size:1rem; cursor:pointer;">
+              <input type="checkbox" id="months-checkbox" style="margin-right:8px;">Tenho preferência de mês
+            </label>
+          </div>
+          <p class="ai-modal-desc" id="months-desc" style="margin-bottom: 0; margin-top: 8px; text-align: center; display:none;">Selecione todos os meses que você gostaria de fazer essa viagem.</p>
+          <div class="ai-modal-cards-grid" id="months-cards" style="display:none;">
+            <div class="ai-modal-card" data-value="Janeiro" style="white-space:nowrap;">Janeiro</div>
+            <div class="ai-modal-card" data-value="Fevereiro" style="white-space:nowrap;">Fevereiro</div>
+            <div class="ai-modal-card" data-value="Março" style="white-space:nowrap;">Março</div>
+            <div class="ai-modal-card" data-value="Abril" style="white-space:nowrap;">Abril</div>
+            <div class="ai-modal-card" data-value="Maio" style="white-space:nowrap;">Maio</div>
+            <div class="ai-modal-card" data-value="Junho" style="white-space:nowrap;">Junho</div>
+            <div class="ai-modal-card" data-value="Julho" style="white-space:nowrap;">Julho</div>
+            <div class="ai-modal-card" data-value="Agosto" style="white-space:nowrap;">Agosto</div>
+            <div class="ai-modal-card" data-value="Setembro" style="white-space:nowrap;">Setembro</div>
+            <div class="ai-modal-card" data-value="Outubro" style="white-space:nowrap;">Outubro</div>
+            <div class="ai-modal-card" data-value="Novembro" style="white-space:nowrap;">Novembro</div>
+            <div class="ai-modal-card" data-value="Dezembro" style="white-space:nowrap;">Dezembro</div>
+          </div>
         </div>
         <div class="ai-modal-nav-row">
           <button class="ai-modal-btn ai-modal-btn-back" id="months-back">Voltar</button>
