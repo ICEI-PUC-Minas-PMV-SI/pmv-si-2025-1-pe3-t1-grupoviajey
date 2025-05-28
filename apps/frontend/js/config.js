@@ -6,13 +6,18 @@ async function loadApiKey() {
         return data.apiKey;
     } catch (error) {
         console.error('Erro ao carregar API key:', error);
-        return 'YOUR_API_KEY';
+        return null;
     }
 }
 
 // Função para atualizar a API key em todos os scripts do Google Maps
 async function updateGoogleMapsScripts() {
     const apiKey = await loadApiKey();
+    if (!apiKey) {
+        console.error('Não foi possível carregar a API key do Google Maps');
+        return;
+    }
+    
     const scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
     scripts.forEach(script => {
         const newSrc = script.src.replace(/key=[^&]+/, `key=${apiKey}`);

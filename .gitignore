@@ -1,18 +1,38 @@
-# Environment variables
+# Arquivos de ambiente
 .env
+.env.local
+.env.*.local
 
-# Dependencies
+# Dependências
 node_modules/
-
-# Logs
-*.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos de build
+dist/
+build/
+*.log
 
 # Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
+
+# Logs
+*.log
+npm-debug.log*
 
 # IDE
 .idea/

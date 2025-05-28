@@ -1,10 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 app.use(cors());
 
-const API_KEY = process.env.GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY';  // Use environment variable
+const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+if (!API_KEY) {
+  console.error('GOOGLE_MAPS_API_KEY não está definida nas variáveis de ambiente');
+  process.exit(1);
+}
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
@@ -41,6 +47,9 @@ app.get('/api/places', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar dados do Google Places', details: err.message });
   }
 });
+
+// Servir arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, 'apps/frontend')));
 
 const PORT = 3001;
 app.listen(PORT, () => {
