@@ -35,14 +35,6 @@
     text-decoration: underline;
   }
   @media (max-width: 900px) {
-    .cards-section {
-      flex-direction: column;
-      gap: 16px;
-      max-width: 95vw;
-    }
-    .hero-section {
-      max-width: 95vw;
-    }
     .footer {
       flex-direction: column;
       align-items: center;
