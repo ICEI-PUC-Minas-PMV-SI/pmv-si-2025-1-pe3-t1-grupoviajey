@@ -8,6 +8,17 @@ function includeHTML(id, file, callback) {
     });
 }
 
+export function includeSearchBar() {
+  fetch('../../components/search-bar/search-bar.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('search-bar-include').innerHTML = html;
+      const script = document.createElement('script');
+      script.src = '../../components/search-bar/search-bar.js';
+      document.body.appendChild(script);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   includeHTML('header', '../../components/header/header.html');
   includeHTML('footer', '../../components/footer/footer.html');
