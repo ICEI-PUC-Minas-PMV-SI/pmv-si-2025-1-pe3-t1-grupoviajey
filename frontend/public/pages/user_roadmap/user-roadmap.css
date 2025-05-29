@@ -387,6 +387,47 @@
   color: #1a3c4e;
   cursor: pointer;
 }
+.remove-checklist-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #e05a47;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px 7px;
+  border-radius: 5px;
+  transition: background 0.2s, color 0.2s;
+}
+.remove-checklist-btn:hover {
+  background: #ffeaea;
+}
+.add-checklist-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.add-checklist-form input[type="text"] {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1.5px solid #b0b8c1;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.add-checklist-btn {
+  background: #0a7c6a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-checklist-btn:hover {
+  background: #0e9c85;
+}
 
 .day-timeline {
   display: flex;
@@ -417,6 +458,7 @@
   min-height: 110px;
   align-items: flex-start;
   z-index: 1;
+  margin-top: 28px;
 }
 .local-img {
   width: 80px;
@@ -513,6 +555,13 @@
   margin-bottom: 12px;
 }
 .timeline-note, .timeline-expense {
+  margin-bottom: 4px;
+  margin-left: 90px;
+  position: relative;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+.timeline-note {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -523,9 +572,89 @@
   padding: 7px 14px;
   margin-bottom: 4px;
 }
-.timeline-expense {
+.timeline-note .note-text {
+  flex: 1;
+  word-break: break-word;
+}
+.timeline-note .edit-note-btn, .timeline-note .delete-note-btn {
+  background: none;
+  border: none;
   color: #0a7c6a;
+  border-radius: 5px;
+  padding: 4px 7px;
+  margin-left: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-note .delete-note-btn {
+  color: #e05a47;
+}
+.timeline-note .edit-note-btn:hover {
+  background: #e0f3f1;
+  color: #065c4e;
+}
+.timeline-note .delete-note-btn:hover {
+  background: #ffeaea;
+  color: #e05a47;
+}
+.timeline-expense {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1rem;
+  color: #0a7c6a;
+  background: #f8fafc;
+  border-radius: 7px;
+  padding: 7px 14px;
+  margin-bottom: 18px;
+  margin-left: 90px;
+  position: relative;
+  min-height: 38px;
+  box-sizing: border-box;
   font-weight: 600;
+}
+.timeline-expense svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+  display: inline-block;
+}
+.timeline-expense .expense-text {
+  flex: 1;
+  word-break: break-word;
+  font-size: 0.98rem;
+  color: #333;
+  font-weight: 500;
+  display: inline-block;
+  vertical-align: middle;
+}
+.timeline-expense .edit-expense-btn, .timeline-expense .delete-expense-btn {
+  background: none;
+  border: none;
+  color: #0a7c6a;
+  border-radius: 5px;
+  padding: 4px 7px;
+  margin-left: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+.timeline-expense .delete-expense-btn {
+  color: #e05a47;
+}
+.timeline-expense .edit-expense-btn:hover {
+  background: #e0f3f1;
+  color: #065c4e;
+}
+.timeline-expense .delete-expense-btn:hover {
+  background: #ffeaea;
+  color: #e05a47;
 }
 .add-place-btn.outlined {
   background: #fff;
@@ -546,6 +675,82 @@
   color: #065c4e;
 }
 
+.note-inline-form, .expense-inline-form {
+  background: #f8fafc;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 10px;
+  margin: 0 0 18px 90px;
+  padding: 14px 16px 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  max-width: calc(100% - 90px);
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+.note-input {
+  width: 100%;
+  border: 1.2px solid #b0b8c1;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 38px;
+}
+.note-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.save-note-btn, .cancel-note-btn {
+  background: #fff;
+  border: 1.5px solid #0a7c6a;
+  color: #0a7c6a;
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.save-note-btn:hover, .cancel-note-btn:hover {
+  background: #e0f3f1;
+  color: #065c4e;
+}
+
+.expense-input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.expense-input {
+  flex: 2 1 0;
+  margin-bottom: 0;
+  border: 1.2px solid #b0b8c1;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  min-width: 0;
+}
+.expense-currency-select {
+  flex: 1 1 0;
+  padding: 7px 10px;
+  border: 1.5px solid #b0b8c1;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #1a3c4e;
+  outline: none;
+  transition: border 0.2s;
+  height: 38px;
+}
+.expense-currency-select:focus {
+  border-color: #0a7c6a;
+}
+
 @media (max-width: 900px) {
   .roadmap-content {
     grid-template-columns: 1fr;
@@ -562,5 +767,10 @@
   }
   .local-card {
     padding-left: 20px;
+  }
+  .timeline-note, .note-inline-form, .expense-inline-form, .timeline-expense {
+    margin-left: 0;
+    max-width: 100%;
+    width: 100%;
   }
 } 
