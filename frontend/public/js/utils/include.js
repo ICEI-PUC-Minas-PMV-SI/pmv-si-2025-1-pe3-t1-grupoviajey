@@ -8,7 +8,7 @@ function includeHTML(id, file, callback) {
     });
 }
 
-export function includeSearchBar() {
+function includeSearchBar() {
   fetch('../../components/search-bar/search-bar.html')
     .then(res => res.text())
     .then(html => {

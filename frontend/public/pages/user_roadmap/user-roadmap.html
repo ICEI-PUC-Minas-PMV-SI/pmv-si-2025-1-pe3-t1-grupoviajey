@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roteiro do Usuário | Viajey</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/pages/user_roadmap/user-roadmap.css">
+  <link rel="stylesheet" href="/components/map/map.css">
+  <link rel="stylesheet" href="/components/header/header.css">
+  <link rel="stylesheet" href="/components/footer/footer.css">
+</head>
+<body>
+  <!-- Header -->
+  <div id="header"></div>
+
+  <main class="user-roadmap-main">
+    <section class="roadmap-hero">
+      <!-- Imagem de capa e informações principais -->
+      <div class="roadmap-cover">
+        <!-- Imagem de fundo -->
+        <img src="/assets/images/florianopolis.jpg" alt="Florianópolis" class="cover-img">
+        <div class="cover-info">
+          <h1>Florianópolis</h1>
+          <p>23 Maio - 25 Maio</p>
+        </div>
+      </div>
+    </section>
+    <section class="roadmap-content">
+      <div class="roadmap-itinerary">
+        <!-- Tabs: Roteiro | Check-list -->
+        <div class="tabs-budget-row">
+          <div class="tabs">
+            <button class="tab active">Roteiro</button>
+            <button class="tab">Check-list</button>
+          </div>
+          <div class="budget-btn-wrapper">
+            <button class="budget-btn" id="budgetBtn">+ Orçamento</button>
+            <div class="budget-dropdown" id="budgetDropdown">
+              <label for="budgetInput">Qual o seu orçamento para essa viagem?</label>
+              <div class="budget-input-row">
+                <select id="budgetCurrency" class="budget-currency-select">
+                  <option value="BRL">BRL</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+                <input type="text" id="budgetInput" placeholder="Informe o valor total" min="0" pattern="[0-9]*" inputmode="numeric">
+              </div>
+              <button class="save-budget-btn" id="saveBudgetBtn">Salvar</button>
+            </div>
+          </div>
+        </div>
+        <!-- Conteúdo do roteiro será adicionado aqui -->
+        <div class="itinerary-details" id="tab-itinerary">
+          <!-- Dias e locais do roteiro -->
+          <div class="day-section">
+            <div class="day-header clickable">
+              <h3>Sexta, 23 de Maio de 2025</h3>
+              <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+            </div>
+            <div class="day-content">
+              <div class="place-card empty">
+                <span>Adicione um local para este dia</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-section">
+            <div class="day-header clickable">
+              <h3>Sábado, 24 de Maio de 2025</h3>
+              <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+            </div>
+            <div class="day-content">
+              <div class="place-card empty">
+                <span>Adicione um local para este dia</span>
+              </div>
+            </div>
+          </div>
+          <div class="day-section">
+            <div class="day-header clickable">
+              <h3>Domingo, 25 de Maio de 2025</h3>
+              <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+            </div>
+            <div class="day-content">
+              <div class="day-timeline">
+                <div class="timeline-line"></div>
+                <div class="local-card">
+                  <button class="remove-place-btn" title="Remover local">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <div class="local-img"></div>
+                  <div class="local-info">
+                    <div class="local-title">[Nome do local]</div>
+                    <div class="local-address">Endereço do local</div>
+                    <div class="local-rating">
+                      <span class="stars">★★★★★</span>
+                      <span class="rating-value">4.5</span>
+                    </div>
+                    <div class="local-actions">
+                      <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+                      <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M10 6v8M7 10h6" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="local-card">
+                  <button class="remove-place-btn" title="Remover local">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  <div class="local-img"></div>
+                  <div class="local-info">
+                    <div class="local-title">[Nome do local]</div>
+                    <div class="local-address">Endereço do local</div>
+                    <div class="local-rating">
+                      <span class="stars">★★★★★</span>
+                      <span class="rating-value">4.5</span>
+                    </div>
+                    <div class="local-actions">
+                      <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+                      <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M10 6v8M7 10h6" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="timeline-info">
+                  <div class="timeline-note"><svg width="18" height="18" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="2" fill="none" stroke="#222" stroke-width="1.3"/><path d="M6 8h8M6 12h5" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg> Lorem ipsum Lorem ipsum Lorem ipsum</div>
+                  <div class="timeline-expense"><svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg> R$ 150,00</div>
+                </div>
+                <button class="add-place-btn outlined">+ Adicionar local</button>
+              </div>
+            </div>
+          </div>
+          <button class="add-place-btn">+ Adicionar local</button>
+          <div class="budget-total-row" id="budgetTotalRow" style="display:none;"></div>
+        </div>
+        <div class="checklist-details" id="tab-checklist" style="display:none;">
+          <h3 class="checklist-title">Check-list de Viagem</h3>
+          <ul class="checklist-list" id="checklistList">
+            <li class="checklist-item" draggable="true">
+              <span class="drag-handle" title="Arraste para mover">&#9776;</span>
+              <label><input type="checkbox"> Passagem comprada</label>
+            </li>
+            <li class="checklist-item" draggable="true">
+              <span class="drag-handle" title="Arraste para mover">&#9776;</span>
+              <label><input type="checkbox"> Reserva de hotel</label>
+            </li>
+            <li class="checklist-item" draggable="true">
+              <span class="drag-handle" title="Arraste para mover">&#9776;</span>
+              <label><input type="checkbox"> Documentos separados</label>
+            </li>
+            <li class="checklist-item" draggable="true">
+              <span class="drag-handle" title="Arraste para mover">&#9776;</span>
+              <label><input type="checkbox"> Roupas adequadas</label>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-map">
+        <!-- Mapa será inserido aqui -->
+        <div id="map-container"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="/js/core/map/map.js"></script>
+  <script src="../../js/utils/include.js" defer></script>
+  <script>
+    // Dropdown orçamento
+    const budgetBtn = document.getElementById('budgetBtn');
+    const budgetDropdown = document.getElementById('budgetDropdown');
+    document.addEventListener('click', function(e) {
+      if (budgetBtn && budgetDropdown) {
+        if (budgetBtn.contains(e.target)) {
+          budgetDropdown.classList.toggle('show');
+        } else if (!budgetDropdown.contains(e.target)) {
+          budgetDropdown.classList.remove('show');
+        }
+      }
+    });
+
+    // Máscara de moeda
+    const budgetInput = document.getElementById('budgetInput');
+    const budgetCurrency = document.getElementById('budgetCurrency');
+
+    function formatCurrency(value, currency) {
+      if (!value) return '';
+      let number = Number(value.replace(/\D/g, '')) / 100;
+      return number.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: currency || 'BRL',
+        minimumFractionDigits: 2
+      });
+    }
+
+    function getCurrencyLocale(currency) {
+      switch(currency) {
+        case 'USD': return 'en-US';
+        case 'EUR': return 'de-DE';
+        default: return 'pt-BR';
+      }
+    }
+
+    function formatInput(e) {
+      let currency = budgetCurrency.value;
+      let locale = getCurrencyLocale(currency);
+      let value = e.target.value.replace(/\D/g, '');
+      if (!value) {
+        e.target.value = '';
+        return;
+      }
+      let number = Number(value) / 100;
+      e.target.value = number.toLocaleString(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2
+      });
+    }
+
+    if (budgetInput) {
+      budgetInput.addEventListener('input', formatInput);
+      budgetInput.addEventListener('keydown', function(e) {
+        // Permitir apenas números, backspace, delete, setas
+        if (!["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) && !/\d/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+    }
+    if (budgetCurrency) {
+      budgetCurrency.addEventListener('change', function() {
+        if (budgetInput.value) {
+          // Reaplica a máscara ao trocar a moeda
+          let raw = budgetInput.value.replace(/\D/g, '');
+          let number = Number(raw) / 100;
+          let locale = getCurrencyLocale(budgetCurrency.value);
+          budgetInput.value = number.toLocaleString(locale, {
+            style: 'currency',
+            currency: budgetCurrency.value,
+            minimumFractionDigits: 2
+          });
+        }
+      });
+    }
+
+    // Salvar orçamento e exibir no final do itinerário
+    const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+    const budgetTotalRow = document.getElementById('budgetTotalRow');
+    if (saveBudgetBtn && budgetInput && budgetCurrency && budgetTotalRow) {
+      saveBudgetBtn.addEventListener('click', function() {
+        if (budgetInput.value) {
+          budgetTotalRow.textContent = `Orçamento total: ${budgetInput.value} (${budgetCurrency.value})`;
+          budgetTotalRow.style.display = 'block';
+          budgetDropdown.classList.remove('show');
+        }
+      });
+    }
+
+    // Accordion para day-section
+    document.querySelectorAll('.day-header').forEach(header => {
+      header.addEventListener('click', function() {
+        const section = header.parentElement;
+        const content = section.querySelector('.day-content');
+        const arrow = header.querySelector('.day-arrow svg');
+        if (content.style.display === 'none' || !content.style.display) {
+          content.style.display = 'block';
+          arrow.style.transform = 'rotate(180deg)';
+        } else {
+          content.style.display = 'none';
+          arrow.style.transform = 'rotate(0deg)';
+        }
+      });
+    });
+    // Inicialmente fecha todos menos o primeiro
+    document.querySelectorAll('.day-section').forEach((section, idx) => {
+      const content = section.querySelector('.day-content');
+      const arrow = section.querySelector('.day-arrow svg');
+      if (idx === 0) {
+        content.style.display = 'block';
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        content.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    // Alternar tabs
+    document.querySelectorAll('.tab').forEach((tab, idx) => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-itinerary').style.display = idx === 0 ? 'flex' : 'none';
+        document.getElementById('tab-checklist').style.display = idx === 1 ? 'block' : 'none';
+      });
+    });
+
+    // Drag and drop checklist
+    let dragSrcEl = null;
+    function handleDragStart(e) {
+      dragSrcEl = this;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.outerHTML);
+      this.classList.add('dragElem');
+    }
+    function handleDragOver(e) {
+      if (e.preventDefault) e.preventDefault();
+      this.classList.add('over');
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+    function handleDragLeave(e) {
+      this.classList.remove('over');
+    }
+    function handleDrop(e) {
+      if (e.stopPropagation) e.stopPropagation();
+      if (dragSrcEl !== this) {
+        this.parentNode.removeChild(dragSrcEl);
+        let dropHTML = e.dataTransfer.getData('text/html');
+        this.insertAdjacentHTML('beforebegin', dropHTML);
+        let dropped = this.previousSibling;
+        addDnDHandlers(dropped);
+      }
+      this.classList.remove('over');
+      return false;
+    }
+    function handleDragEnd(e) {
+      this.classList.remove('over');
+      this.classList.remove('dragElem');
+    }
+    function addDnDHandlers(elem) {
+      elem.addEventListener('dragstart', handleDragStart, false);
+      elem.addEventListener('dragover', handleDragOver, false);
+      elem.addEventListener('dragleave', handleDragLeave, false);
+      elem.addEventListener('drop', handleDrop, false);
+      elem.addEventListener('dragend', handleDragEnd, false);
+    }
+    document.querySelectorAll('.checklist-item').forEach(addDnDHandlers);
+  </script>
+</body>
+</html>
