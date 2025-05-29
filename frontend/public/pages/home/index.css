@@ -1,0 +1,108 @@
+.search-section {
+  text-align: center;
+  margin: 32px 0 0 0;
+}
+
+.search-section h1 {
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+
+.ia-banner-cta {
+  position: relative;
+  margin: 32px auto 0 auto;
+  max-width: 900px;
+  min-height: 260px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  background: #eee;
+}
+
+.ia-banner-bg {
+  background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80') center center/cover no-repeat;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0.85;
+  z-index: 1;
+}
+
+.ia-banner-content {
+  position: relative;
+  z-index: 2;
+  padding: 48px 32px;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 500px;
+}
+
+.ia-banner-content h2 {
+  font-size: 1.6rem;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+.cta-btn {
+  background: #fff;
+  color: #004954;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, color 0.2s;
+}
+
+.cta-btn:hover {
+  background: #e0f2f1;
+  color: #007c91;
+}
+
+.cards-section {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin: 32px 0 0 0;
+}
+
+.cta-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  padding: 32px 24px;
+  min-width: 220px;
+  max-width: 300px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #0d353a;
+  font-weight: 500;
+  transition: box-shadow 0.2s;
+}
+
+.cta-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+
+.subheading-cta {
+  margin: 16px 0 0 0;
+  color: #888;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .cards-section {
+    flex-direction: column;
+    gap: 16px;
+    max-width: 95vw;
+    margin: 32px auto 0 auto;
+  }
+  
+  .ia-banner-cta {
+    max-width: 95vw;
+  }
+} 
