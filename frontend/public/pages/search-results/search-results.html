@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resultados da Busca | Viajey</title>
-  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="../../css/main.css">
   <link rel="stylesheet" href="search-results.css">
   <link rel="stylesheet" href="../../components/header/header.css">
   <link rel="stylesheet" href="../../components/footer/footer.css">
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
   <link rel="stylesheet" href="../../components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="../../assets/js/config.js"></script>
+  <script src="../../js/config/config.js"></script>
   <script>
     // Carrega a API key do backend antes de carregar o script do Google Maps
     async function loadGoogleMapsScript() {
@@ -195,7 +195,7 @@
       </div>
     </div>
   </div>
-  <script src="../../assets/js/include.js"></script>
+  <script src="../../js/utils/include.js"></script>
   <script>
     const RADIUS = 2000;
     let map, service, markers = [], lastCenter = null, lastZoom = 14;
