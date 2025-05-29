@@ -1,0 +1,22 @@
+{
+  "name": "viajey",
+  "version": "1.0.0",
+  "main": "places-proxy.js",
+  "scripts": {
+    "start": "node places-proxy.js",
+    "dev": "nodemon places-proxy.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
