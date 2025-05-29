@@ -31,7 +31,7 @@
   position: relative;
   z-index: 2;
   padding: 48px 32px;
-  color: #fff;
+  color: #fff !important;
   text-shadow: 0 2px 8px rgba(0,0,0,0.25);
   display: flex;
   flex-direction: column;
