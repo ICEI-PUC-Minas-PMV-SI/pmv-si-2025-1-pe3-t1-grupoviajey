@@ -75,6 +75,7 @@
               <div class="place-card empty">
                 <span>Adicione um local para este dia</span>
               </div>
+              <button class="add-place-btn outlined">+ Adicionar local</button>
             </div>
           </div>
           <div class="day-section">
@@ -86,6 +87,7 @@
               <div class="place-card empty">
                 <span>Adicione um local para este dia</span>
               </div>
+              <button class="add-place-btn outlined">+ Adicionar local</button>
             </div>
           </div>
           <div class="day-section">
@@ -144,11 +146,10 @@
                     </div>
                   </div>
                 </div>
-                <button class="add-place-btn outlined">+ Adicionar local</button>
               </div>
+              <button class="add-place-btn outlined">Adicionar local</button>
             </div>
           </div>
-          <button class="add-place-btn">+ Adicionar local</button>
           <div class="finance-summary-row" id="financeSummaryRow" style="display:none;">
             <div class="finance-summary-item" id="summaryBudget" style="display:none;">
               <span class="finance-icon">🪙</span>
@@ -208,6 +209,18 @@
   </main>
 
   <div id="footer"></div>
+
+  <!-- Modal para adicionar local -->
+  <div id="addPlaceModal" class="modal-add-place" style="display:none;">
+    <div class="modal-content">
+      <h2 class="modal-title">Qual local você gostaria de adicionar?</h2>
+      <div id="modalSearchBarContainer"></div>
+      <div class="modal-actions">
+        <button id="closeAddPlaceModal" class="modal-cancel-btn">Cancelar</button>
+        <button id="confirmAddPlaceModal" class="modal-confirm-btn">Adicionar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/js/core/map/map.js"></script>
   <script src="../../js/utils/include.js" defer></script>

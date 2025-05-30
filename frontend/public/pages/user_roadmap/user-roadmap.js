@@ -415,4 +415,189 @@ document.addEventListener('DOMContentLoaded', function() {
   // Atualiza ao carregar a página
   setTimeout(updateFinanceSummary, 200);
   // --- FIM RESUMO FINANCEIRO ---
+
+  // --- MODAL ADICIONAR LOCAL ---
+  // Variável global para guardar o último place selecionado no autocomplete
+  let lastSelectedPlace = null;
+
+  function initModalAutocomplete(cityName) {
+    const input = document.getElementById('autocomplete');
+    if (input && window.google && window.google.maps) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: cityName }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+          const bounds = results[0].geometry.viewport;
+          const autocomplete = new google.maps.places.Autocomplete(input, {
+            bounds: bounds,
+            strictBounds: true
+          });
+          input.autocomplete = autocomplete;
+          // Salva o último place selecionado
+          autocomplete.addListener('place_changed', function() {
+            lastSelectedPlace = autocomplete.getPlace();
+          });
+        } else {
+          // fallback: autocomplete sem bounds
+          const autocomplete = new google.maps.places.Autocomplete(input);
+          input.autocomplete = autocomplete;
+          autocomplete.addListener('place_changed', function() {
+            lastSelectedPlace = autocomplete.getPlace();
+          });
+        }
+      });
+    }
+  }
+
+  function openAddPlaceModal() {
+    const modal = document.getElementById('addPlaceModal');
+    const container = document.getElementById('modalSearchBarContainer');
+    if (modal && container) {
+      // Limpa conteúdo anterior
+      container.innerHTML = '';
+      // Insere search bar reutilizando o HTML COMPLETO do componente
+      fetch('/components/search-bar/search-bar.html')
+        .then(resp => resp.text())
+        .then(html => {
+          container.innerHTML = html;
+          // Remove calendário e botão pesquisar do modal
+          const calendarBtn = container.querySelector('.calendar-btn');
+          if (calendarBtn) calendarBtn.style.display = 'none';
+          const searchBtn = container.querySelector('.search-btn');
+          if (searchBtn) searchBtn.style.display = 'none';
+          // Garante que o CSS da search-bar está aplicado
+          if (!document.querySelector('link[href*="search-bar/search-bar.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/components/search-bar/search-bar.css';
+            document.head.appendChild(link);
+          }
+          // Inicializa autocomplete Google restrito à cidade do roteiro
+          const city = document.querySelector('.cover-info h1')?.textContent?.trim() || '';
+          if (window.google && window.google.maps) {
+            initModalAutocomplete(city);
+          } else {
+            // Aguarda Google Maps carregar
+            let interval = setInterval(() => {
+              if (window.google && window.google.maps) {
+                clearInterval(interval);
+                initModalAutocomplete(city);
+              }
+            }, 100);
+          }
+        });
+      modal.style.display = 'flex';
+    }
+  }
+  function closeAddPlaceModal() {
+    const modal = document.getElementById('addPlaceModal');
+    if (modal) modal.style.display = 'none';
+  }
+  let lastAddPlaceDayContent = null;
+  document.querySelectorAll('.add-place-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Salva referência do dia clicado
+      lastAddPlaceDayContent = btn.closest('.day-content');
+      openAddPlaceModal();
+    });
+  });
+  const closeBtn = document.getElementById('closeAddPlaceModal');
+  if (closeBtn) closeBtn.onclick = closeAddPlaceModal;
+
+  // Lógica do botão Adicionar do modal
+  const confirmBtn = document.getElementById('confirmAddPlaceModal');
+  if (confirmBtn) {
+    confirmBtn.onclick = function() {
+      const input = document.getElementById('autocomplete');
+      let placeName = '';
+      let placeAddress = '';
+      let placeRating = null;
+      // Usa o último place selecionado se houver
+      if (lastSelectedPlace) {
+        if (lastSelectedPlace.name) {
+          placeName = lastSelectedPlace.name;
+        } else {
+          placeName = input ? input.value.trim() : '';
+        }
+        if (lastSelectedPlace.formatted_address) {
+          placeAddress = lastSelectedPlace.formatted_address;
+        } else if (lastSelectedPlace.vicinity) {
+          placeAddress = lastSelectedPlace.vicinity;
+        } else {
+          placeAddress = '';
+        }
+        if (lastSelectedPlace.rating) {
+          placeRating = lastSelectedPlace.rating;
+        }
+      } else {
+        // fallback: só nome
+        placeName = input ? input.value.trim() : '';
+        placeAddress = '';
+      }
+      if (placeName && lastAddPlaceDayContent) {
+        // Remove a mensagem de vazio, se existir
+        const emptyMsg = lastAddPlaceDayContent.querySelector('.place-card.empty');
+        if (emptyMsg) emptyMsg.remove();
+        // Garante que existe .day-timeline
+        let timeline = lastAddPlaceDayContent.querySelector('.day-timeline');
+        const addBtn = lastAddPlaceDayContent.querySelector('.add-place-btn');
+        if (!timeline) {
+          timeline = document.createElement('div');
+          timeline.className = 'day-timeline';
+          timeline.innerHTML = '<div class="timeline-line"></div>';
+          if (addBtn) {
+            lastAddPlaceDayContent.insertBefore(timeline, addBtn);
+          } else {
+            lastAddPlaceDayContent.appendChild(timeline);
+          }
+        } else if (addBtn && addBtn.parentElement === timeline) {
+          lastAddPlaceDayContent.appendChild(addBtn);
+        }
+        // Cria card de local igual aos existentes
+        const card = document.createElement('div');
+        card.className = 'local-card';
+        // Monta rating dinâmico
+        let ratingHtml = '';
+        if (placeRating) {
+          const stars = '★'.repeat(Math.round(placeRating)) + '☆'.repeat(5 - Math.round(placeRating));
+          ratingHtml = `<div class="local-rating"><span class="stars">${stars}</span></div>`;
+        } else {
+          ratingHtml = '';
+        }
+        card.innerHTML = `
+          <button class="remove-place-btn" title="Remover local">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="local-img"></div>
+          <div class="local-info">
+            <div class="local-title">${placeName}</div>
+            <div class="local-address">${placeAddress || ''}</div>
+            ${ratingHtml}
+            <div class="local-actions">
+              <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+              <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+            </div>
+          </div>
+        `;
+        timeline.appendChild(card);
+        // Adiciona evento de remover ao botão do novo card
+        const removeBtn = card.querySelector('.remove-place-btn');
+        if (removeBtn) {
+          removeBtn.onclick = function() {
+            card.remove();
+            setTimeout(updateFinanceSummary, 50);
+          };
+        }
+      }
+      closeAddPlaceModal();
+      // Limpa o último place selecionado para o próximo uso
+      lastSelectedPlace = null;
+    };
+  }
 });
