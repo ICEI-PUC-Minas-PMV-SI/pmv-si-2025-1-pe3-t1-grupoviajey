@@ -265,4 +265,26 @@ document.addEventListener('DOMContentLoaded', function() {
     elem.addEventListener('dragend', handleDragEnd, false);
   }
   document.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
+
+  // --- INÍCIO MAPA ---
+  (async function initRoadmapMap() {
+    // Aguarda DOM pronto
+    if (document.readyState === 'loading') {
+      await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+    }
+    // Obtém cidade do título
+    const title = document.querySelector('.cover-info h1');
+    const cidade = title ? title.textContent.trim() : 'Florianópolis';
+    // Importa módulos do mapa
+    try {
+      const loader = await import('../../js/core/map/loader.js');
+      const mapConfig = await import('../search-results/map-config.js');
+      // Carrega Google Maps e inicializa o mapa
+      await loader.loadGoogleMapsScript();
+      await mapConfig.initializeMapWithCity(cidade);
+    } catch (e) {
+      console.error('Erro ao inicializar mapa:', e);
+    }
+  })();
+  // --- FIM MAPA ---
 });
