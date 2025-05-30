@@ -685,4 +685,127 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+
+  // Função para abrir o modal de edição da viagem
+  function openEditTripModal() {
+    const modal = document.getElementById('editTripModal');
+    if (!modal) return;
+    const tripNameInput = document.getElementById('tripName');
+    const tripDestinationInput = document.getElementById('tripDestination');
+    const tripNameBanner = document.getElementById('tripNameBanner');
+    const tripDestinationBanner = document.getElementById('tripDestinationBanner');
+    const tripDateBanner = document.getElementById('tripDateBanner');
+    tripNameInput.value = tripNameBanner ? tripNameBanner.textContent : '';
+    tripDestinationInput.value = tripDestinationBanner ? tripDestinationBanner.textContent : '';
+    // Preencher datas atuais do banner, se houver
+    const tripDateInput = document.getElementById('editTripDateRange');
+    if (tripDateInput && window.flatpickr) {
+      let start = null, end = null;
+      if (tripDateBanner && tripDateBanner.textContent && tripDateBanner.textContent.includes('-')) {
+        // Espera formato "23 Maio - 25 Maio" ou similar
+        const parts = tripDateBanner.textContent.split('-').map(p => p.trim());
+        if (parts.length === 2) {
+          // Tenta converter para Date
+          const parseDate = (str) => {
+            // Aceita "23 Maio" ou "23 Mai"
+            const [dia, mes] = str.split(' ');
+            const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const idx = meses.findIndex(m => mes.toLowerCase().startsWith(m));
+            if (idx !== -1) {
+              const ano = new Date().getFullYear();
+              return new Date(ano, idx, parseInt(dia));
+            }
+            return null;
+          };
+          start = parseDate(parts[0]);
+          end = parseDate(parts[1]);
+        }
+      }
+      // Sempre atualiza as datas do flatpickr ao abrir o modal
+      if (tripDateInput._flatpickr) {
+        tripDateInput._flatpickr.setDate([start, end].filter(Boolean), true);
+        tripDateInput._flatpickr.set('position', 'below');
+      } else {
+        window.flatpickr(tripDateInput, {
+          mode: 'range',
+          dateFormat: 'd M',
+          locale: 'pt',
+          defaultDate: [start, end].filter(Boolean),
+          position: 'below'
+        });
+      }
+    }
+    modal.style.display = 'flex';
+    // --- Google Autocomplete para destino (apenas cidades) ---
+    if (window.google && window.google.maps && window.google.maps.places) {
+      if (!tripDestinationInput._autocompleteInitialized) {
+        const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
+          types: ['(cities)'],
+        });
+        tripDestinationInput._autocompleteInitialized = true;
+      }
+    } else {
+      // Se Google Maps ainda não carregou, tenta novamente após um tempo
+      let tries = 0;
+      const tryInit = () => {
+        if (window.google && window.google.maps && window.google.maps.places) {
+          if (!tripDestinationInput._autocompleteInitialized) {
+            const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
+              types: ['(cities)'],
+            });
+            tripDestinationInput._autocompleteInitialized = true;
+          }
+        } else if (tries < 10) {
+          tries++;
+          setTimeout(tryInit, 300);
+        }
+      };
+      tryInit();
+    }
+  }
+
+  // Evento para abrir modal ao clicar na engrenagem
+  const settingsBtn = document.querySelector('.cover-action-btn[title="Configurações"]');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', openEditTripModal);
+  } else {
+    console.error('Botão da engrenagem (Configurações) não encontrado!');
+  }
+  // Evento para fechar modal
+  const closeEditTripModalBtn = document.getElementById('closeEditTripModal');
+  if (closeEditTripModalBtn) {
+    closeEditTripModalBtn.onclick = function() {
+      document.getElementById('editTripModal').style.display = 'none';
+    };
+  }
+  // Fecha ao clicar fora do modal
+  window.addEventListener('click', function(e) {
+    const modal = document.getElementById('editTripModal');
+    if (modal && e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+  // Salvar atualiza os campos na tela
+  const editTripForm = document.getElementById('editTripForm');
+  if (editTripForm) {
+    editTripForm.onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('tripName').value;
+      const dest = document.getElementById('tripDestination').value;
+      const dateInput = document.getElementById('editTripDateRange');
+      const tripNameBanner = document.getElementById('tripNameBanner');
+      const tripDestinationBanner = document.getElementById('tripDestinationBanner');
+      const tripDateBanner = document.getElementById('tripDateBanner');
+      // Atualiza na tela
+      if (tripNameBanner) tripNameBanner.textContent = name;
+      if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
+      if (tripDateBanner && dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
+        const opts = { day: '2-digit', month: 'short' };
+        const start = dateInput._flatpickr.selectedDates[0].toLocaleDateString('pt-BR', opts);
+        const end = dateInput._flatpickr.selectedDates[1].toLocaleDateString('pt-BR', opts);
+        tripDateBanner.textContent = `${start} - ${end}`;
+      }
+      document.getElementById('editTripModal').style.display = 'none';
+    };
+  }
 });
