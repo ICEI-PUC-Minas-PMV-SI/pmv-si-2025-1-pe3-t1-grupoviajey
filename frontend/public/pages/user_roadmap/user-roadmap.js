@@ -800,10 +800,54 @@ document.addEventListener('DOMContentLoaded', function() {
       if (tripNameBanner) tripNameBanner.textContent = name;
       if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
       if (tripDateBanner && dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
-        const opts = { day: '2-digit', month: 'short' };
-        const start = dateInput._flatpickr.selectedDates[0].toLocaleDateString('pt-BR', opts);
-        const end = dateInput._flatpickr.selectedDates[1].toLocaleDateString('pt-BR', opts);
+        const opts = { day: '2-digit', month: 'long', year: 'numeric', weekday: 'long' };
+        const startDate = dateInput._flatpickr.selectedDates[0];
+        const endDate = dateInput._flatpickr.selectedDates[1];
+        const start = startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const end = endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
         tripDateBanner.textContent = `${start} - ${end}`;
+
+        // Atualizar as day-sections do roteiro
+        const itinerary = document.getElementById('tab-itinerary');
+        if (itinerary) {
+          // Remove todas as day-sections existentes
+          itinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
+          // Gera os dias do intervalo
+          let current = new Date(startDate);
+          current.setHours(0,0,0,0);
+          const endDay = new Date(endDate);
+          endDay.setHours(0,0,0,0);
+          const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+          while (current <= endDay) {
+            const weekday = diasSemana[current.getDay()];
+            const dia = current.toLocaleDateString('pt-BR', { day: '2-digit' });
+            const mes = current.toLocaleDateString('pt-BR', { month: 'long' });
+            const ano = current.getFullYear();
+            // Cria a estrutura da day-section
+            const daySection = document.createElement('div');
+            daySection.className = 'day-section';
+            daySection.innerHTML = `
+              <div class="day-header clickable">
+                <h3>${weekday}, ${dia} de ${mes} de ${ano}</h3>
+                <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+              </div>
+              <div class="day-content">
+                <div class="place-card empty">
+                  <span>Adicione um local para este dia</span>
+                </div>
+                <button class="add-place-btn outlined">+ Adicionar local</button>
+              </div>
+            `;
+            itinerary.appendChild(daySection);
+            // Avança para o próximo dia
+            current.setDate(current.getDate() + 1);
+          }
+          // Move o bloco de orçamento para logo após o último dia
+          const financeRow = document.getElementById('financeSummaryRow');
+          if (financeRow) {
+            itinerary.appendChild(financeRow);
+          }
+        }
       }
       document.getElementById('editTripModal').style.display = 'none';
     };
