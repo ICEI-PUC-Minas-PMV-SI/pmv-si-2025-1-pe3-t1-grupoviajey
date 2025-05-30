@@ -301,4 +301,118 @@ document.addEventListener('DOMContentLoaded', function() {
       if (card) card.remove();
     };
   });
+
+  // --- RESUMO FINANCEIRO ---
+  function parseCurrencyToNumber(str) {
+    if (!str) return 0;
+    // Remove tudo que não for número, vírgula ou ponto
+    str = str.replace(/[^\d,\.]/g, '');
+    // Troca vírgula por ponto se necessário
+    if (str.indexOf(',') > -1 && str.indexOf('.') === -1) {
+      str = str.replace(',', '.');
+    } else if (str.indexOf('.') > -1 && str.indexOf(',') > -1) {
+      // Ex: 1.234,56 -> 1234.56
+      str = str.replace(/\./g, '').replace(',', '.');
+    }
+    return parseFloat(str) || 0;
+  }
+
+  function getAllExpenses() {
+    // Busca todos os elementos de gasto
+    const expenses = Array.from(document.querySelectorAll('.timeline-expense .expense-text'));
+    return expenses.map(e => parseCurrencyToNumber(e.textContent));
+  }
+
+  // --- ORÇAMENTO: Salvar, exibir e persistir ---
+  let currentBudget = null;
+  // Carregar orçamento salvo ao iniciar
+  function loadBudgetFromStorage() {
+    const stored = localStorage.getItem('userRoadmapBudget');
+    if (stored) {
+      try {
+        currentBudget = JSON.parse(stored);
+        const summaryBudget = document.getElementById('summaryBudget');
+        const summaryBudgetValue = document.getElementById('summaryBudgetValue');
+        if (currentBudget && summaryBudget && summaryBudgetValue) {
+          summaryBudget.style.display = '';
+          summaryBudgetValue.textContent = `${currentBudget.text}`;
+        }
+      } catch (e) { currentBudget = null; }
+    }
+  }
+  loadBudgetFromStorage();
+
+  // Atualizar getBudgetInfo para usar currentBudget
+  function getBudgetInfo() {
+    if (!currentBudget) return null;
+    return { value: currentBudget.value, text: currentBudget.text };
+  }
+
+  function updateFinanceSummary() {
+    const financeRow = document.getElementById('financeSummaryRow');
+    const spentValue = document.getElementById('summarySpentValue');
+    const budgetDiv = document.getElementById('summaryBudget');
+    const budgetValue = document.getElementById('summaryBudgetValue');
+    const availableDiv = document.getElementById('summaryAvailableRow');
+    const availableValue = document.getElementById('summaryAvailableValue');
+    if (!financeRow || !spentValue) return;
+    const expenses = getAllExpenses();
+    const totalSpent = expenses.reduce((a, b) => a + b, 0);
+    spentValue.textContent = totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const budget = getBudgetInfo();
+    if (budget && budget.value > 0) {
+      budgetDiv.style.display = '';
+      budgetValue.textContent = budget.text.replace('Orçamento total: ', '');
+      availableDiv.style.display = '';
+      const available = budget.value - totalSpent;
+      availableValue.textContent = available.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    } else {
+      budgetDiv.style.display = 'none';
+      availableDiv.style.display = 'none';
+    }
+    financeRow.style.display = '';
+  }
+
+  // Atualiza ao adicionar/remover gastos
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('save-expense-btn') || e.target.classList.contains('delete-expense-btn')) {
+      setTimeout(updateFinanceSummary, 50);
+    }
+  });
+  // Atualiza ao salvar orçamento
+  const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+  const budgetInput = document.getElementById('budgetInput');
+  const budgetCurrency = document.getElementById('budgetCurrency');
+  if (saveBudgetBtn && budgetInput && budgetCurrency) {
+    saveBudgetBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const value = budgetInput.value;
+      const currency = budgetCurrency.value;
+      const summaryBudget = document.getElementById('summaryBudget');
+      const summaryBudgetValue = document.getElementById('summaryBudgetValue');
+      if (value && summaryBudget && summaryBudgetValue) {
+        summaryBudget.style.display = '';
+        summaryBudgetValue.textContent = `${value} (${currency})`;
+        // Salva o orçamento atual para uso no resumo e persiste
+        currentBudget = {
+          value: parseCurrencyToNumber(value),
+          text: `${value} (${currency})`
+        };
+        localStorage.setItem('userRoadmapBudget', JSON.stringify(currentBudget));
+      }
+      // Fecha o dropdown
+      const budgetDropdown = document.getElementById('budgetDropdown');
+      if (budgetDropdown) budgetDropdown.classList.remove('show');
+      setTimeout(updateFinanceSummary, 50);
+    });
+  }
+  // Atualiza ao remover local (pode conter gastos)
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-place-btn')) {
+      setTimeout(updateFinanceSummary, 50);
+    }
+  });
+  // Atualiza ao carregar a página
+  setTimeout(updateFinanceSummary, 200);
+  // --- FIM RESUMO FINANCEIRO ---
 });
