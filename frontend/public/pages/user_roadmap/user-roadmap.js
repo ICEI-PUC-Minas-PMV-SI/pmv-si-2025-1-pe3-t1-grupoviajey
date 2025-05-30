@@ -592,12 +592,97 @@ document.addEventListener('DOMContentLoaded', function() {
           removeBtn.onclick = function() {
             card.remove();
             setTimeout(updateFinanceSummary, 50);
+            // Remove marcador do mapa
+            const key = getPlaceKey(placeName, placeAddress);
+            const idx = window.roadmapMarkers.findIndex(m => m.key === key);
+            if (idx !== -1) {
+              window.roadmapMarkers[idx].marker.setMap(null);
+              window.roadmapMarkers.splice(idx, 1);
+            }
           };
         }
+        // Adiciona marcador no mapa
+        addPlaceToMap(placeName, placeAddress, lastSelectedPlace);
+        // Eventos de hover para animar e centralizar marcador
+        card.addEventListener('mouseenter', async function() {
+          const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
+          const key = getPlaceKey(placeName, placeAddress);
+          const m = window.roadmapMarkers.find(m => m.key === key);
+          if (m && m.marker) {
+            updateMarkerAnimation(m.marker, true);
+            // Centraliza o mapa no marcador
+            if (m.marker.getPosition) {
+              window.map.panTo(m.marker.getPosition());
+            }
+          }
+        });
+        card.addEventListener('mouseleave', async function() {
+          const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
+          const key = getPlaceKey(placeName, placeAddress);
+          const m = window.roadmapMarkers.find(m => m.key === key);
+          if (m && m.marker) {
+            updateMarkerAnimation(m.marker, false);
+          }
+        });
       }
       closeAddPlaceModal();
       // Limpa o último place selecionado para o próximo uso
       lastSelectedPlace = null;
     };
+  }
+
+  // Array global para guardar os marcadores do roteiro
+  window.roadmapMarkers = [];
+
+  // Função utilitária para gerar chave única do local
+  function getPlaceKey(name, address) {
+    return `${name}__${address}`;
+  }
+
+  // Função para adicionar marcador no mapa
+  async function addPlaceToMap(placeName, placeAddress, lastSelectedPlace) {
+    const { createMarker, updateMarkerAnimation } = await import('../../js/core/map/markers.js');
+    let marker = null;
+    let markerPlace = null;
+    if (lastSelectedPlace && lastSelectedPlace.geometry && lastSelectedPlace.geometry.location) {
+      markerPlace = {
+        name: lastSelectedPlace.name || placeName,
+        geometry: lastSelectedPlace.geometry,
+        rating: lastSelectedPlace.rating,
+        types: lastSelectedPlace.types,
+        vicinity: lastSelectedPlace.formatted_address || lastSelectedPlace.vicinity || placeAddress
+      };
+      marker = createMarker(window.map, markerPlace);
+    } else if (placeAddress) {
+      if (window.google && window.google.maps) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: placeAddress }, function(results, status) {
+          if (status === 'OK' && results[0]) {
+            markerPlace = {
+              name: placeName,
+              geometry: { location: results[0].geometry.location },
+              vicinity: placeAddress
+            };
+            marker = createMarker(window.map, markerPlace);
+            // Salva o marcador
+            if (marker) {
+              window.roadmapMarkers.push({
+                key: getPlaceKey(placeName, placeAddress),
+                marker,
+                markerPlace
+              });
+            }
+          }
+        });
+      }
+    }
+    // Salva o marcador se já criado (caso autocomplete)
+    if (marker) {
+      window.roadmapMarkers.push({
+        key: getPlaceKey(placeName, placeAddress),
+        marker,
+        markerPlace
+      });
+    }
   }
 });
