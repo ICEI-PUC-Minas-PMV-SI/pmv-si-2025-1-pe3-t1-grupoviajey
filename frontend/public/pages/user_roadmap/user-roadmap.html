@@ -149,7 +149,23 @@
             </div>
           </div>
           <button class="add-place-btn">+ Adicionar local</button>
-          <div class="budget-total-row" id="budgetTotalRow" style="display:none;"></div>
+          <div class="finance-summary-row" id="financeSummaryRow" style="display:none;">
+            <div class="finance-summary-item" id="summaryBudget" style="display:none;">
+              <span class="finance-icon">🪙</span>
+              <span class="summary-label">Orçamento</span>
+              <span class="summary-value" id="summaryBudgetValue"></span>
+            </div>
+            <div class="finance-summary-item">
+              <span class="finance-icon">💸</span>
+              <span class="summary-label">Gasto</span>
+              <span class="summary-value" id="summarySpentValue"></span>
+            </div>
+            <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
+              <span class="finance-icon">🟩</span>
+              <span class="summary-label">Disponível</span>
+              <span class="summary-value" id="summaryAvailableValue"></span>
+            </div>
+          </div>
         </div>
         <div class="checklist-details" id="tab-checklist" style="display:none;">
           <h3 class="checklist-title">Check-list de Viagem</h3>
