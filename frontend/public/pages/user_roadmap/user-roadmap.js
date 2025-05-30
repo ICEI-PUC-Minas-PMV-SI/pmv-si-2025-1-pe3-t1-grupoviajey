@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
       form.innerHTML = `
         <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
         <div class="note-actions">
-          <button class="save-note-btn">Salvar</button>
           <button class="cancel-note-btn">Cancelar</button>
+          <button class="save-note-btn">Salvar</button>
         </div>
       `;
       card.parentNode.insertBefore(form, card.nextElementSibling);
@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
           </select>
         </div>
         <div class="note-actions">
-          <button class="save-expense-btn">Salvar</button>
           <button class="cancel-expense-btn">Cancelar</button>
+          <button class="save-expense-btn">Salvar</button>
         </div>
       `;
       // Insere sempre depois da anotação, se houver, senão depois do card
@@ -137,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
       form.innerHTML = `
         <textarea class="note-input" rows="2">${value}</textarea>
         <div class="note-actions">
-          <button class="save-note-btn">Salvar</button>
           <button class="cancel-note-btn">Cancelar</button>
+          <button class="save-note-btn">Salvar</button>
         </div>
       `;
       card.parentNode.insertBefore(form, card.nextElementSibling);
@@ -179,8 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
           </select>
         </div>
         <div class="note-actions">
-          <button class="save-expense-btn">Salvar</button>
           <button class="cancel-expense-btn">Cancelar</button>
+          <button class="save-expense-btn">Salvar</button>
         </div>
       `;
       // Insere sempre depois da anotação, se houver, senão depois do card
