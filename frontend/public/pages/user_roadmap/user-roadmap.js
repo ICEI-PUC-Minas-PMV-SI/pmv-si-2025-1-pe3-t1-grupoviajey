@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
+  function getTrashSVG() {
+    return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+
   function createNoteDiv(value) {
     const noteDiv = document.createElement('div');
     noteDiv.className = 'timeline-note';
@@ -8,9 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="edit-note-btn" title="Editar anotação">
         <svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
       </button>
-      <button class="delete-note-btn" title="Excluir anotação">
-        <svg width="16" height="16" viewBox="0 0 20 20"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
+      <button class="delete-note-btn" title="Excluir anotação">${getTrashSVG()}</button>
     `;
     return noteDiv;
   }
@@ -24,9 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="edit-expense-btn" title="Editar gasto">
         <svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
       </button>
-      <button class="delete-expense-btn" title="Excluir gasto">
-        <svg width="16" height="16" viewBox="0 0 20 20"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
+      <button class="delete-expense-btn" title="Excluir gasto">${getTrashSVG()}</button>
     `;
     return expenseDiv;
   }
@@ -233,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
     li.innerHTML = `
       <span class="drag-handle" title="Arraste para mover">&#9776;</span>
       <label><input type="checkbox"> ${text}</label>
-      <button class="remove-checklist-btn" title="Remover item"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
     `;
     checklistList.appendChild(li);
     addChecklistDnDHandlers(li);
@@ -287,4 +293,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   })();
   // --- FIM MAPA ---
+
+  // Remover local ao clicar na lixeira
+  document.querySelectorAll('.remove-place-btn').forEach(btn => {
+    btn.onclick = function() {
+      const card = btn.closest('.local-card');
+      if (card) card.remove();
+    };
+  });
 });
