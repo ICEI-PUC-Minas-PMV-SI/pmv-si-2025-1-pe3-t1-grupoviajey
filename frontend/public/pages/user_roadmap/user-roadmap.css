@@ -976,4 +976,118 @@
 
 .pac-container {
   z-index: 11000 !important;
+}
+
+/* Modal editar viagem */
+.modal-edit-trip {
+  display: none; /* será alterado para flex via JS */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,0.35);
+  align-items: center;
+  justify-content: center;
+}
+.modal-edit-trip[style*="display: flex"] {
+  display: flex !important;
+}
+.modal-edit-trip .modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px 24px 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: relative;
+}
+.modal-edit-trip .modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0a7c6a;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.modal-edit-trip label {
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 4px;
+  font-weight: 500;
+  margin-top: 12px;
+}
+.modal-edit-trip input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.2px solid #b0b8c1;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+.modal-edit-trip .modal-save-btn {
+  background: #0a7c6a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 1.08rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 18px;
+  align-self: flex-end;
+  transition: background 0.2s;
+}
+.modal-edit-trip .modal-save-btn:hover {
+  background: #0e9c85;
+}
+.modal-edit-trip .modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #0a7c6a;
+  font-size: 1.6rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.modal-edit-trip .modal-close-btn:hover {
+  background: #e0f3f1;
+}
+@media (max-width: 600px) {
+  .modal-edit-trip .modal-content {
+    max-width: 98vw;
+    padding: 18px 6vw 18px 6vw;
+  }
+}
+
+.modal-date-btn {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.2px solid #b0b8c1;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #fff;
+  color: #222;
+  text-align: left;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+}
+.modal-date-btn:hover {
+  background: #e0f3f1;
+  border-color: #0a7c6a;
+}
+
+/* Garante que o calendário do flatpickr fique acima do modal de edição de viagem */
+.flatpickr-calendar {
+  z-index: 11001 !important;
 } 
