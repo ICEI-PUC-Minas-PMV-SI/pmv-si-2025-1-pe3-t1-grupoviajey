@@ -453,7 +453,7 @@
   border: 1.5px solid #e0e7ef;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 18px 20px 18px 90px;
+  padding: 18px 20px 18px 10px;
   margin-bottom: 24px;
   min-height: 110px;
   align-items: flex-start;
@@ -461,8 +461,8 @@
   margin-top: 28px;
 }
 .local-img {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   background: #f3f6fa;
   border-radius: 12px;
   margin-right: 18px;
@@ -704,8 +704,24 @@
   gap: 10px;
   justify-content: flex-end;
 }
-.save-note-btn, .cancel-note-btn {
-  background: #fff;
+.save-note-btn, .save-expense-btn {
+  background: #0a7c6a;
+  border: 1.5px solid #0a7c6a;
+  color: #fff;
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.save-note-btn:hover, .save-expense-btn:hover {
+  background: #065c4e;
+  border-color: #065c4e;
+  color: #fff;
+}
+.cancel-expense-btn, .cancel-note-btn {
+  background: none;
   border: 1.5px solid #0a7c6a;
   color: #0a7c6a;
   border-radius: 6px;
@@ -715,9 +731,9 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
-.save-note-btn:hover, .cancel-note-btn:hover {
-  background: #e0f3f1;
-  color: #065c4e;
+.cancel-expense-btn:hover, .cancel-note-btn:hover {
+  background: #0a7c6a;
+  color: #fff;
 }
 
 .expense-input-row {
@@ -749,6 +765,31 @@
 }
 .expense-currency-select:focus {
   border-color: #0a7c6a;
+}
+
+.cover-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 12px;
+  z-index: 2;
+}
+.cover-action-btn {
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 50%;
+  padding: 7px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.cover-action-btn:hover {
+  background: #e0f3f1;
+  box-shadow: 0 2px 8px rgba(10,124,106,0.10);
 }
 
 @media (max-width: 900px) {
