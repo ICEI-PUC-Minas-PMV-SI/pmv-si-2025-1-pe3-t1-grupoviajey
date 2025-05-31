@@ -1,12 +1,12 @@
-function getTrashSVG() {
-  return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`;
-}
+  function getTrashSVG() {
+    return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>`;
+  }
 
 // Funções auxiliares de drag-and-drop (escopo global)
 let dragSrcEl = null;
@@ -137,6 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Função utilitária para criar o drag handle SVG
+  function getDragHandleSVG() {
+    return `<span class="drag-handle" title="Arraste para mover">&#9776;</span>`;
+  }
+
   // Defina essas funções ANTES de attachLocalCardActions
 
   function attachNoteActions(noteDiv, card) {
@@ -217,34 +222,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         expenseDiv.remove();
         form.remove();
-        if (typeof closeAddPlaceModal === 'function') closeAddPlaceModal();
+        if (typeof closeAddPlaceModal === 'function') {
+          closeAddPlaceModal();
+        } else {
+          const modal = document.getElementById('addPlaceModal');
+          if (modal) modal.style.display = 'none';
+        }
       };
     };
     expenseDiv.querySelector('.delete-expense-btn').onclick = function() { expenseDiv.remove(); };
   }
 
   function attachLocalCardActions(card) {
+    // Adiciona o drag handle se não existir
+    if (!card.querySelector('.drag-handle')) {
+      card.insertAdjacentHTML('afterbegin', getDragHandleSVG());
+    }
+    addLocalCardDnDHandlers(card);
     const noteBtn = card.querySelector('.local-note-btn');
     if (noteBtn) {
       noteBtn.addEventListener('click', function() {
-        if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
-        const form = document.createElement('div');
-        form.className = 'note-inline-form';
-        form.innerHTML = `
+      if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
+      const form = document.createElement('div');
+      form.className = 'note-inline-form';
+      form.innerHTML = `
           <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
-          <div class="note-actions">
-            <button class="cancel-note-btn">Cancelar</button>
-            <button class="save-note-btn">Salvar</button>
-          </div>
-        `;
-        card.parentNode.insertBefore(form, card.nextElementSibling);
-        form.querySelector('.note-input').focus();
+        <div class="note-actions">
+          <button class="cancel-note-btn">Cancelar</button>
+          <button class="save-note-btn">Salvar</button>
+        </div>
+      `;
+      card.parentNode.insertBefore(form, card.nextElementSibling);
+      form.querySelector('.note-input').focus();
         form.querySelector('.cancel-note-btn').onclick = function(e) {
           if (e) e.stopPropagation();
           form.remove();
         };
-        form.querySelector('.save-note-btn').onclick = function(e) {
-          e.preventDefault();
+      form.querySelector('.save-note-btn').onclick = function(e) {
+        e.preventDefault();
           e.stopPropagation();
           const value = form.querySelector('.note-input').value.trim();
           if (value) {
@@ -252,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
             attachNoteActions(noteDiv, card);
           }
-          form.remove();
+        form.remove();
           // Fecha o modal principal SEMPRE ao salvar
           if (typeof closeAddPlaceModal === 'function') {
             closeAddPlaceModal();
@@ -266,52 +281,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const expenseBtn = card.querySelector('.local-expense-btn');
     if (expenseBtn) {
       expenseBtn.addEventListener('click', function() {
-        // Garante que só um campo de gastos fique aberto
-        let next = card.nextElementSibling;
-        if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
-        if (next && next.classList.contains('expense-inline-form')) return;
+      // Garante que só um campo de gastos fique aberto
+      let next = card.nextElementSibling;
+      if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
+      if (next && next.classList.contains('expense-inline-form')) return;
         // Cria campo de gastos
-        const form = document.createElement('div');
-        form.className = 'expense-inline-form';
-        form.innerHTML = `
-          <div class="expense-input-row">
+      const form = document.createElement('div');
+      form.className = 'expense-inline-form';
+      form.innerHTML = `
+        <div class="expense-input-row">
             <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
-            <select class="expense-currency-select">
+          <select class="expense-currency-select">
               <option value="BRL">BRL</option>
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
-            </select>
-          </div>
-          <div class="note-actions">
-            <button class="cancel-expense-btn">Cancelar</button>
-            <button class="save-expense-btn">Salvar</button>
-          </div>
-        `;
-        // Insere sempre depois da anotação, se houver, senão depois do card
-        let insertAfter = card;
-        if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
-          insertAfter = card.nextElementSibling;
-        }
-        insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
-        const input = form.querySelector('.expense-input');
-        const select = form.querySelector('.expense-currency-select');
-        input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
-        select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
+          </select>
+        </div>
+        <div class="note-actions">
+          <button class="cancel-expense-btn">Cancelar</button>
+          <button class="save-expense-btn">Salvar</button>
+        </div>
+      `;
+      // Insere sempre depois da anotação, se houver, senão depois do card
+      let insertAfter = card;
+      if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
+        insertAfter = card.nextElementSibling;
+      }
+      insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
+      const input = form.querySelector('.expense-input');
+      const select = form.querySelector('.expense-currency-select');
+      input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
+      select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
         form.querySelector('.cancel-expense-btn').onclick = function(e) {
           if (e) e.stopPropagation();
           form.remove();
         };
-        form.querySelector('.save-expense-btn').onclick = function(e) {
-          e.preventDefault();
+      form.querySelector('.save-expense-btn').onclick = function(e) {
+        e.preventDefault();
           e.stopPropagation();
-          const value = input.value.trim();
-          const currency = select.value;
-          if (value) {
+        const value = input.value.trim();
+        const currency = select.value;
+        if (value) {
             const expenseDiv = createExpenseDiv(value, currency);
             form.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
             attachExpenseActions(expenseDiv, card);
           }
-          form.remove();
+        form.remove();
           // Fecha o modal principal SEMPRE ao salvar
           if (typeof closeAddPlaceModal === 'function') {
             closeAddPlaceModal();
@@ -384,20 +399,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- INÍCIO MAPA ---
   (async function initRoadmapMap() {
-    // Aguarda DOM pronto
     if (document.readyState === 'loading') {
       await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
     }
-    // Obtém cidade do título
-    const title = document.querySelector('.cover-info h1');
-    const cidade = title ? title.textContent.trim() : 'Florianópolis';
-    // Importa módulos do mapa
+    const destElem = document.getElementById('tripDestinationBanner');
+    let cidade = destElem ? destElem.textContent.trim() : 'Florianópolis';
+    if (!cidade) cidade = 'Florianópolis';
     try {
       const loader = await import('../../js/core/map/loader.js');
       const mapConfig = await import('../search-results/map-config.js');
-      // Carrega Google Maps e inicializa o mapa
       await loader.loadGoogleMapsScript();
       await mapConfig.initializeMapWithCity(cidade);
+      console.log('window.map:', window.map);
+      // --- Clique em POI do Google: criar pin customizado com InfoWindow customizado ---
+      const { createMarker } = await import('../../js/core/map/markers.js');
+      const createdPoiMarkers = new Set();
+      window.map.addListener('click', function(event) {
+        if (event.placeId) {
+          // Evita navegação padrão
+          event.stop();
+          // Não duplique markers para o mesmo placeId
+          if (createdPoiMarkers.has(event.placeId)) return;
+          const service = new window.google.maps.places.PlacesService(window.map);
+          service.getDetails({ placeId: event.placeId, fields: ['name', 'formatted_address', 'geometry'] }, function(place, status) {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry && place.geometry.location) {
+              // Cria marker customizado
+              const marker = createMarker(window.map, {
+                name: place.name,
+                vicinity: place.formatted_address,
+                geometry: { location: place.geometry.location },
+                types: [],
+              });
+              createdPoiMarkers.add(event.placeId);
+              // Abre o InfoWindow customizado imediatamente
+              window.google.maps.event.trigger(marker, 'click');
+            }
+          });
+        }
+      });
     } catch (e) {
       console.error('Erro ao inicializar mapa:', e);
     }
@@ -615,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
       lastAddPlaceDayContent = btn.closest('.day-content');
       openAddPlaceModal();
     }
-  });
+    });
 
   // Lógica do botão Adicionar do modal
   const confirmBtn = document.getElementById('confirmAddPlaceModal');
@@ -678,6 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
           ratingHtml = '';
         }
         card.innerHTML = `
+          ${getDragHandleSVG()}
           <button class="remove-place-btn" title="Remover local">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -731,7 +771,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         card.addEventListener('mouseleave', async function() {
           const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-          const key = getPlaceKey(placeName, placeAddress);
           const m = window.roadmapMarkers.find(m => m.key === key);
           if (m && m.marker) {
             updateMarkerAnimation(m.marker, false);
@@ -810,24 +849,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const tripDestinationBanner = document.getElementById('tripDestinationBanner');
     const tripDateBanner = document.getElementById('tripDateBanner');
     tripNameInput.value = tripNameBanner ? tripNameBanner.textContent : '';
-    tripDestinationInput.value = tripDestinationBanner ? tripDestinationBanner.textContent : '';
+    // Remover SVG do texto do destino para o input
+    if (tripDestinationBanner && tripDestinationBanner.innerText) {
+      tripDestinationInput.value = tripDestinationBanner.innerText.trim();
+    } else {
+      tripDestinationInput.value = '';
+    }
     // Preencher datas atuais do banner, se houver
     const tripDateInput = document.getElementById('editTripDateRange');
     if (tripDateInput && window.flatpickr) {
       let start = null, end = null;
       if (tripDateBanner && tripDateBanner.textContent && tripDateBanner.textContent.includes('-')) {
-        // Espera formato "23 Maio - 25 Maio" ou similar
+        // Espera formato "23 Mai 2025 - 25 Mai 2025" ou similar
         const parts = tripDateBanner.textContent.split('-').map(p => p.trim());
         if (parts.length === 2) {
           // Tenta converter para Date
           const parseDate = (str) => {
-            // Aceita "23 Maio" ou "23 Mai"
-            const [dia, mes] = str.split(' ');
+            const [dia, mes, ano] = str.split(' ');
             const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
             const idx = meses.findIndex(m => mes.toLowerCase().startsWith(m));
             if (idx !== -1) {
-              const ano = new Date().getFullYear();
-              return new Date(ano, idx, parseInt(dia));
+              return new Date(Number(ano), idx, parseInt(dia));
             }
             return null;
           };
@@ -837,13 +879,15 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       // Sempre atualiza as datas do flatpickr ao abrir o modal
       if (tripDateInput._flatpickr) {
+        tripDateInput._flatpickr.set('minDate', 'today');
         tripDateInput._flatpickr.setDate([start, end].filter(Boolean), true);
         tripDateInput._flatpickr.set('position', 'below');
       } else {
         window.flatpickr(tripDateInput, {
           mode: 'range',
-          dateFormat: 'd M',
+          dateFormat: 'd M Y',
           locale: 'pt',
+          minDate: 'today',
           defaultDate: [start, end].filter(Boolean),
           position: 'below'
         });
@@ -899,11 +943,12 @@ document.addEventListener('DOMContentLoaded', function() {
       modal.style.display = 'none';
     }
   });
-  // Salvar atualiza os campos na tela
+  // Unificação do onsubmit do formulário de edição da viagem
   const editTripForm = document.getElementById('editTripForm');
   if (editTripForm) {
     editTripForm.onsubmit = function(e) {
       e.preventDefault();
+      console.log('submit do modal de edição de viagem');
       const name = document.getElementById('tripName').value;
       const dest = document.getElementById('tripDestination').value;
       const dateInput = document.getElementById('editTripDateRange');
@@ -912,56 +957,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const tripDateBanner = document.getElementById('tripDateBanner');
       // Atualiza na tela
       if (tripNameBanner) tripNameBanner.textContent = name;
-      if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
+      if (tripDestinationBanner) tripDestinationBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z' stroke='#fff' stroke-width='1.7' fill='#fff' /><circle cx='12' cy='10' r='3' fill='none' stroke='#0a7c6a' stroke-width='1.5'/></svg>` + dest;
       if (tripDateBanner && dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
-        const opts = { day: '2-digit', month: 'long', year: 'numeric', weekday: 'long' };
         const startDate = dateInput._flatpickr.selectedDates[0];
         const endDate = dateInput._flatpickr.selectedDates[1];
-        const start = startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        const end = endDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        tripDateBanner.textContent = `${start} - ${end}`;
-
-        // Atualizar as day-sections do roteiro
-        const itinerary = document.getElementById('tab-itinerary');
-        if (itinerary) {
-          // Remove todas as day-sections existentes
-          itinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
-          // Gera os dias do intervalo
-          let current = new Date(startDate);
-          current.setHours(0,0,0,0);
-          const endDay = new Date(endDate);
-          endDay.setHours(0,0,0,0);
-          const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-          while (current <= endDay) {
-            const weekday = diasSemana[current.getDay()];
-            const dia = current.toLocaleDateString('pt-BR', { day: '2-digit' });
-            const mes = current.toLocaleDateString('pt-BR', { month: 'long' });
-            const ano = current.getFullYear();
-            // Cria a estrutura da day-section
-            const daySection = document.createElement('div');
-            daySection.className = 'day-section';
-            daySection.innerHTML = `
-              <div class="day-header clickable">
-                <h3>${weekday}, ${dia} de ${mes} de ${ano}</h3>
-                <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
-              </div>
-              <div class="day-content">
-                <div class="place-card empty">
-                  <span>Adicione um local para este dia</span>
-                </div>
-                <button class="add-place-btn outlined">+ Adicionar local</button>
-              </div>
-            `;
-            itinerary.appendChild(daySection);
-            // Avança para o próximo dia
-            current.setDate(current.getDate() + 1);
-          }
-          // Move o bloco de orçamento para logo após o último dia
-          const financeRow = document.getElementById('financeSummaryRow');
-          if (financeRow) {
-            itinerary.appendChild(financeRow);
-          }
-        }
+        const opts = { day: '2-digit', month: 'short', year: 'numeric' };
+        const start = startDate.toLocaleDateString('pt-BR', opts);
+        const end = endDate.toLocaleDateString('pt-BR', opts);
+        tripDateBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='16' rx='3' fill='#fff' stroke='#fff' stroke-width='1.7'/><path d='M7 3v4M17 3v4' stroke='#0a7c6a' stroke-width='1.5' stroke-linecap='round'/></svg>` + `${start} - ${end}`;
       }
       document.getElementById('editTripModal').style.display = 'none';
       attachRoadmapEventListeners();
@@ -1037,4 +1040,282 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   attachRoadmapEventListeners();
+
+  // Listener para adicionar local do InfoWindow do mapa
+  window.addEventListener('addPlaceToRoadmap', async function(e) {
+    const { name, address } = e.detail;
+    // Adiciona no primeiro dia do roteiro
+    const firstDayContent = document.querySelector('.day-content');
+    if (!firstDayContent) return;
+    // Remove mensagem de vazio, se existir
+    const emptyMsg = firstDayContent.querySelector('.place-card.empty');
+    if (emptyMsg) emptyMsg.remove();
+    // Garante que existe .day-timeline
+    let timeline = firstDayContent.querySelector('.day-timeline');
+    const addBtn = firstDayContent.querySelector('.add-place-btn');
+    if (!timeline) {
+      timeline = document.createElement('div');
+      timeline.className = 'day-timeline';
+      timeline.innerHTML = '<div class="timeline-line"></div>';
+      if (addBtn) {
+        firstDayContent.insertBefore(timeline, addBtn);
+      } else {
+        firstDayContent.appendChild(timeline);
+      }
+    } else if (addBtn && addBtn.parentElement === timeline) {
+      firstDayContent.appendChild(addBtn);
+    }
+
+    // Busca o marker correspondente
+    const key = getPlaceKey(name, address);
+    let markerObj = window.roadmapMarkers.find(m => m.key === key);
+    let marker = null;
+    let markerPlace = null;
+    if (!markerObj) {
+      // Tenta encontrar o marker no mapa (pode ter sido criado mas não adicionado ao array)
+      if (window.map && window.google && window.google.maps) {
+        // Procura entre todos os markers do mapa (pode ser necessário adaptar se markers não forem globais)
+        // Aqui, como fallback, geocodifica e cria um novo marker
+        const geocoder = new window.google.maps.Geocoder();
+        await new Promise(resolve => {
+          geocoder.geocode({ address }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+              markerPlace = {
+                name,
+                geometry: { location: results[0].geometry.location },
+                vicinity: address
+              };
+              import('../../js/core/map/markers.js').then(({ createMarker }) => {
+                marker = createMarker(window.map, markerPlace);
+                window.roadmapMarkers.push({ key, marker, markerPlace });
+                resolve();
+              });
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
+    } else {
+      marker = markerObj.marker;
+      markerPlace = markerObj.markerPlace;
+    }
+
+    // Se markerPlace não tem rating/types, tenta obter do marker (caso tenha sido criado via Nearby/POI)
+    if (marker && marker.placeData) {
+      markerPlace = marker.placeData;
+    }
+
+    // Cria card de local igual ao do modal
+    let ratingHtml = '';
+    if (markerPlace && markerPlace.rating) {
+      const stars = '★'.repeat(Math.round(markerPlace.rating)) + '☆'.repeat(5 - Math.round(markerPlace.rating));
+      ratingHtml = `<div class="local-rating"><span class="stars">${stars}</span></div>`;
+    }
+    const card = document.createElement('div');
+    card.className = 'local-card';
+    card.innerHTML = `
+      ${getDragHandleSVG()}
+      <button class="remove-place-btn" title="Remover local">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="local-img"></div>
+      <div class="local-info">
+        <div class="local-title">${name}</div>
+        <div class="local-address">${address || ''}</div>
+        ${ratingHtml}
+        <div class="local-actions">
+          <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+          <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+        </div>
+      </div>
+    `;
+    timeline.appendChild(card);
+    // Adiciona evento de remover ao botão do novo card
+    const removeBtn = card.querySelector('.remove-place-btn');
+    if (removeBtn) {
+      removeBtn.onclick = function() {
+        card.remove();
+        setTimeout(updateFinanceSummary, 50);
+        // Remove marcador do mapa
+        const idx = window.roadmapMarkers.findIndex(m => m.key === key);
+        if (idx !== -1) {
+          window.roadmapMarkers[idx].marker.setMap(null);
+          window.roadmapMarkers.splice(idx, 1);
+        }
+      };
+    }
+    // Eventos de hover para animar e centralizar marcador
+    card.addEventListener('mouseenter', async function() {
+      const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
+      const m = window.roadmapMarkers.find(m => m.key === key);
+      if (m && m.marker) {
+        updateMarkerAnimation(m.marker, true);
+        // Centraliza o mapa no marcador
+        if (m.marker.getPosition) {
+          window.map.panTo(m.marker.getPosition());
+          window.map.setZoom(16);
+        }
+      }
+    });
+    card.addEventListener('mouseleave', async function() {
+      const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
+      const m = window.roadmapMarkers.find(m => m.key === key);
+      if (m && m.marker) {
+        updateMarkerAnimation(m.marker, false);
+      }
+    });
+    attachLocalCardActions(card);
+    setTimeout(updateFinanceSummary, 50);
+  });
+
+  // Funções de drag and drop para local-card
+  function handleLocalCardDragStart(e) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', ''); // necessário para Firefox
+    window._draggedLocalCard = this;
+    setTimeout(() => this.classList.add('dragElem'), 0);
+  }
+  function handleLocalCardDragOver(e) {
+    e.preventDefault();
+    this.classList.add('over');
+    e.dataTransfer.dropEffect = 'move';
+  }
+  function handleLocalCardDragLeave(e) {
+    this.classList.remove('over');
+  }
+  function handleLocalCardDrop(e) {
+    e.preventDefault();
+    this.classList.remove('over');
+    const dragged = window._draggedLocalCard;
+    if (!dragged || dragged === this) return;
+    if (dragged.classList.contains('local-card')) {
+      this.parentNode.insertBefore(dragged, this);
+      if (typeof attachLocalCardActions === 'function') attachLocalCardActions(dragged);
+    }
+  }
+  function handleLocalCardDragEnd(e) {
+    this.classList.remove('over');
+    this.classList.remove('dragElem');
+    window._draggedLocalCard = null;
+  }
+  function handleDayContentDragOver(e) {
+    e.preventDefault();
+    this.classList.add('over');
+    e.dataTransfer.dropEffect = 'move';
+    // Abrir dia se estiver fechado
+    if (this.style.display === 'none') {
+      this.style.display = 'block';
+    }
+    // Auto scroll
+    const mouseY = e.clientY;
+    const scrollMargin = 60;
+    const scrollSpeed = 18;
+    clearInterval(autoScrollInterval);
+    if (mouseY < scrollMargin) {
+      autoScrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 16);
+    } else if (window.innerHeight - mouseY < scrollMargin) {
+      autoScrollInterval = setInterval(() => window.scrollBy(0, scrollSpeed), 16);
+    }
+  }
+  function handleDayContentDrop(e) {
+    e.preventDefault();
+    this.classList.remove('over');
+    clearInterval(autoScrollInterval);
+    const dragged = window._draggedLocalCard;
+    if (!dragged) return;
+    let timeline = this.querySelector('.day-timeline');
+    if (!timeline) {
+      timeline = document.createElement('div');
+      timeline.className = 'day-timeline';
+      timeline.innerHTML = '<div class="timeline-line"></div>';
+      const addBtn = this.querySelector('.add-place-btn');
+      if (addBtn) {
+        this.insertBefore(timeline, addBtn);
+      } else {
+        this.appendChild(timeline);
+      }
+    }
+    timeline.appendChild(dragged);
+    if (typeof attachLocalCardActions === 'function') attachLocalCardActions(dragged);
+  }
+  function handleDayContentDragLeave(e) {
+    this.classList.remove('over');
+    clearInterval(autoScrollInterval);
+  }
+  function addLocalCardDnDHandlers(card) {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', handleLocalCardDragStart, false);
+    card.addEventListener('dragover', handleLocalCardDragOver, false);
+    card.addEventListener('dragleave', handleLocalCardDragLeave, false);
+    card.addEventListener('drop', handleLocalCardDrop, false);
+    card.addEventListener('dragend', handleLocalCardDragEnd, false);
+  }
+  function addDayContentDnDHandlers(dayContent) {
+    dayContent.addEventListener('dragover', handleDayContentDragOver, false);
+    dayContent.addEventListener('drop', handleDayContentDrop, false);
+    dayContent.addEventListener('dragleave', handleDayContentDragLeave, false);
+  }
+  function handleDayHeaderDragOver(e) {
+    e.preventDefault();
+    const section = this.parentElement;
+    const content = section.querySelector('.day-content');
+    const arrow = this.querySelector('.day-arrow svg');
+    if (content && content.style.display !== 'block') {
+      content.style.display = 'block';
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+    }
+  }
+  function addDayHeaderDnDHandlers(header) {
+    header.addEventListener('dragover', handleDayHeaderDragOver, false);
+  }
+  // Adiciona DnD aos cards e dias já existentes ao carregar
+  function initLocalCardDnD() {
+    document.querySelectorAll('.local-card').forEach(addLocalCardDnDHandlers);
+    document.querySelectorAll('.day-content').forEach(addDayContentDnDHandlers);
+    document.querySelectorAll('.day-header').forEach(addDayHeaderDnDHandlers);
+  }
+  initLocalCardDnD();
+
+  function closeModal(modal) {
+    if (modal) modal.style.display = 'none';
+  }
+  function setupModalCloseHandlers() {
+    // Add Place Modal
+    const addPlaceModal = document.getElementById('addPlaceModal');
+    const closeAddBtn = document.getElementById('closeAddPlaceModal');
+    if (addPlaceModal) {
+      // Clicar fora
+      window.addEventListener('click', function(e) {
+        if (e.target === addPlaceModal) closeModal(addPlaceModal);
+      });
+      // ESC
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && addPlaceModal.style.display === 'flex') closeModal(addPlaceModal);
+      });
+      // Cancelar
+      if (closeAddBtn) closeAddBtn.onclick = function() { closeModal(addPlaceModal); };
+    }
+    // Edit Trip Modal
+    const editTripModal = document.getElementById('editTripModal');
+    const closeEditBtn = document.getElementById('closeEditTripModal');
+    if (editTripModal) {
+      window.addEventListener('click', function(e) {
+        if (e.target === editTripModal) closeModal(editTripModal);
+      });
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && editTripModal.style.display === 'flex') closeModal(editTripModal);
+      });
+      if (closeEditBtn) closeEditBtn.onclick = function() { closeModal(editTripModal); };
+    }
+  }
+  setupModalCloseHandlers();
 });
+
+let autoScrollInterval = null;
