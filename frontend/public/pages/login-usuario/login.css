@@ -1,0 +1,161 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+.main-content {
+  background-color: #FFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+}
+
+.welcome-text {
+  background-color: #002E33;
+  color: #fff;
+  text-align: center;
+  padding: 60px 30px;
+  width: 100%;
+}
+
+.welcome-text h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.welcome-text p {
+  font-size: 16px;
+  margin-top: 8px;
+}
+
+.login-container {
+  border: 1px solid #002E33;
+  border-radius: 8px;
+  padding: 40px 30px;
+  max-width: 500px;
+  width: 100%;
+  margin-top: 40px;
+  background-color: #fff;
+}
+
+.login-container img {
+  display: block;
+  margin: 0 auto 16px;
+  width: 120px;
+}
+
+.login-container p {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  background-color: #edf6f6;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.checkbox-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.checkbox-container input {
+  margin-right: 6px;
+}
+
+.checkbox-container a {
+  color: #002E33;
+  text-decoration: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #002E33;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.signup-link {
+  text-align: center;
+  font-size: 16px;
+}
+
+.signup-link a {
+  color: #002E33;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* === Footer === */
+.footer {
+    background: #002E33;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 48px;
+    margin-top: 48px;
+  }
+  .footer-logo {
+    display: flex;
+    align-items: center;
+  }
+  .footer-logo svg {
+    height: 40px;
+    width: auto;
+    display: block;
+  }
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .footer-links a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: text-decoration 0.2s;
+  }
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+  @media (max-width: 900px) {
+    .footer {
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 8vw;
+      gap: 24px;
+    }
+    .footer-logo {
+      justify-content: center;
+    }
+    .footer-links {
+      align-items: center;
+      gap: 8px;
+    }
+  } 
