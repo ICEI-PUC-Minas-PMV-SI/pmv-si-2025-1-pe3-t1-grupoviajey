@@ -50,21 +50,10 @@ function addDnDHandlers(elem) {
 }
 
 function attachRoadmapEventListeners() {
-  // Accordion para day-section
-  document.querySelectorAll('.day-header').forEach(header => {
-    header.addEventListener('click', function() {
-      const section = header.parentElement;
-      const content = section.querySelector('.day-content');
-      const arrow = header.querySelector('.day-arrow svg');
-      if (content.style.display === 'none' || !content.style.display) {
-        content.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-      } else {
-        content.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
-      }
-    });
-  });
+  // Accordion para day-section - delegação de evento
+  const container = document.querySelector('#tab-itinerary') || document;
+  container.removeEventListener('click', handleDayHeaderClick, true); // remove antigo se existir
+  container.addEventListener('click', handleDayHeaderClick, true);
   // Inicialmente fecha todos menos o primeiro
   document.querySelectorAll('.day-section').forEach((section, idx) => {
     const content = section.querySelector('.day-content');
@@ -90,6 +79,21 @@ function attachRoadmapEventListeners() {
   document.querySelectorAll('.checklist-item').forEach(addDnDHandlers);
 }
 
+function handleDayHeaderClick(e) {
+  const header = e.target.closest('.day-header');
+  if (!header) return;
+  const section = header.parentElement;
+  const content = section.querySelector('.day-content');
+  const arrow = header.querySelector('.day-arrow svg');
+  if (content.style.display === 'none' || !content.style.display) {
+    content.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  } else {
+    content.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
   function createNoteDiv(value) {
@@ -106,12 +110,16 @@ document.addEventListener('DOMContentLoaded', function() {
     return noteDiv;
   }
 
-  function createExpenseDiv(value, currency) {
+  function createExpenseDiv(expenseName, value, currency) {
     const expenseDiv = document.createElement('div');
     expenseDiv.className = 'timeline-expense';
+    let label = value + ' ' + currency;
+    if (expenseName && expenseName.trim() !== '') {
+      label = `<b>${expenseName}:</b> ` + label;
+    }
     expenseDiv.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
-      <span class="expense-text">${value} ${currency}</span>
+      <span class="expense-text">${label}</span>
       <button class="edit-expense-btn" title="Editar gasto">
         <svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
       </button>
@@ -188,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
       form.className = 'expense-inline-form';
       form.innerHTML = `
         <div class="expense-input-row">
+          <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)" value="${expenseDiv.querySelector('.expense-text').textContent.split(':')[0] || ''}">
           <input type="text" class="expense-input" value="${value}" inputmode="numeric">
           <select class="expense-currency-select">
             <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>BRL</option>
@@ -213,10 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('.save-expense-btn').onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
+        const expenseName = form.querySelector('.expense-name-input').value.trim();
         const value = input.value.trim();
         const currency = select.value;
         if (value) {
-          const newExpenseDiv = createExpenseDiv(value, currency);
+          const newExpenseDiv = createExpenseDiv(expenseName, value, currency);
           form.parentNode.insertBefore(newExpenseDiv, form.nextElementSibling);
           attachExpenseActions(newExpenseDiv, card);
           if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
@@ -291,7 +301,8 @@ document.addEventListener('DOMContentLoaded', function() {
       form.className = 'expense-inline-form';
       form.innerHTML = `
         <div class="expense-input-row">
-            <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
+            <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)">
+          <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
           <select class="expense-currency-select">
               <option value="BRL">BRL</option>
               <option value="USD">USD</option>
@@ -320,12 +331,13 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('.save-expense-btn').onclick = function(e) {
         e.preventDefault();
           e.stopPropagation();
+        const expenseName = form.querySelector('.expense-name-input').value.trim();
         const value = input.value.trim();
         const currency = select.value;
         if (value) {
-            const expenseDiv = createExpenseDiv(value, currency);
-            form.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
-            attachExpenseActions(expenseDiv, card);
+            const newExpenseDiv = createExpenseDiv(expenseName, value, currency);
+            form.parentNode.insertBefore(newExpenseDiv, form.nextElementSibling);
+            attachExpenseActions(newExpenseDiv, card);
             if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
           }
         form.remove();
@@ -742,6 +754,15 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
         `;
+        // Adiciona imagem randômica
+        const imgDiv = card.querySelector('.local-img');
+        if (imgDiv) {
+          const rand = Math.floor(Math.random() * 10000);
+          imgDiv.style.minHeight = '90px';
+          setTimeout(() => {
+            imgDiv.innerHTML = `<img src="https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+          }, 0);
+        }
         timeline.appendChild(card);
         // Adiciona evento de remover ao botão do novo card
         const removeBtn = card.querySelector('.remove-place-btn');
@@ -962,6 +983,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Atualiza na tela
       if (tripNameBanner) tripNameBanner.textContent = name;
       if (tripDestinationBanner) tripDestinationBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z' stroke='#fff' stroke-width='1.7' fill='#fff' /><circle cx='12' cy='10' r='3' fill='none' stroke='#0a7c6a' stroke-width='1.5'/></svg>` + dest;
+      // Reatribui listeners do accordion após atualizar destino
+      attachRoadmapEventListeners();
       if (tripDateBanner && dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
         const startDate = dateInput._flatpickr.selectedDates[0];
         const endDate = dateInput._flatpickr.selectedDates[1];
@@ -969,9 +992,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = startDate.toLocaleDateString('pt-BR', opts);
         const end = endDate.toLocaleDateString('pt-BR', opts);
         tripDateBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='16' rx='3' fill='#fff' stroke='#fff' stroke-width='1.7'/><path d='M7 3v4M17 3v4' stroke='#0a7c6a' stroke-width='1.5' stroke-linecap='round'/></svg>` + `${start} - ${end}`;
+        // =============================
+        // Criação dinâmica dos dias do roteiro conforme o intervalo de datas
+        // =============================
+        const tabItinerary = document.getElementById('tab-itinerary');
+        // Remove todos os day-section existentes
+        tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
+        // Calcula todas as datas do intervalo
+        let current = new Date(startDate.getTime());
+        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        let idx = 0;
+        while (current <= endDate) {
+          const diaSemana = dias[current.getDay()];
+          const dia = current.getDate().toString().padStart(2, '0');
+          const mes = meses[current.getMonth()];
+          const ano = current.getFullYear();
+          // Cria o elemento do dia
+          const section = document.createElement('div');
+          section.className = 'day-section';
+          section.innerHTML = `
+            <div class="day-header clickable">
+              <h3>${diaSemana}, ${dia} de ${mes} de ${ano}</h3>
+              <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+            </div>
+            <div class="day-content">
+              <button class="add-place-btn outlined">+ Adicionar local</button>
+            </div>
+          `;
+          tabItinerary.appendChild(section);
+          current.setDate(current.getDate() + 1);
+          idx++;
+        }
+        // =============================
+        // Fim da criação dinâmica dos dias
+        // =============================
+        // Reatribui listeners do accordion
+        attachRoadmapEventListeners();
++       moveFinanceSummaryAfterDays();
       }
       document.getElementById('editTripModal').style.display = 'none';
       attachRoadmapEventListeners();
+      saveRoadmapToStorage();
     };
   }
 
@@ -1140,6 +1202,15 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `;
+    // Adiciona imagem randômica
+    const imgDiv = card.querySelector('.local-img');
+    if (imgDiv) {
+      const rand = Math.floor(Math.random() * 10000);
+      imgDiv.style.minHeight = '90px';
+      setTimeout(() => {
+        imgDiv.innerHTML = `<img src="https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+      }, 0);
+    }
     timeline.appendChild(card);
     // Adiciona evento de remover ao botão do novo card
     const removeBtn = card.querySelector('.remove-place-btn');
@@ -1603,3 +1674,173 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let autoScrollInterval = null;
+
+// =============================
+// Persistência temporária dos dados do roteiro usando localStorage
+// ATENÇÃO: Isso é apenas para manter os dados enquanto não há backend.
+// Quando o backend estiver pronto, remova ou adapte este bloco!
+// =============================
+function saveRoadmapToStorage() {
+  // Salva nome, destino, datas e locais
+  const tripName = document.getElementById('tripNameBanner')?.textContent || '';
+  const tripDestination = document.getElementById('tripDestinationBanner')?.innerText || '';
+  const tripDate = document.getElementById('tripDateBanner')?.innerText || '';
+  // Salva datas de início e fim (ISO)
+  let tripStart = '';
+  let tripEnd = '';
+  const dateInput = document.getElementById('editTripDateRange');
+  if (dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
+    tripStart = dateInput._flatpickr.selectedDates[0]?.toISOString() || '';
+    tripEnd = dateInput._flatpickr.selectedDates[1]?.toISOString() || '';
+  } else {
+    // tenta recuperar do localStorage anterior
+    const prev = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
+    tripStart = prev.tripStart || '';
+    tripEnd = prev.tripEnd || '';
+  }
+  // Salva locais
+  const days = Array.from(document.querySelectorAll('.day-section')).map(section => {
+    const date = section.querySelector('.day-header h3')?.textContent || '';
+    const places = Array.from(section.querySelectorAll('.local-card')).map(card => {
+      return {
+        name: card.querySelector('.local-title')?.textContent || '',
+        address: card.querySelector('.local-address')?.textContent || '',
+        rating: card.querySelector('.stars')?.textContent || '',
+        img: card.querySelector('.local-img img')?.src || ''
+      };
+    });
+    return { date, places };
+  });
+  localStorage.setItem('userRoadmapData', JSON.stringify({ tripName, tripDestination, tripDate, tripStart, tripEnd, days }));
+}
+
+function moveFinanceSummaryAfterDays() {
+  const tabItinerary = document.getElementById('tab-itinerary');
+  const finance = document.getElementById('financeSummaryRow');
+  if (!tabItinerary || !finance) return;
+  const days = tabItinerary.querySelectorAll('.day-section');
+  if (days.length > 0) {
+    days[days.length - 1].after(finance);
+  } else {
+    tabItinerary.prepend(finance);
+  }
+}
+
+function createDaysFromStorage(tripStart, tripEnd) {
+  // Cria dinamicamente os dias do roteiro conforme o intervalo salvo
+  const tabItinerary = document.getElementById('tab-itinerary');
+  if (!tabItinerary) return;
+  // Remove todos os day-section existentes
+  tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
+  if (!tripStart || !tripEnd) return;
+  const startDate = new Date(tripStart);
+  const endDate = new Date(tripEnd);
+  const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  let current = new Date(startDate.getTime());
+  while (current <= endDate) {
+    const diaSemana = dias[current.getDay()];
+    const dia = current.getDate().toString().padStart(2, '0');
+    const mes = meses[current.getMonth()];
+    const ano = current.getFullYear();
+    const section = document.createElement('div');
+    section.className = 'day-section';
+    section.innerHTML = `
+      <div class="day-header clickable">
+        <h3>${diaSemana}, ${dia} de ${mes} de ${ano}</h3>
+        <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 24"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
+      </div>
+      <div class="day-content">
+        <button class="add-place-btn outlined">+ Adicionar local</button>
+      </div>
+    `;
+    tabItinerary.appendChild(section);
+    current.setDate(current.getDate() + 1);
+  }
+  moveFinanceSummaryAfterDays();
+}
+
+function loadRoadmapFromStorage() {
+  const data = localStorage.getItem('userRoadmapData');
+  if (!data) return;
+  try {
+    const { tripName, tripDestination, tripDate, tripStart, tripEnd, days } = JSON.parse(data);
+    // Cria os dias do roteiro conforme as datas salvas
+    if (tripStart && tripEnd) {
+      createDaysFromStorage(tripStart, tripEnd);
+    }
+    if (tripName) {
+      const el = document.getElementById('tripNameBanner');
+      if (el) el.textContent = tripName;
+    }
+    if (tripDestination) {
+      const el = document.getElementById('tripDestinationBanner');
+      if (el) el.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z' stroke='#fff' stroke-width='1.7' fill='#fff' /><circle cx='12' cy='10' r='3' fill='none' stroke='#0a7c6a' stroke-width='1.5'/></svg>` + tripDestination;
+    }
+    if (tripDate) {
+      const el = document.getElementById('tripDateBanner');
+      if (el) el.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='16' rx='3' fill='#fff' stroke='#fff' stroke-width='1.7'/><path d='M7 3v4M17 3v4' stroke='#0a7c6a' stroke-width='1.5' stroke-linecap='round'/></svg>` + tripDate;
+    }
+    if (days && Array.isArray(days)) {
+      const daySections = document.querySelectorAll('.day-section');
+      for (let i = 0; i < daySections.length; i++) {
+        const section = daySections[i];
+        if (days[i]) {
+          // Atualiza data
+          const h3 = section.querySelector('.day-header h3');
+          if (h3) h3.textContent = days[i].date;
+          // Remove locais antigos
+          section.querySelectorAll('.local-card').forEach(card => card.remove());
+          // Adiciona locais salvos
+          const timeline = section.querySelector('.day-timeline') || (() => {
+            const t = document.createElement('div');
+            t.className = 'day-timeline';
+            t.innerHTML = '<div class="timeline-line"></div>';
+            const addBtn = section.querySelector('.add-place-btn');
+            if (addBtn) section.insertBefore(t, addBtn); else section.appendChild(t);
+            return t;
+          })();
+          if (days[i].places && Array.isArray(days[i].places)) {
+            days[i].places.forEach(place => {
+              const card = document.createElement('div');
+              card.className = 'local-card';
+              card.innerHTML = `
+                ${getDragHandleSVG()}
+                <button class="remove-place-btn" title="Remover local">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <div class="local-img" style="min-height:90px;">${place.img ? `<img src="${place.img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
+                <div class="local-info">
+                  <div class="local-title">${place.name}</div>
+                  <div class="local-address">${place.address}</div>
+                  ${place.rating ? `<div class="local-rating"><span class="stars">${place.rating}</span></div>` : ''}
+                  <div class="local-actions">
+                    <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+                    <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+                  </div>
+                </div>
+              `;
+              timeline.appendChild(card);
+              attachLocalCardActions(card);
+            });
+          }
+        }
+      }
+    }
+    // Reatribui listeners do accordion e atualiza sumário financeiro
+    attachRoadmapEventListeners();
+    setTimeout(updateFinanceSummary, 100);
+  } catch (e) { /* ignora erro */ }
+}
+// =============================
+// Fim da persistência temporária
+// =============================
+
+// Chama load ao abrir a página
+loadRoadmapFromStorage();
