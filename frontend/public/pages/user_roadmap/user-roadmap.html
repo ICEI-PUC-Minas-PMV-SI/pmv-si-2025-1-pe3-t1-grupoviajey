@@ -206,6 +206,18 @@
     </div>
   </div>
 
+  <!-- Modal de Compartilhamento -->
+  <div id="shareModal" class="modal-add-place" style="display:none;">
+    <div class="modal-content" style="max-width:380px;align-items:center;position:relative;">
+      <button id="closeShareModal" class="modal-close-btn" title="Fechar" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;color:#0a7c6a;cursor:pointer;z-index:2;">&times;</button>
+      <h2 class="modal-title" style="margin-bottom:18px;">Compartilhar viagem</h2>
+      <div style="display:flex;gap:8px;width:100%;align-items:center;">
+        <input id="shareLinkInput" type="text" readonly style="flex:1;margin-bottom:0;padding:8px 10px;font-size:1.05rem;border-radius:6px;border:1.2px solid #b0b8c1;" />
+        <button id="copyShareLinkBtn" class="modal-confirm-btn" style="padding:8px 16px;min-width:110px;">Copiar link</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/core/map/map.js"></script>
   <script src="../../js/utils/include.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -223,6 +235,35 @@
           // Aqui você pode chamar a função de deletar viagem
         }
       };
+    }
+  });
+
+  // Compartilhamento: abrir modal ao clicar no botão do banner
+  document.addEventListener('DOMContentLoaded', function() {
+    var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
+    var shareModal = document.getElementById('shareModal');
+    var shareInput = document.getElementById('shareLinkInput');
+    var copyBtn = document.getElementById('copyShareLinkBtn');
+    var closeBtn = document.getElementById('closeShareModal');
+    if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
+      shareBtn.addEventListener('click', function() {
+        shareInput.value = window.location.href;
+        shareModal.style.display = 'flex';
+        copyBtn.textContent = 'Copiar link';
+        shareInput.select();
+      });
+      copyBtn.addEventListener('click', function() {
+        shareInput.select();
+        document.execCommand('copy');
+        copyBtn.textContent = 'Link copiado!';
+        setTimeout(function(){ copyBtn.textContent = 'Copiar link'; }, 1800);
+      });
+      closeBtn.addEventListener('click', function() {
+        shareModal.style.display = 'none';
+      });
+      window.addEventListener('click', function(e) {
+        if (e.target === shareModal) shareModal.style.display = 'none';
+      });
     }
   });
   </script>
