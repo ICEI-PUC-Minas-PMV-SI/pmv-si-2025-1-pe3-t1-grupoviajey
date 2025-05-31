@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const newExpenseDiv = createExpenseDiv(value, currency);
           form.parentNode.insertBefore(newExpenseDiv, form.nextElementSibling);
           attachExpenseActions(newExpenseDiv, card);
+          if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
         }
         expenseDiv.remove();
         form.remove();
@@ -325,6 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const expenseDiv = createExpenseDiv(value, currency);
             form.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
             attachExpenseActions(expenseDiv, card);
+            if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
           }
         form.remove();
           // Fecha o modal principal SEMPRE ao salvar
@@ -454,6 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- RESUMO FINANCEIRO ---
   function parseCurrencyToNumber(str) {
     if (!str) return 0;
+    // Remove o código da moeda (BRL, USD, EUR) e espaços extras
+    str = str.replace(/(BRL|USD|EUR)/g, '').trim();
     // Remove tudo que não for número, vírgula ou ponto
     str = str.replace(/[^\d,\.]/g, '');
     // Troca vírgula por ponto se necessário
