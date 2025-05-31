@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const livereload = require('livereload');
+const connectLivereload = require('connect-livereload');
 const app = express();
 
 app.use(cors());
@@ -47,6 +49,13 @@ app.get('/api/places', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar dados do Google Places', details: err.message });
   }
 });
+
+// Ative o livereload
+const liveReloadServer = livereload.createServer();
+liveReloadServer.watch(path.join(__dirname, '../frontend/public'));
+
+// Middleware para injetar o script do livereload
+app.use(connectLivereload());
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, '../frontend/public')));
