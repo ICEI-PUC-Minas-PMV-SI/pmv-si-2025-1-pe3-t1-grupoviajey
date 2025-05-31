@@ -1,13 +1,96 @@
-document.addEventListener('DOMContentLoaded', function() {
-  function getTrashSVG() {
-    return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>`;
+function getTrashSVG() {
+  return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// Funções auxiliares de drag-and-drop (escopo global)
+let dragSrcEl = null;
+function handleDragStart(e) {
+  dragSrcEl = this;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.outerHTML);
+  this.classList.add('dragElem');
+}
+function handleDragOver(e) {
+  if (e.preventDefault) e.preventDefault();
+  this.classList.add('over');
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+function handleDragLeave(e) {
+  this.classList.remove('over');
+}
+function handleDrop(e) {
+  if (e.stopPropagation) e.stopPropagation();
+  if (dragSrcEl !== this) {
+    this.parentNode.removeChild(dragSrcEl);
+    let dropHTML = e.dataTransfer.getData('text/html');
+    this.insertAdjacentHTML('beforebegin', dropHTML);
+    let dropped = this.previousSibling;
+    addDnDHandlers(dropped);
   }
+  this.classList.remove('over');
+  return false;
+}
+function handleDragEnd(e) {
+  this.classList.remove('over');
+  this.classList.remove('dragElem');
+}
+function addDnDHandlers(elem) {
+  elem.addEventListener('dragstart', handleDragStart, false);
+  elem.addEventListener('dragover', handleDragOver, false);
+  elem.addEventListener('dragleave', handleDragLeave, false);
+  elem.addEventListener('drop', handleDrop, false);
+  elem.addEventListener('dragend', handleDragEnd, false);
+}
+
+function attachRoadmapEventListeners() {
+  // Accordion para day-section
+  document.querySelectorAll('.day-header').forEach(header => {
+    header.addEventListener('click', function() {
+      const section = header.parentElement;
+      const content = section.querySelector('.day-content');
+      const arrow = header.querySelector('.day-arrow svg');
+      if (content.style.display === 'none' || !content.style.display) {
+        content.style.display = 'block';
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        content.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    });
+  });
+  // Inicialmente fecha todos menos o primeiro
+  document.querySelectorAll('.day-section').forEach((section, idx) => {
+    const content = section.querySelector('.day-content');
+    const arrow = section.querySelector('.day-arrow svg');
+    if (idx === 0) {
+      content.style.display = 'block';
+      arrow.style.transform = 'rotate(180deg)';
+    } else {
+      content.style.display = 'none';
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  });
+  // Alternar tabs
+  document.querySelectorAll('.tab').forEach((tab, idx) => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-itinerary').style.display = idx === 0 ? 'flex' : 'none';
+      document.getElementById('tab-checklist').style.display = idx === 1 ? 'block' : 'none';
+    });
+  });
+  // Drag and drop checklist
+  document.querySelectorAll('.checklist-item').forEach(addDnDHandlers);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
 
   function createNoteDiv(value) {
     const noteDiv = document.createElement('div');
@@ -54,85 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  document.querySelectorAll('.local-note-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const card = btn.closest('.local-card');
-      if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
-      const form = document.createElement('div');
-      form.className = 'note-inline-form';
-      form.innerHTML = `
-        <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
-        <div class="note-actions">
-          <button class="cancel-note-btn">Cancelar</button>
-          <button class="save-note-btn">Salvar</button>
-        </div>
-      `;
-      card.parentNode.insertBefore(form, card.nextElementSibling);
-      form.querySelector('.note-input').focus();
-      form.querySelector('.cancel-note-btn').onclick = function() {
-        form.remove();
-      };
-      form.querySelector('.save-note-btn').onclick = function(e) {
-        e.preventDefault();
-        const value = form.querySelector('.note-input').value.trim();
-        if (value) {
-          const noteDiv = createNoteDiv(value);
-          card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
-          attachNoteActions(noteDiv, card);
-        }
-        form.remove();
-      };
-    });
-  });
-
-  document.querySelectorAll('.local-expense-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const card = btn.closest('.local-card');
-      // Garante que só um campo de gastos fique aberto
-      let next = card.nextElementSibling;
-      if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
-      if (next && next.classList.contains('expense-inline-form')) return;
-      // Cria campo de gastos
-      const form = document.createElement('div');
-      form.className = 'expense-inline-form';
-      form.innerHTML = `
-        <div class="expense-input-row">
-          <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
-          <select class="expense-currency-select">
-            <option value="BRL">BRL</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-          </select>
-        </div>
-        <div class="note-actions">
-          <button class="cancel-expense-btn">Cancelar</button>
-          <button class="save-expense-btn">Salvar</button>
-        </div>
-      `;
-      // Insere sempre depois da anotação, se houver, senão depois do card
-      let insertAfter = card;
-      if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
-        insertAfter = card.nextElementSibling;
-      }
-      insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
-      const input = form.querySelector('.expense-input');
-      const select = form.querySelector('.expense-currency-select');
-      input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
-      select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
-      form.querySelector('.cancel-expense-btn').onclick = function() { form.remove(); };
-      form.querySelector('.save-expense-btn').onclick = function(e) {
-        e.preventDefault();
-        const value = input.value.trim();
-        const currency = select.value;
-        if (value) {
-          const expenseDiv = createExpenseDiv(value, currency);
-          form.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
-          attachExpenseActions(expenseDiv, card);
-        }
-        form.remove();
-      };
-    });
-  });
+  // Defina essas funções ANTES de attachLocalCardActions
 
   function attachNoteActions(noteDiv, card) {
     noteDiv.querySelector('.edit-note-btn').onclick = function() {
@@ -149,9 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       card.parentNode.insertBefore(form, card.nextElementSibling);
       form.querySelector('.note-input').focus();
-      form.querySelector('.cancel-note-btn').onclick = function() { form.remove(); };
+      form.querySelector('.cancel-note-btn').onclick = function(e) { if (e) e.stopPropagation(); form.remove(); };
       form.querySelector('.save-note-btn').onclick = function(e) {
         e.preventDefault();
+        e.stopPropagation();
         const newValue = form.querySelector('.note-input').value.trim();
         if (newValue) {
           const newNoteDiv = createNoteDiv(newValue);
@@ -160,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         noteDiv.remove();
         form.remove();
+        if (typeof closeAddPlaceModal === 'function') closeAddPlaceModal();
       };
     };
     noteDiv.querySelector('.delete-note-btn').onclick = function() { noteDiv.remove(); };
@@ -167,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function attachExpenseActions(expenseDiv, card) {
     expenseDiv.querySelector('.edit-expense-btn').onclick = function() {
-      // Garante que só um campo de gastos fique aberto
       let next = card.nextElementSibling;
       if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
       if (next && next.classList.contains('expense-inline-form')) return;
@@ -189,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="save-expense-btn">Salvar</button>
         </div>
       `;
-      // Insere sempre depois da anotação, se houver, senão depois do card
       let insertAfter = card;
       if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
         insertAfter = card.nextElementSibling;
@@ -199,9 +204,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const select = form.querySelector('.expense-currency-select');
       input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
       select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
-      form.querySelector('.cancel-expense-btn').onclick = function() { form.remove(); };
+      form.querySelector('.cancel-expense-btn').onclick = function(e) { if (e) e.stopPropagation(); form.remove(); };
       form.querySelector('.save-expense-btn').onclick = function(e) {
         e.preventDefault();
+        e.stopPropagation();
         const value = input.value.trim();
         const currency = select.value;
         if (value) {
@@ -211,10 +217,114 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         expenseDiv.remove();
         form.remove();
+        if (typeof closeAddPlaceModal === 'function') closeAddPlaceModal();
       };
     };
     expenseDiv.querySelector('.delete-expense-btn').onclick = function() { expenseDiv.remove(); };
   }
+
+  function attachLocalCardActions(card) {
+    const noteBtn = card.querySelector('.local-note-btn');
+    if (noteBtn) {
+      noteBtn.addEventListener('click', function() {
+        if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
+        const form = document.createElement('div');
+        form.className = 'note-inline-form';
+        form.innerHTML = `
+          <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
+          <div class="note-actions">
+            <button class="cancel-note-btn">Cancelar</button>
+            <button class="save-note-btn">Salvar</button>
+          </div>
+        `;
+        card.parentNode.insertBefore(form, card.nextElementSibling);
+        form.querySelector('.note-input').focus();
+        form.querySelector('.cancel-note-btn').onclick = function(e) {
+          if (e) e.stopPropagation();
+          form.remove();
+        };
+        form.querySelector('.save-note-btn').onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const value = form.querySelector('.note-input').value.trim();
+          if (value) {
+            const noteDiv = createNoteDiv(value);
+            card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
+            attachNoteActions(noteDiv, card);
+          }
+          form.remove();
+          // Fecha o modal principal SEMPRE ao salvar
+          if (typeof closeAddPlaceModal === 'function') {
+            closeAddPlaceModal();
+          } else {
+            const modal = document.getElementById('addPlaceModal');
+            if (modal) modal.style.display = 'none';
+          }
+        };
+      });
+    }
+    const expenseBtn = card.querySelector('.local-expense-btn');
+    if (expenseBtn) {
+      expenseBtn.addEventListener('click', function() {
+        // Garante que só um campo de gastos fique aberto
+        let next = card.nextElementSibling;
+        if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
+        if (next && next.classList.contains('expense-inline-form')) return;
+        // Cria campo de gastos
+        const form = document.createElement('div');
+        form.className = 'expense-inline-form';
+        form.innerHTML = `
+          <div class="expense-input-row">
+            <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
+            <select class="expense-currency-select">
+              <option value="BRL">BRL</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+          <div class="note-actions">
+            <button class="cancel-expense-btn">Cancelar</button>
+            <button class="save-expense-btn">Salvar</button>
+          </div>
+        `;
+        // Insere sempre depois da anotação, se houver, senão depois do card
+        let insertAfter = card;
+        if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
+          insertAfter = card.nextElementSibling;
+        }
+        insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
+        const input = form.querySelector('.expense-input');
+        const select = form.querySelector('.expense-currency-select');
+        input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
+        select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
+        form.querySelector('.cancel-expense-btn').onclick = function(e) {
+          if (e) e.stopPropagation();
+          form.remove();
+        };
+        form.querySelector('.save-expense-btn').onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const value = input.value.trim();
+          const currency = select.value;
+          if (value) {
+            const expenseDiv = createExpenseDiv(value, currency);
+            form.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
+            attachExpenseActions(expenseDiv, card);
+          }
+          form.remove();
+          // Fecha o modal principal SEMPRE ao salvar
+          if (typeof closeAddPlaceModal === 'function') {
+            closeAddPlaceModal();
+          } else {
+            const modal = document.getElementById('addPlaceModal');
+            if (modal) modal.style.display = 'none';
+          }
+        };
+      });
+    }
+  }
+
+  document.querySelectorAll('.local-card').forEach(attachLocalCardActions);
 
   // Para anotações já existentes (caso haja)
   document.querySelectorAll('.timeline-note').forEach(function(noteDiv) {
@@ -471,8 +581,8 @@ document.addEventListener('DOMContentLoaded', function() {
             link.href = '/components/search-bar/search-bar.css';
             document.head.appendChild(link);
           }
-          // Inicializa autocomplete Google restrito à cidade do roteiro
-          const city = document.querySelector('.cover-info h1')?.textContent?.trim() || '';
+          // Pega o destino do banner SEMPRE ATUALIZADO
+          const city = document.querySelector('#tripDestinationBanner')?.textContent?.trim() || '';
           if (window.google && window.google.maps) {
             initModalAutocomplete(city);
           } else {
@@ -493,16 +603,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modal) modal.style.display = 'none';
   }
   let lastAddPlaceDayContent = null;
-  document.querySelectorAll('.add-place-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
+
+  // Adicione este bloco logo após o DOMContentLoaded:
+  document.addEventListener('click', function(e) {
+    // Delegação para todos os botões .add-place-btn
+    if (e.target.classList.contains('add-place-btn')) {
       e.preventDefault();
-      // Salva referência do dia clicado
+      // Garante que está pegando o botão correto mesmo se for um filho (ex: <span> dentro do botão)
+      const btn = e.target.closest('.add-place-btn');
+      if (!btn) return;
       lastAddPlaceDayContent = btn.closest('.day-content');
       openAddPlaceModal();
-    });
+    }
   });
-  const closeBtn = document.getElementById('closeAddPlaceModal');
-  if (closeBtn) closeBtn.onclick = closeAddPlaceModal;
 
   // Lógica do botão Adicionar do modal
   const confirmBtn = document.getElementById('confirmAddPlaceModal');
@@ -624,6 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateMarkerAnimation(m.marker, false);
           }
         });
+        attachLocalCardActions(card);
       }
       closeAddPlaceModal();
       // Limpa o último place selecionado para o próximo uso
@@ -850,6 +964,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       document.getElementById('editTripModal').style.display = 'none';
+      attachRoadmapEventListeners();
     };
   }
+
+  // Dropdown orçamento
+  const budgetBtn = document.getElementById('budgetBtn');
+  const budgetDropdown = document.getElementById('budgetDropdown');
+  document.addEventListener('click', function(e) {
+    if (budgetBtn && budgetDropdown) {
+      if (budgetBtn.contains(e.target)) {
+        budgetDropdown.classList.toggle('show');
+      } else if (!budgetDropdown.contains(e.target)) {
+        budgetDropdown.classList.remove('show');
+      }
+    }
+  });
+
+  // Máscara de moeda
+  function formatCurrency(value, currency) {
+    if (!value) return '';
+    let number = Number(value.replace(/\D/g, '')) / 100;
+    return number.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: currency || 'BRL',
+      minimumFractionDigits: 2
+    });
+  }
+  function getCurrencyLocale(currency) {
+    switch(currency) {
+      case 'USD': return 'en-US';
+      case 'EUR': return 'de-DE';
+      default: return 'pt-BR';
+    }
+  }
+  function formatInput(e) {
+    let currency = budgetCurrency.value;
+    let locale = getCurrencyLocale(currency);
+    let value = e.target.value.replace(/\D/g, '');
+    if (!value) {
+      e.target.value = '';
+      return;
+    }
+    let number = Number(value) / 100;
+    e.target.value = number.toLocaleString(locale, {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2
+    });
+  }
+  if (budgetInput) {
+    budgetInput.addEventListener('input', formatInput);
+    budgetInput.addEventListener('keydown', function(e) {
+      if (!["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) && !/\d/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+  }
+  if (budgetCurrency) {
+    budgetCurrency.addEventListener('change', function() {
+      if (budgetInput.value) {
+        let raw = budgetInput.value.replace(/\D/g, '');
+        let number = Number(raw) / 100;
+        let locale = getCurrencyLocale(budgetCurrency.value);
+        budgetInput.value = number.toLocaleString(locale, {
+          style: 'currency',
+          currency: budgetCurrency.value,
+          minimumFractionDigits: 2
+        });
+      }
+    });
+  }
+
+  attachRoadmapEventListeners();
 });

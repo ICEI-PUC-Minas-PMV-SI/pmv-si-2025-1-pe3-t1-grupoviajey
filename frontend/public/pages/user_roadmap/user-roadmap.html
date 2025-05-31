@@ -155,17 +155,17 @@
           <div class="finance-summary-row" id="financeSummaryRow" style="display:none;">
             <div class="finance-summary-item" id="summaryBudget" style="display:none;">
               <span class="finance-icon">🪙</span>
-              <span class="summary-label">Orçamento</span>
+              <span class="summary-label">Orçamento total:</span>
               <span class="summary-value" id="summaryBudgetValue"></span>
             </div>
             <div class="finance-summary-item">
               <span class="finance-icon">💸</span>
-              <span class="summary-label">Gasto</span>
+              <span class="summary-label">Gastos somados:</span>
               <span class="summary-value" id="summarySpentValue"></span>
             </div>
             <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
               <span class="finance-icon">🟩</span>
-              <span class="summary-label">Disponível</span>
+              <span class="summary-label">Orçamento disponível:</span>
               <span class="summary-value" id="summaryAvailableValue"></span>
             </div>
           </div>
@@ -245,175 +245,5 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
   <script src="/pages/user_roadmap/user-roadmap.js"></script>
-  <script>
-    // Dropdown orçamento
-    const budgetBtn = document.getElementById('budgetBtn');
-    const budgetDropdown = document.getElementById('budgetDropdown');
-    document.addEventListener('click', function(e) {
-      if (budgetBtn && budgetDropdown) {
-        if (budgetBtn.contains(e.target)) {
-          budgetDropdown.classList.toggle('show');
-        } else if (!budgetDropdown.contains(e.target)) {
-          budgetDropdown.classList.remove('show');
-        }
-      }
-    });
-
-    // Máscara de moeda
-    const budgetInput = document.getElementById('budgetInput');
-    const budgetCurrency = document.getElementById('budgetCurrency');
-
-    function formatCurrency(value, currency) {
-      if (!value) return '';
-      let number = Number(value.replace(/\D/g, '')) / 100;
-      return number.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: currency || 'BRL',
-        minimumFractionDigits: 2
-      });
-    }
-
-    function getCurrencyLocale(currency) {
-      switch(currency) {
-        case 'USD': return 'en-US';
-        case 'EUR': return 'de-DE';
-        default: return 'pt-BR';
-      }
-    }
-
-    function formatInput(e) {
-      let currency = budgetCurrency.value;
-      let locale = getCurrencyLocale(currency);
-      let value = e.target.value.replace(/\D/g, '');
-      if (!value) {
-        e.target.value = '';
-        return;
-      }
-      let number = Number(value) / 100;
-      e.target.value = number.toLocaleString(locale, {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2
-      });
-    }
-
-    if (budgetInput) {
-      budgetInput.addEventListener('input', formatInput);
-      budgetInput.addEventListener('keydown', function(e) {
-        // Permitir apenas números, backspace, delete, setas
-        if (!["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) && !/\d/.test(e.key)) {
-          e.preventDefault();
-        }
-      });
-    }
-    if (budgetCurrency) {
-      budgetCurrency.addEventListener('change', function() {
-        if (budgetInput.value) {
-          // Reaplica a máscara ao trocar a moeda
-          let raw = budgetInput.value.replace(/\D/g, '');
-          let number = Number(raw) / 100;
-          let locale = getCurrencyLocale(budgetCurrency.value);
-          budgetInput.value = number.toLocaleString(locale, {
-            style: 'currency',
-            currency: budgetCurrency.value,
-            minimumFractionDigits: 2
-          });
-        }
-      });
-    }
-
-    // Salvar orçamento e exibir no final do itinerário
-    const saveBudgetBtn = document.getElementById('saveBudgetBtn');
-    const budgetTotalRow = document.getElementById('budgetTotalRow');
-    if (saveBudgetBtn && budgetInput && budgetCurrency && budgetTotalRow) {
-      saveBudgetBtn.addEventListener('click', function() {
-        if (budgetInput.value) {
-          budgetTotalRow.textContent = `Orçamento total: ${budgetInput.value} (${budgetCurrency.value})`;
-          budgetTotalRow.style.display = 'block';
-          budgetDropdown.classList.remove('show');
-        }
-      });
-    }
-
-    // Accordion para day-section
-    document.querySelectorAll('.day-header').forEach(header => {
-      header.addEventListener('click', function() {
-        const section = header.parentElement;
-        const content = section.querySelector('.day-content');
-        const arrow = header.querySelector('.day-arrow svg');
-        if (content.style.display === 'none' || !content.style.display) {
-          content.style.display = 'block';
-          arrow.style.transform = 'rotate(180deg)';
-        } else {
-          content.style.display = 'none';
-          arrow.style.transform = 'rotate(0deg)';
-        }
-      });
-    });
-    // Inicialmente fecha todos menos o primeiro
-    document.querySelectorAll('.day-section').forEach((section, idx) => {
-      const content = section.querySelector('.day-content');
-      const arrow = section.querySelector('.day-arrow svg');
-      if (idx === 0) {
-        content.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-      } else {
-        content.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
-      }
-    });
-
-    // Alternar tabs
-    document.querySelectorAll('.tab').forEach((tab, idx) => {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('tab-itinerary').style.display = idx === 0 ? 'flex' : 'none';
-        document.getElementById('tab-checklist').style.display = idx === 1 ? 'block' : 'none';
-      });
-    });
-
-    // Drag and drop checklist
-    let dragSrcEl = null;
-    function handleDragStart(e) {
-      dragSrcEl = this;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', this.outerHTML);
-      this.classList.add('dragElem');
-    }
-    function handleDragOver(e) {
-      if (e.preventDefault) e.preventDefault();
-      this.classList.add('over');
-      e.dataTransfer.dropEffect = 'move';
-      return false;
-    }
-    function handleDragLeave(e) {
-      this.classList.remove('over');
-    }
-    function handleDrop(e) {
-      if (e.stopPropagation) e.stopPropagation();
-      if (dragSrcEl !== this) {
-        this.parentNode.removeChild(dragSrcEl);
-        let dropHTML = e.dataTransfer.getData('text/html');
-        this.insertAdjacentHTML('beforebegin', dropHTML);
-        let dropped = this.previousSibling;
-        addDnDHandlers(dropped);
-      }
-      this.classList.remove('over');
-      return false;
-    }
-    function handleDragEnd(e) {
-      this.classList.remove('over');
-      this.classList.remove('dragElem');
-    }
-    function addDnDHandlers(elem) {
-      elem.addEventListener('dragstart', handleDragStart, false);
-      elem.addEventListener('dragover', handleDragOver, false);
-      elem.addEventListener('dragleave', handleDragLeave, false);
-      elem.addEventListener('drop', handleDrop, false);
-      elem.addEventListener('dragend', handleDragEnd, false);
-    }
-    document.querySelectorAll('.checklist-item').forEach(addDnDHandlers);
-  </script>
 </body>
 </html>
