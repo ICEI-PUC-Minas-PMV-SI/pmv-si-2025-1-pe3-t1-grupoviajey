@@ -1334,6 +1334,87 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   setupModalCloseHandlers();
+
+  // Modal de colaboração: abrir ao clicar no botão "Adicionar pessoa"
+  var collabBtn = document.querySelector('.cover-action-btn[title="Adicionar pessoa"]');
+  var collabModal = document.getElementById('collabModal');
+  var collabInput = document.getElementById('collabLinkInput');
+  var copyCollabBtn = document.getElementById('copyCollabLinkBtn');
+  var closeCollabBtn = document.getElementById('closeCollabModal');
+  if (collabBtn && collabModal && collabInput && copyCollabBtn && closeCollabBtn) {
+    collabBtn.addEventListener('click', function() {
+      collabInput.value = window.location.href;
+      collabModal.style.display = 'flex';
+      copyCollabBtn.textContent = 'Copiar';
+      collabInput.select();
+      renderCollabList();
+    });
+    copyCollabBtn.addEventListener('click', function() {
+      collabInput.select();
+      document.execCommand('copy');
+      copyCollabBtn.textContent = 'Link copiado!';
+      setTimeout(function(){ copyCollabBtn.textContent = 'Copiar'; }, 1800);
+    });
+    closeCollabBtn.addEventListener('click', function() {
+      collabModal.style.display = 'none';
+    });
+    window.addEventListener('click', function(e) {
+      if (e.target === collabModal) collabModal.style.display = 'none';
+    });
+  }
+
+  function renderCollabList() {
+    // Quando tiver backend, troque window.currentUser pelos dados reais do usuário
+    const user = window.currentUser || {
+      name: "Maria Souza",
+      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+      isOwner: true
+    };
+    const collabList = document.getElementById('collabList');
+    if (collabList) {
+      collabList.innerHTML = `
+        <img src="${user.avatar}" alt="${user.name}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+        <span style="font-weight:600;">${user.name}</span>
+        <span style="color:#888;font-size:0.98rem;">${user.isOwner ? '(Dono)' : ''}</span>
+      `;
+    }
+  }
+
+  window.currentUser = {
+    name: "Maria Souza",
+    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    isOwner: true
+  };
 });
+
+ // Compartilhamento: abrir modal ao clicar no botão do banner
+ document.addEventListener('DOMContentLoaded', function() {
+  var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
+  var shareModal = document.getElementById('shareModal');
+  var shareInput = document.getElementById('shareLinkInput');
+  var copyBtn = document.getElementById('copyShareLinkBtn');
+  var closeBtn = document.getElementById('closeShareModal');
+  if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
+    shareBtn.addEventListener('click', function() {
+      shareInput.value = window.location.href;
+      shareModal.style.display = 'flex';
+      copyBtn.textContent = 'Copiar link';
+      shareInput.select();
+    });
+    copyBtn.addEventListener('click', function() {
+      shareInput.select();
+      document.execCommand('copy');
+      copyBtn.textContent = 'Link copiado!';
+      setTimeout(function(){ copyBtn.textContent = 'Copiar link'; }, 1800);
+    });
+    closeBtn.addEventListener('click', function() {
+      shareModal.style.display = 'none';
+    });
+    window.addEventListener('click', function(e) {
+      if (e.target === shareModal) shareModal.style.display = 'none';
+    });
+  }
+});
+
 
 let autoScrollInterval = null;
