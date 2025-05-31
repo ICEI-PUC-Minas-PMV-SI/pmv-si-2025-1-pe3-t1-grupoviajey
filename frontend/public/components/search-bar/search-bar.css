@@ -1,7 +1,7 @@
 .search-bar-container {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: center;
   background: #fff;
   border-radius: 28px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
@@ -10,14 +10,14 @@
   margin: 24px auto;
   padding: 0 8px;
   width: 100%;
-  gap: 0;
+  gap: 8px;
 }
 .search-icon {
   display: flex;
-  align-items: center;
   margin-left: 16px;
   margin-right: 8px;
   pointer-events: none;
+  height: 100%;
 }
 .search-bar-container input {
   border: none;
@@ -30,7 +30,9 @@
   box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
-  padding: 0;
+  padding: 0 0 0 0;
+  display: flex;
+  align-items: center;
 }
 .search-bar-container input::placeholder {
   color: #BDBDBD;

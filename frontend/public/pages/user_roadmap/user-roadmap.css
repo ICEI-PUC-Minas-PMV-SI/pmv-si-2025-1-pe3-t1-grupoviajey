@@ -115,7 +115,8 @@
 }
 .day-content .add-place-btn.outlined {
   align-self: stretch;
-  height: 56px;
+  height: 40px;
+  border-radius: 20px;
   margin: 0;
   margin-left: 0;
   display: flex;
@@ -123,6 +124,12 @@
   justify-content: center;
   min-width: 170px;
   font-size: 1rem;
+}
+.day-content.over {
+  background: #e0f3f1 !important;
+  border: 2px solid #0a7c6a !important;
+  box-shadow: 0 2px 12px rgba(10,124,106,0.10);
+  transition: background 0.2s, border 0.2s;
 }
 
 .place-card {
@@ -226,7 +233,8 @@
   transition: background 0.2s;
 }
 .add-place-btn:hover {
-  background: #0e9c85;
+  background: #065c4e;
+  color: #fff;
 }
 
 .roadmap-map {
@@ -640,22 +648,6 @@
   background: #ffeaea;
   color: #e05a47;
 }
-.timeline-expense {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 1rem;
-  color: #0a7c6a;
-  background: #f8fafc;
-  border-radius: 7px;
-  padding: 7px 14px;
-  margin-bottom: 18px;
-  margin-left: 10px;
-  position: relative;
-  min-height: 38px;
-  box-sizing: border-box;
-  font-weight: 600;
-}
 .timeline-expense svg {
   flex-shrink: 0;
   vertical-align: middle;
@@ -711,8 +703,8 @@
   margin-left: 90px;
 }
 .add-place-btn.outlined:hover {
-  background: #e0f3f1;
-  color: #065c4e;
+  background: #065c4e;
+  color: #fff;
 }
 
 .note-inline-form, .expense-inline-form {
@@ -861,7 +853,7 @@
   }
 }
 #financeSummaryRow {
-  margin: 0 0 0 0;
+  margin: 30px 0 0 0;
 }
 .finance-summary-row {
   display: flex;
@@ -927,15 +919,21 @@
 .modal-content {
   background: #fff;
   border-radius: 16px;
-  padding: 32px 24px 24px 24px;
-  max-width: 420px;
+  padding: 32px 24px 24px 0px;
+  max-width: 400px;
   width: 100%;
   box-shadow: 0 4px 32px rgba(0,0,0,0.18);
   display: flex;
   flex-direction: column;
+  gap: 20px;
   align-items: stretch;
 }
-
+.modal-content label,
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  margin-bottom: 24px;
+}
 .modal-title {
   font-size: 1.3rem;
   font-weight: 700;
@@ -997,7 +995,7 @@
 .modal-edit-trip[style*="display: flex"] {
   display: flex !important;
 }
-.modal-edit-trip .modal-content {
+.modal-content {
   background: #fff;
   border-radius: 16px;
   padding: 32px 24px 24px 24px;
@@ -1096,4 +1094,50 @@
 /* Garante que o calendário do flatpickr fique acima do modal de edição de viagem */
 .flatpickr-calendar {
   z-index: 11001 !important;
+}
+
+.info-window-add-btn {
+  font-size: 0.98rem;
+  padding: 7px 16px;
+  min-width: 120px;
+  margin: 0 auto;
+  display: inline-block;
+  border-radius: 7px;
+  box-shadow: none;
+}
+.info-window-close {
+  background: none;
+  border: none;
+  color: #0a7c6a;
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.info-window-close:hover {
+  background: #e0f3f1;
+}
+
+.info-window-add-btn-compact {
+  font-size: 0.92rem;
+  padding: 4px 12px;
+  min-width: 80px;
+  margin: 0 auto;
+  display: inline-block;
+  border-radius: 6px;
+  box-shadow: none;
+  background: #fff;
+  color: #0a7c6a;
+  border: 1.2px solid #0a7c6a;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.info-window-add-btn-compact:hover {
+  background: #e0f3f1;
+  color: #065c4e;
 } 
