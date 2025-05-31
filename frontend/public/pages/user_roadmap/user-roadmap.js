@@ -1385,36 +1385,154 @@ document.addEventListener('DOMContentLoaded', function() {
     avatar: "https://randomuser.me/api/portraits/women/44.jpg",
     isOwner: true
   };
-});
 
- // Compartilhamento: abrir modal ao clicar no botão do banner
- document.addEventListener('DOMContentLoaded', function() {
-  var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
-  var shareModal = document.getElementById('shareModal');
-  var shareInput = document.getElementById('shareLinkInput');
-  var copyBtn = document.getElementById('copyShareLinkBtn');
-  var closeBtn = document.getElementById('closeShareModal');
-  if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
-    shareBtn.addEventListener('click', function() {
-      shareInput.value = window.location.href;
-      shareModal.style.display = 'flex';
-      copyBtn.textContent = 'Copiar link';
-      shareInput.select();
+  // MULTI CHECKLISTS - NOVA LÓGICA
+  function createChecklistBlock(title = 'Check-list de Viagem', items = ['Passagem comprada', 'Reserva de hotel', 'Documentos separados', 'Roupas adequadas']) {
+    const block = document.createElement('div');
+    block.className = 'checklist-details checklist-block';
+    block.innerHTML = `
+      <div class="checklist-title-row">
+        <h3 class="checklist-title">${title}</h3>
+        <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;margin-left:8px;vertical-align:middle;">
+          <svg width="18" height="18" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
+        </button>
+      </div>
+      <ul class="checklist-list"></ul>
+      <form class="add-checklist-form" autocomplete="off">
+        <input type="text" class="newChecklistInput" placeholder="Novo item..." required />
+        <button type="submit" class="add-checklist-btn">Adicionar</button>
+      </form>
+    `;
+    // Adiciona itens
+    const ul = block.querySelector('.checklist-list');
+    items.forEach(text => addChecklistItemToBlock(ul, text));
+    // Eventos do bloco
+    attachChecklistBlockEvents(block);
+    return block;
+  }
+
+  function addChecklistItemToBlock(ul, text) {
+    const li = document.createElement('li');
+    li.className = 'checklist-item';
+    li.setAttribute('draggable', 'true');
+    li.innerHTML = `
+      <span class="drag-handle" title="Arraste para mover">&#9776;</span>
+      <label><input type="checkbox"> ${text}</label>
+      <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
+    `;
+    ul.appendChild(li);
+    addChecklistDnDHandlers(li);
+    // Remover item
+    li.querySelector('.remove-checklist-btn').onclick = function() { li.remove(); };
+    // Riscar ao marcar
+    const checkbox = li.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', function() {
+      if (checkbox.checked) {
+        li.classList.add('checked');
+      } else {
+        li.classList.remove('checked');
+      }
     });
-    copyBtn.addEventListener('click', function() {
-      shareInput.select();
-      document.execCommand('copy');
-      copyBtn.textContent = 'Link copiado!';
-      setTimeout(function(){ copyBtn.textContent = 'Copiar link'; }, 1800);
+  }
+
+  function attachChecklistBlockEvents(block) {
+    // Delegação para editar título
+    block.addEventListener('click', function(e) {
+      if (e.target.closest('.edit-checklist-title-btn')) {
+        const titleEl = block.querySelector('.checklist-title');
+        if (!titleEl) return;
+        // Evita múltiplos inputs
+        if (block.querySelector('.edit-title-input')) return;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = titleEl.textContent;
+        input.className = 'edit-title-input';
+        input.style.fontSize = '1.1rem';
+        input.style.fontWeight = '600';
+        input.style.marginRight = '8px';
+        titleEl.replaceWith(input);
+        input.focus();
+        input.onblur = save;
+        input.onkeydown = function(e) { if (e.key === 'Enter') save(); };
+        function save() {
+          const newTitle = input.value.trim() || 'Checklist';
+          const h3 = document.createElement('h3');
+          h3.className = 'checklist-title';
+          h3.textContent = newTitle;
+          input.replaceWith(h3);
+        }
+      }
     });
-    closeBtn.addEventListener('click', function() {
-      shareModal.style.display = 'none';
-    });
-    window.addEventListener('click', function(e) {
-      if (e.target === shareModal) shareModal.style.display = 'none';
-    });
+    // Adicionar item
+    const form = block.querySelector('.add-checklist-form');
+    const input = form.querySelector('.newChecklistInput');
+    const ul = block.querySelector('.checklist-list');
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const value = input.value.trim();
+      if (value) {
+        addChecklistItemToBlock(ul, value);
+        input.value = '';
+        input.focus();
+      }
+    };
+    // Drag and drop para novos itens
+    ul.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
+  }
+
+  // Inicialização dos checklists
+  function initMultiChecklists() {
+    const container = document.getElementById('checklistsContainer');
+    container.innerHTML = '';
+    // Adiciona um checklist padrão
+    container.appendChild(createChecklistBlock());
+  }
+
+  // Botão para novo checklist
+  function setupAddChecklistBlockBtn() {
+    const btn = document.getElementById('addChecklistBlockBtn');
+    if (btn) {
+      btn.onclick = function() {
+        const container = document.getElementById('checklistsContainer');
+        container.appendChild(createChecklistBlock('Novo checklist', []));
+      };
+    }
+  }
+
+  // Inicializar múltiplos checklists
+  if (document.getElementById('checklistsContainer')) {
+    initMultiChecklists();
+    setupAddChecklistBlockBtn();
   }
 });
 
+// Compartilhamento: abrir modal ao clicar no botão do banner
+document.addEventListener('DOMContentLoaded', function() {
+ var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
+ var shareModal = document.getElementById('shareModal');
+ var shareInput = document.getElementById('shareLinkInput');
+ var copyBtn = document.getElementById('copyShareLinkBtn');
+ var closeBtn = document.getElementById('closeShareModal');
+ if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
+   shareBtn.addEventListener('click', function() {
+     shareInput.value = window.location.href;
+     shareModal.style.display = 'flex';
+     copyBtn.textContent = 'Copiar link';
+     shareInput.select();
+   });
+   copyBtn.addEventListener('click', function() {
+     shareInput.select();
+     document.execCommand('copy');
+     copyBtn.textContent = 'Link copiado!';
+     setTimeout(function(){ copyBtn.textContent = 'Copiar link'; }, 1800);
+   });
+   closeBtn.addEventListener('click', function() {
+     shareModal.style.display = 'none';
+   });
+   window.addEventListener('click', function(e) {
+     if (e.target === shareModal) shareModal.style.display = 'none';
+   });
+ }
+});
 
 let autoScrollInterval = null;

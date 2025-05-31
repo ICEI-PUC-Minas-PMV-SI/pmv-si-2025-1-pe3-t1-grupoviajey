@@ -371,6 +371,11 @@
   padding: 24px 20px;
   margin-top: 8px;
 }
+.checklist-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .checklist-title {
   font-size: 1.25rem;
   color: #1a3c4e;
@@ -1140,4 +1145,27 @@
 .info-window-add-btn-compact:hover {
   background: #e0f3f1;
   color: #065c4e;
+}
+
+.checklist-item.checked label {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.edit-title-input {
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 1.2px solid #b0b8c1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1a3c4e;
+  padding: 6px 10px;
+  margin-right: 8px;
+  outline: none;
+  box-shadow: none;
+}
+.edit-title-input:focus {
+  border-color: #0a7c6a;
+  outline: none;
+  box-shadow: none;
 } 
