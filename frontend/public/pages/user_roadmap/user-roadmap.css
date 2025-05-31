@@ -592,12 +592,18 @@
   margin-left: 90px;
   margin-bottom: 12px;
 }
-.timeline-note, .timeline-expense {
-  margin-bottom: 4px;
-  margin-left: 90px;
+.timeline-note,
+.timeline-expense {
+  margin-left: 20px;
+  margin-bottom: 18px;
   position: relative;
   min-height: 38px;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+  padding: 7px 14px;
+  background: #f8fafc;
 }
 .timeline-note {
   display: flex;
@@ -605,10 +611,6 @@
   gap: 7px;
   font-size: 1rem;
   color: #222;
-  background: #f8fafc;
-  border-radius: 7px;
-  padding: 7px 14px;
-  margin-bottom: 4px;
 }
 .timeline-note .note-text {
   flex: 1;
@@ -851,19 +853,20 @@
   .local-card {
     padding-left: 20px;
   }
-  .timeline-note, .note-inline-form, .expense-inline-form, .timeline-expense {
+  .timeline-note,
+  .timeline-expense {
     margin-left: 0;
     max-width: 100%;
     width: 100%;
   }
 }
-
+#financeSummaryRow {
+  margin: 0 0 0 0;
+}
 .finance-summary-row {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  margin: 20px 0 0 0;
-  padding: 24px 24px;
   background: #f8fafc;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
@@ -872,6 +875,7 @@
   width: 100%;
   margin-left: auto;
   margin-right: auto;
+  text-align: left;
 }
 .finance-summary-item {
   display: flex;
@@ -880,6 +884,8 @@
   font-size: 1.08rem;
   color: #1a3c4e;
   font-weight: 500;
+  text-align: left;
+  justify-content: flex-start;
 }
 .finance-icon {
   font-size: 1.35rem;
