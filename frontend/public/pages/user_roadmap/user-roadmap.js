@@ -1400,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;margin-left:8px;vertical-align:middle;">
           <svg width="18" height="18" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
         </button>
+        <button class="remove-checklist-block-btn" title="Remover checklist" style="background:none;border:none;cursor:pointer;margin-left:auto;vertical-align:middle;padding:0 0 0 8px;display:flex;align-items:center;">${getTrashSVG()}</button>
       </div>
       <ul class="checklist-list"></ul>
       <form class="add-checklist-form" autocomplete="off">
@@ -1412,6 +1413,14 @@ document.addEventListener('DOMContentLoaded', function() {
     items.forEach(text => addChecklistItemToBlock(ul, text));
     // Eventos do bloco
     attachChecklistBlockEvents(block);
+    // Evento de remoção do checklist
+    const removeBtn = block.querySelector('.remove-checklist-block-btn');
+    if (removeBtn) {
+      removeBtn.onclick = function(e) {
+        e.preventDefault();
+        showRemoveChecklistModal(block);
+      };
+    }
     return block;
   }
 
@@ -1482,6 +1491,60 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     // Drag and drop para novos itens
     ul.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
+  }
+
+  // Modal de confirmação de remoção de checklist
+  function ensureRemoveChecklistModal() {
+    if (document.getElementById('removeChecklistModal')) return;
+    const modal = document.createElement('div');
+    modal.id = 'removeChecklistModal';
+    modal.className = 'modal-add-place';
+    modal.style.display = 'none';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:340px;align-items:center;">
+        <h2 class="modal-title" style="margin-bottom:18px;">Remover checklist</h2>
+        <p style="font-size:1.05rem;margin-bottom:18px;text-align:center;">Tem certeza que deseja remover este checklist? Esta ação é <b>irreversível</b> e todos os itens serão apagados.</p>
+        <div class="modal-actions" style="justify-content:center;">
+          <button id="cancelRemoveChecklistBtn" class="modal-cancel-btn">Cancelar</button>
+          <button id="confirmRemoveChecklistBtn" class="modal-confirm-btn" style="background:#e05a47;border-color:#e05a47;">Remover</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  let _checklistBlockToRemove = null;
+  function showRemoveChecklistModal(block) {
+    ensureRemoveChecklistModal();
+    const modal = document.getElementById('removeChecklistModal');
+    _checklistBlockToRemove = block;
+    modal.style.display = 'flex';
+    // Botões
+    const cancelBtn = document.getElementById('cancelRemoveChecklistBtn');
+    const confirmBtn = document.getElementById('confirmRemoveChecklistBtn');
+    if (cancelBtn) {
+      cancelBtn.onclick = function() {
+        modal.style.display = 'none';
+        _checklistBlockToRemove = null;
+      };
+    }
+    if (confirmBtn) {
+      confirmBtn.onclick = function() {
+        if (_checklistBlockToRemove) {
+          _checklistBlockToRemove.remove();
+        }
+        modal.style.display = 'none';
+        _checklistBlockToRemove = null;
+      };
+    }
+    // Fecha ao clicar fora
+    window.addEventListener('click', function handler(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        _checklistBlockToRemove = null;
+        window.removeEventListener('click', handler);
+      }
+    });
   }
 
   // Inicialização dos checklists
