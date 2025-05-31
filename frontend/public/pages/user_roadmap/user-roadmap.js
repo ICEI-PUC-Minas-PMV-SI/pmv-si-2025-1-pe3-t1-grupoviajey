@@ -1176,10 +1176,19 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Funções de drag and drop para local-card
+  let _draggedLocalCardGroup = null;
   function handleLocalCardDragStart(e) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', ''); // necessário para Firefox
+    // Seleciona o card e todos os .timeline-note/.timeline-expense imediatamente após
+    const group = [this];
+    let next = this.nextElementSibling;
+    while (next && (next.classList.contains('timeline-note') || next.classList.contains('timeline-expense'))) {
+      group.push(next);
+      next = next.nextElementSibling;
+    }
     window._draggedLocalCard = this;
+    _draggedLocalCardGroup = group;
     setTimeout(() => this.classList.add('dragElem'), 0);
   }
   function handleLocalCardDragOver(e) {
@@ -1194,16 +1203,21 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     this.classList.remove('over');
     const dragged = window._draggedLocalCard;
-    if (!dragged || dragged === this) return;
+    const group = _draggedLocalCardGroup;
+    if (!dragged || dragged === this || !group) return;
     if (dragged.classList.contains('local-card')) {
-      this.parentNode.insertBefore(dragged, this);
-      if (typeof attachLocalCardActions === 'function') attachLocalCardActions(dragged);
+      // Insere todos os elementos do grupo antes do alvo
+      for (let el of group) {
+        this.parentNode.insertBefore(el, this);
+        if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
+      }
     }
   }
   function handleLocalCardDragEnd(e) {
     this.classList.remove('over');
     this.classList.remove('dragElem');
     window._draggedLocalCard = null;
+    _draggedLocalCardGroup = null;
   }
   function handleDayContentDragOver(e) {
     e.preventDefault();
@@ -1229,7 +1243,8 @@ document.addEventListener('DOMContentLoaded', function() {
     this.classList.remove('over');
     clearInterval(autoScrollInterval);
     const dragged = window._draggedLocalCard;
-    if (!dragged) return;
+    const group = _draggedLocalCardGroup;
+    if (!dragged || !group) return;
     let timeline = this.querySelector('.day-timeline');
     if (!timeline) {
       timeline = document.createElement('div');
@@ -1242,8 +1257,11 @@ document.addEventListener('DOMContentLoaded', function() {
         this.appendChild(timeline);
       }
     }
-    timeline.appendChild(dragged);
-    if (typeof attachLocalCardActions === 'function') attachLocalCardActions(dragged);
+    // Adiciona todos os elementos do grupo ao final do timeline
+    for (let el of group) {
+      timeline.appendChild(el);
+      if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
+    }
   }
   function handleDayContentDragLeave(e) {
     this.classList.remove('over');
