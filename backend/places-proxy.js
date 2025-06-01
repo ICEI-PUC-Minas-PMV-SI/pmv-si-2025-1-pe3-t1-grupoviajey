@@ -1,4 +1,5 @@
 require('dotenv').config();
+console.log('API KEY:', process.env.GOOGLE_MAPS_API_KEY);
 const express = require('express');
 const cors = require('cors');
 const path = require('path');

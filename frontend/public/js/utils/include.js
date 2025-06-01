@@ -3,8 +3,11 @@ function includeHTML(id, file, callback) {
   fetch(file)
     .then(response => response.text())
     .then(data => {
-      document.getElementById(id).innerHTML = data;
-      if (typeof callback === 'function') callback();
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = data;
+        if (typeof callback === 'function') callback();
+      }
     });
 }
 
@@ -18,6 +21,7 @@ function includeSearchBar() {
       document.body.appendChild(script);
     });
 }
+window.includeSearchBar = includeSearchBar;
 
 document.addEventListener('DOMContentLoaded', function() {
   includeHTML('header', '../../components/header/header.html');
@@ -32,4 +36,4 @@ document.addEventListener('DOMContentLoaded', function() {
     script.src = '../../components/modal/reviews/ReviewsModal.js';
     document.body.appendChild(script);
   });
-}); 
+});
