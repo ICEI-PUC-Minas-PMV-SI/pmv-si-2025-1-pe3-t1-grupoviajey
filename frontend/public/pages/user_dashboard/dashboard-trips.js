@@ -14,18 +14,21 @@ async function fetchUserTrips() {
       id: 1,
       title: 'Viagem a Paris',
       date: '2025-05-15/2025-05-25',
+      descricao: 'Uma viagem inesquecível pela capital francesa.',
       isPast: false
     },
     {
       id: 2,
       title: 'Férias no Rio',
       date: '2025-05-15/2025-05-25',
+      descricao: 'Aproveite as praias e o clima carioca.',
       isPast: false
     },
     {
       id: 3,
       title: 'Viagem a Roma',
       date: '2025-05-15/2025-05-25',
+      descricao: 'Uma viagem inesquecível pela capital italiana.',
       isPast: true
     }
   ];
@@ -70,6 +73,7 @@ function createTripCard(trip) {
     <div class="trip-info">
       <div class="trip-title">[${trip.title}]</div>
       <div class="trip-date"><span>📅</span> ${formatTripDate(trip.date)}</div>
+      <div class="trip-desc">${trip.descricao || ''}</div>
     </div>
   `;
 
