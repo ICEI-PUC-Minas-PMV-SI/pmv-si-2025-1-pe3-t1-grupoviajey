@@ -21,10 +21,20 @@ function createMarker(map, place) {
     icon: getPinIcon(place)
   });
 
+  // Flag para saber se foi adicionado ao roteiro
+  marker.addedToRoadmap = false;
+
   // Add InfoWindow to marker
   const infoWindow = new google.maps.InfoWindow({
     content: createInfoWindowContent(place),
     pixelOffset: new google.maps.Size(0, -32)
+  });
+
+  // Listener para fechar o InfoWindow: remove marker se não foi adicionado
+  infoWindow.addListener('closeclick', () => {
+    if (!marker.addedToRoadmap) {
+      marker.setMap(null);
+    }
   });
 
   marker.addListener('click', () => {
@@ -34,6 +44,37 @@ function createMarker(map, place) {
     }
     infoWindow.open(map, marker);
     currentInfoWindow = infoWindow;
+    // Adiciona listener ao botão do InfoWindow
+    setTimeout(() => {
+      const btn = document.querySelector('.add-to-roadmap-btn');
+      if (btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const name = decodeURIComponent(btn.getAttribute('data-place-name'));
+          const address = decodeURIComponent(btn.getAttribute('data-place-address'));
+          marker.addedToRoadmap = true; // Marca como adicionado
+          window.dispatchEvent(new CustomEvent('addPlaceToRoadmap', { detail: { name, address } }));
+          infoWindow.close(); // Fecha o InfoWindow após adicionar
+        });
+      }
+      // Botão de fechar InfoWindow
+      const closeBtn = document.querySelector('.info-window-close');
+      if (closeBtn) {
+        closeBtn.onclick = function(e) {
+          e.stopPropagation();
+          infoWindow.close();
+        };
+      }
+    }, 200);
+  });
+
+  // Fechar InfoWindow ao clicar fora
+  map.addListener('click', function(event) {
+    // Se o InfoWindow está aberto e o clique não foi em um marker
+    if (currentInfoWindow === infoWindow && event.placeId === undefined) {
+      infoWindow.close();
+    }
   });
 
   return marker;

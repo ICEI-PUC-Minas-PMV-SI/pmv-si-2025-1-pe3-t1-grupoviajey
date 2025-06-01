@@ -43,3 +43,5 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db 
+.cursor/rules/principais.mdc
+.cursor/rules/.rules.mdc

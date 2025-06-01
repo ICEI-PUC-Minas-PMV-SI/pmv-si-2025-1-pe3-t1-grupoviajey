@@ -22,21 +22,22 @@ function getCacheKey(center, radius, type) {
  */
 function getPinIcon(place) {
   const types = place.types || [];
-  let iconUrl = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-  
+  let iconUrl = '';
+  let color = '#1976D2'; // azul padrão
   if (types.includes('lodging')) {
-    iconUrl = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-  } else if (types.includes('restaurant') || types.includes('food')) {
-    iconUrl = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+    color = '#1976D2'; // azul
   } else if (types.includes('tourist_attraction')) {
-    iconUrl = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+    color = '#E53935'; // vermelho
+  } else if (types.includes('restaurant') || types.includes('food')) {
+    color = '#43A047'; // verde
   }
-  
+  // SVG pin moderno e maior
+  iconUrl = `data:image/svg+xml;utf8,<svg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'><defs><filter id='shadow' x='-2' y='0' width='52' height='60' filterUnits='userSpaceOnUse'><feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='%23000' flood-opacity='0.18'/></filter></defs><g filter='url(%23shadow)'><ellipse cx='24' cy='42' rx='7' ry='3.5' fill='%23000' opacity='0.12'/><path d='M24 4C15.16 4 8 11.16 8 20c0 7.08 6.16 15.04 13.04 23.04a3.01 3.01 0 0 0 4.08 0C33.84 35.04 40 27.08 40 20c0-8.84-7.16-16-16-16z' fill='${encodeURIComponent(color)}'/><circle cx='24' cy='20' r='7' fill='white' stroke='${encodeURIComponent(color)}' stroke-width='3'/></g></svg>`;
   return {
     url: iconUrl,
-    scaledSize: new google.maps.Size(32, 32),
-    anchor: new google.maps.Point(16, 32),
-    labelOrigin: new google.maps.Point(16, 0)
+    scaledSize: new google.maps.Size(48, 48),
+    anchor: new google.maps.Point(24, 44),
+    labelOrigin: new google.maps.Point(24, 16)
   };
 }
 
@@ -68,11 +69,13 @@ function createInfoWindowContent(place) {
 
   return `
     <div class="info-window">
-      <button class="info-window-close" onclick="this.parentElement.parentElement.parentElement.parentElement.remove()">×</button>
       <h3 class="info-window-title">${place.name}</h3>
       ${rating}
       <div class="info-window-tags">${types}</div>
       <p class="info-window-address">${place.vicinity || ''}</p>
+      <div style="display:flex;justify-content:center;margin-top:8px;">
+        <button class="add-to-roadmap-btn add-place-btn info-window-add-btn-compact" data-place-name="${encodeURIComponent(place.name || '')}" data-place-address="${encodeURIComponent(place.vicinity || '')}">Adicionar local</button>
+      </div>
     </div>
   `;
 }
