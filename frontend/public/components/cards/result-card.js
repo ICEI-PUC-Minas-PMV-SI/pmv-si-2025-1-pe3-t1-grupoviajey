@@ -1,4 +1,4 @@
-window.createResultCard = function({ image, title, rating, tags, address }) {
+window.createResultCard = function({ image, title, rating, tags, address, favorite = false }) {
   const card = document.createElement('div');
   card.className = 'result-card';
 
@@ -19,6 +19,14 @@ window.createResultCard = function({ image, title, rating, tags, address }) {
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `;
+
+  // Preencher o coração por padrão se favorite=true
+  const path = favoriteBtn.querySelector('path');
+  if (favorite) {
+    favoriteBtn.classList.add('active');
+    path.setAttribute('fill', '#ff4d4d');
+    path.setAttribute('stroke', '#ff4d4d');
+  }
 
   favoriteBtn.addEventListener('click', (e) => {
     e.stopPropagation();
