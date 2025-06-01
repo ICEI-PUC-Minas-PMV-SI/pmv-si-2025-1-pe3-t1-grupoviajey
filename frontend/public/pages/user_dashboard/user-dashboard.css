@@ -88,6 +88,13 @@
   padding: var(--spacing-md);
   align-items: flex-start;
   position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.trip-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transform: scale(1.02);
+  border-color: #e0e0e0;
 }
 
 .trip-img-placeholder {
@@ -209,4 +216,22 @@
   #dashboard-favorites {
     grid-template-columns: 1fr;
   }
+}
+
+.review-card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  padding: 20px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  border: 1.5px solid #e0e0e0;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.review-card:hover {
+  box-shadow: 0 6px 24px rgba(160, 132, 232, 0.10);
+  cursor: pointer;
+  transform: scale(1.02);
+  border-color: #e0e0e0;
 } 

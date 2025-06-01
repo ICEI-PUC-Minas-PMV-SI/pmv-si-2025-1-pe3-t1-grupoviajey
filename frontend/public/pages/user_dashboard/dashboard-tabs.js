@@ -1,3 +1,6 @@
+import { renderFavorites } from './dashboard-favorites.js';
+import { renderReviews } from './dashboard-reviews.js';
+
 export function initDashboardTabs() {
   const tabs = [
     { id: 'trips', label: 'Minhas viagens' },
@@ -36,70 +39,36 @@ function selectTab(tabId) {
     const dashboardContent = document.getElementById('dashboard-content');
     dashboardContent.appendChild(favorites);
   }
+  let reviews = document.getElementById('dashboard-reviews');
+  if (!reviews) {
+    reviews = document.createElement('div');
+    reviews.id = 'dashboard-reviews';
+    reviews.style.display = 'none';
+    const dashboardContent = document.getElementById('dashboard-content');
+    dashboardContent.appendChild(reviews);
+  }
 
   if (tabId === 'trips') {
     trips.style.display = '';
     if (actions) actions.style.display = '';
     favorites.style.display = 'none';
+    reviews.style.display = 'none';
   } else if (tabId === 'favorites') {
     trips.style.display = 'none';
     if (actions) actions.style.display = 'none';
     favorites.style.display = '';
+    reviews.style.display = 'none';
     renderFavorites();
+  } else if (tabId === 'reviews') {
+    trips.style.display = 'none';
+    if (actions) actions.style.display = 'none';
+    favorites.style.display = 'none';
+    reviews.style.display = '';
+    renderReviews(1);
   } else {
     trips.style.display = 'none';
     if (actions) actions.style.display = 'none';
     favorites.style.display = 'none';
+    reviews.style.display = 'none';
   }
-}
-
-async function fetchUserFavorites() {
-  // Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
-  // return fetch('/api/favoritos').then(res => res.json());
-
-  // Mock de favoritos
-  return [
-    {
-      image: '',
-      title: 'Museu do Amanhã',
-      rating: 4,
-      tags: ['Museu', 'Cultura'],
-      address: 'Praça Mauá, Rio de Janeiro',
-      favorite: true
-    },
-    {
-      image: '',
-      title: 'Cristo Redentor',
-      rating: 5,
-      tags: ['Ponto turístico'],
-      address: 'Alto da Boa Vista, Rio de Janeiro',
-      favorite: true
-    }
-  ];
-}
-
-async function renderFavorites() {
-  const favorites = document.getElementById('dashboard-favorites');
-  if (!favorites) return;
-  favorites.innerHTML = '';
-  // Buscar favoritos do backend (mock ou real)
-  const favs = await fetchUserFavorites();
-  // Incluir CSS/JS do card se necessário
-  if (!document.querySelector('link[href*="result-card.css"]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '../../components/cards/result-card.css';
-    document.head.appendChild(link);
-  }
-  if (!window.createResultCard) {
-    const script = document.createElement('script');
-    script.src = '../../components/cards/result-card.js';
-    document.body.appendChild(script);
-    script.onload = () => renderFavorites();
-    return;
-  }
-  favs.forEach(fav => {
-    const card = window.createResultCard(fav);
-    favorites.appendChild(card);
-  });
 } 
