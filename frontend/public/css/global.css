@@ -42,7 +42,7 @@ body {
 
 /* Estilos de texto */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', 'Inter', Arial, sans-serif;
+  font-family: 'Poppins', 'Inter', Arial;
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
@@ -85,8 +85,8 @@ button {
 }
 
 button:hover {
-  background: var(--secondary-color);
-  color: var(--primary-color);
+  background: #14525a;
+  color: #fff;
 }
 
 /* Imagens */

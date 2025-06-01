@@ -11,12 +11,12 @@
   padding: 0 8px;
   width: 100%;
   gap: 8px;
+  border: 1.5px solid #E0E0E0;
 }
 .search-icon {
   display: flex;
-  margin-left: 16px;
-  margin-right: 8px;
-  pointer-events: none;
+  align-items: center;
+  justify-content: center;
   height: 100%;
 }
 .search-bar-container input {
@@ -96,4 +96,17 @@
 }
 .search-btn:hover {
   background: #14525a;
+}
+
+.search-bar-input {
+  flex: 1;
+  padding: 8px 12px;
+}
+
+.search-bar-icon {
+  margin-left: -32px; /* ou ajuste conforme necessário */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 } 

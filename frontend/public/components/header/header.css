@@ -30,6 +30,10 @@
   .nav-link:hover {
     background: #e0f2f1;
   }
+  .nav-link.login:hover {
+    background: #14525a;
+    color: #fff;
+  }
 .user-info {
   font-family: Poppins;
   font-size: 16px;
