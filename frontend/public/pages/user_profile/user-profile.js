@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       // Set avatar if available
       if (profile && profile.avatarUrl) {
-        const avatarImg = document.getElementById('user-avatar');
+        const avatarImg = document.getElementById('user-profile-avatar');
         if (avatarImg) avatarImg.src = profile.avatarUrl;
       }
     } catch (err) {

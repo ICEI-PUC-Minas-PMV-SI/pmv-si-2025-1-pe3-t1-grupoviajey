@@ -28,7 +28,9 @@ body {
   height: 100px;
 }
 
-#user-avatar {
+/* Especificidade para avatar do perfil, não afeta o header */
+.profile-header #user-profile-avatar,
+.profile-header .user-avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
