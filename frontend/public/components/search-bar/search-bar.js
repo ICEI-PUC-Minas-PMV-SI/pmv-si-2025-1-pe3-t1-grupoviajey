@@ -1,3 +1,10 @@
+import { includeSearchBar } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeSearchBar();
+  // ...outros includes...
+});
+
 function initAutocomplete() {
   const input = document.getElementById('autocomplete');
   if (input && window.google && window.google.maps) {

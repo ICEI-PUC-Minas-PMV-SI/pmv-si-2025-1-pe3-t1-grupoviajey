@@ -1,4 +1,5 @@
 import { createLocalCard, getTrashSVG, getDragHandleSVG } from '/pages/user_roadmap/roadmap-utils.js';
+import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 
 // Funções auxiliares de drag-and-drop (escopo global)
 let dragSrcEl = null;
@@ -101,6 +102,13 @@ function handleDayHeaderClick(e) {
     if (arrow) arrow.style.transform = 'rotate(0deg)';
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeHeader();
+  includeFooter();
+  includeSearchBar();
+  // ...outros inits do roadmap...
+});
 
 document.addEventListener('DOMContentLoaded', function() {
 

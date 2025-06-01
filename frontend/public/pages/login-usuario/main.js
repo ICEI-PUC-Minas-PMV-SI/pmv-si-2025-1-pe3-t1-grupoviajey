@@ -1,4 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
+import { includeHeader, includeFooter } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeHeader();
+  includeFooter();
   const loginBtn = document.getElementById('login-btn');
   const emailInput = document.getElementById('login-email');
   const passwordInput = document.getElementById('login-password');

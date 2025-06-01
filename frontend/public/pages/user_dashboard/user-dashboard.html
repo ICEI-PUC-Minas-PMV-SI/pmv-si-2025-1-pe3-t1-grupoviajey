@@ -11,12 +11,12 @@
   <link rel="stylesheet" href="../../components/footer/footer.css">
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
   <script src="../../js/config/config.js"></script>
-  <script src="../../js/utils/include.js" defer></script>
 </head>
 <body>
   <div id="header"></div>
+  <div id="search-bar-include"></div>
+  <div id="footer"></div>
   <main>
-    <div id="search-bar-include"></div>
     <section class="dashboard-container">
       <nav class="dashboard-tabs" id="dashboard-tabs"></nav>
       <section id="dashboard-content">
@@ -28,12 +28,11 @@
       </section>
     </section>
   </main>
-  <div id="footer"></div>
   <script type="module" src="dashboard-tabs.js"></script>
   <script type="module" src="dashboard-trips.js"></script>
   <script type="module" src="dashboard-favorites.js"></script>
   <script type="module" src="dashboard-reviews.js"></script>
   <script type="module" src="dashboard-events.js"></script>
-  <script type="module" src="user-dashboard.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html> 

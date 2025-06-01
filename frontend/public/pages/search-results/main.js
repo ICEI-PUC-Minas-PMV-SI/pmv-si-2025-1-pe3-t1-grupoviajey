@@ -5,12 +5,16 @@ import { loadGoogleMapsScript } from '../../js/core/map/loader.js';
 import { initializeMapWithCity } from './map-config.js';
 import { getBuscaPersistida } from './results.js';
 import { initializeFilters } from './filters.js';
-import { includeSearchBar } from '../../js/utils/include.js';
+import { includeSearchBar, includeHeader, includeFooter, includePlaceDetailsModal, includeReviewsModal } from '../../js/utils/include.js';
 
 // Função para inicializar a página
 async function initializePage() {
   console.log('Iniciando página de resultados...');
   includeSearchBar();
+  includeHeader();
+  includeFooter();
+  includePlaceDetailsModal();
+  includeReviewsModal();
   
   try {
     // Inicializa os filtros

@@ -1,3 +1,4 @@
+import { includeHeader, includeFooter } from '../../js/utils/include.js';
 document.addEventListener('DOMContentLoaded', function() {
   const btnRecovery = document.getElementById('btn-recovery');
   const emailInput = document.getElementById('recovery-email');

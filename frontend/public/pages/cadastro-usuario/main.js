@@ -1,4 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
+import { includeHeader, includeFooter } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeHeader();
+  includeFooter();
   const form = document.getElementById('cadastro-form');
   const nomeInput = document.getElementById('cadastro-nome');
   const sobrenomeInput = document.getElementById('cadastro-sobrenome');
