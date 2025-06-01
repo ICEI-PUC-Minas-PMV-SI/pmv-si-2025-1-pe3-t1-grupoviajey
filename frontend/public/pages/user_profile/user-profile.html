@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="user-profile.css">
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="profile-container">
+    <section class="profile-header">
+      <div class="avatar-wrapper">
+        <img id="user-avatar" src="../../assets/images/avatar-default.svg" alt="User Avatar">
+        <button id="edit-avatar-btn" class="edit-avatar-btn" title="Edit avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15332B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
+        </button>
+      </div>
+      <div class="greeting">
+        <h2>Olá, <span id="user-greeting-name">Usuário</span>!</h2>
+      </div>
+    </section>
+    <nav class="profile-tabs">
+      <button class="tab-btn active" id="tab-personal-btn" type="button">Informações Pessoais</button>
+      <button class="tab-btn" id="tab-security-btn" type="button">Segurança</button>
+    </nav>
+    <section id="tab-personal" class="tab-content active">
+      <section class="profile-form-section">
+        <h3>Editar informações pessoais</h3>
+        <form id="profile-form" autocomplete="off">
+          <label for="firstName">Nome</label>
+          <input type="text" id="firstName" name="firstName" placeholder="Nome" required>
+
+          <label for="lastName">Sobrenome</label>
+          <input type="text" id="lastName" name="lastName" placeholder="Sobrenome" required>
+
+          <label for="cpfCnpj">CPF ou CNPJ</label>
+          <input type="text" id="cpfCnpj" name="cpfCnpj" placeholder="CPF / CNPJ" required readonly>
+
+          <label for="email">Endereço de e-mail</label>
+          <input type="email" id="email" name="email" placeholder="E-mail" required>
+
+          <div class="form-actions">
+            <button type="submit" id="save-btn" class="btn-primary">Salvar alterações</button>
+          </div>
+        </form>
+      </section>
+    </section>
+    <section id="tab-security" class="tab-content" style="display:none">
+      <section class="profile-form-section">
+        <h3>Alterar senha</h3>
+        <form id="security-form" autocomplete="off">
+          <label for="currentPassword">Senha atual</label>
+          <input type="password" id="currentPassword" name="currentPassword" placeholder="Senha atual" required>
+
+          <label for="newPassword">Nova senha</label>
+          <input type="password" id="newPassword" name="newPassword" placeholder="Nova senha" required>
+
+          <label for="confirmPassword">Confirmar nova senha</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar nova senha" required>
+
+          <div class="form-actions">
+            <button type="submit" id="save-password-btn" class="btn-primary">Salvar nova senha</button>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <div id="search-bar-include"></div>
+
+  <script src="../../js/utils/include.js" defer></script>
+  <script src="profile-avatar.js" defer></script>
+  <script src="profile-form.js" defer></script>
+  <script src="profile-storage.js" defer></script>
+  <script src="profile-events.js" defer></script>
+  <script src="profile-security.js" defer></script>
+  <script src="user-profile.js" defer></script>
+</body>
+</html>
