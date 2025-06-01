@@ -88,6 +88,7 @@ export function openReviewModal({ local, userReview, otherReviews, onSave }) {
       form.onsubmit = async e => {
         e.preventDefault();
         feedback.textContent = '';
+        feedback.className = 'review-modal-feedback';
         if (!userStars) {
           feedback.textContent = 'Selecione uma nota.';
           return;
@@ -99,7 +100,20 @@ export function openReviewModal({ local, userReview, otherReviews, onSave }) {
         feedback.textContent = 'Salvando...';
         try {
           await onSave?.({ rating: userStars, comment: commentInput.value });
-          feedback.textContent = 'Avaliação salva com sucesso!';
+          feedback.className = 'review-modal-feedback review-modal-feedback--success';
+          feedback.innerHTML = `
+            <span class="success-icon" aria-label="Sucesso">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="18" cy="18" r="18" fill="#43a047"/>
+                <path d="M11 19.5L16 24L25 15" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            Avaliação salva com sucesso!
+          `;
+          setTimeout(() => {
+            feedback.innerHTML = '';
+            feedback.className = 'review-modal-feedback';
+          }, 2500);
         } catch {
           feedback.textContent = 'Erro ao salvar avaliação.';
         }

@@ -11,11 +11,14 @@
   background: #fff;
   border-radius: 16px;
   max-width: 540px;
+  max-height: 90vh;
   width: 95vw;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   padding: 32px 28px 24px 28px;
   position: relative;
   animation: modalIn 0.2s;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 @keyframes modalIn {
   from { transform: translateY(40px) scale(0.98); opacity: 0; }
@@ -50,6 +53,7 @@
 }
 .review-modal-section {
   margin-bottom: 22px;
+  position: relative;
 }
 #review-modal-others {
   display: flex;
@@ -59,8 +63,7 @@
   overflow-y: auto;
 }
 .review-modal-other {
-  background: #f7f7f7;
-  border-radius: 8px;
+  border-bottom: lightgray 1px solid;
   padding: 10px 14px;
   font-size: 1rem;
 }
@@ -97,10 +100,12 @@
   width: 100%;
   border-radius: 8px;
   border: 1.2px solid #ccc;
-  padding: 10px;
+  padding: 8px;
   font-size: 1rem;
   margin-bottom: 10px;
   resize: vertical;
+  min-height: 60px;
+  max-height: 120px;
 }
 .review-modal-save {
   background: var(--primary-color, #004954);
@@ -112,16 +117,36 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  display: block;
+  margin: 18px auto 18px auto;
 }
 .review-modal-save:hover {
-  background: #1976d2;
+  background: #005866;
+  color: #fff;
 }
-.review-modal-feedback {
-  margin-top: 8px;
+
+.review-modal-feedback--success {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: #43a047 50%;
+  color: #fff;
+  text-align: center;
+  min-width: 400px;
+  max-width: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 8px;
+  border-radius: 8px;
   font-size: 1rem;
-  color: #1976d2;
-  min-height: 1.2em;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(67,160,71,0.08);
+  pointer-events: all;
 }
+
 @media (max-width: 600px) {
   .review-modal {
     padding: 16px 4vw 12px 4vw;
