@@ -2,7 +2,7 @@
 
 body {
   background: #fff;
-  font-family: 'Inter', Arial, sans-serif;
+  /* font-family removido para usar o global.css */
   color: #15332B;
 }
 

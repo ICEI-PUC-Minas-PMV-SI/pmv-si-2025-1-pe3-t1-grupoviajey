@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
 /* Reset CSS */
 * {
   margin: 0;
@@ -32,7 +34,7 @@ html {
 }
 
 body {
-  font-family: 'Poppins', Arial, sans-serif;
+  font-family: 'Poppins', 'Inter', Arial;
   background: var(--background-color) !important;
   color: var(--text-color);
   line-height: 1.5;
@@ -40,6 +42,7 @@ body {
 
 /* Estilos de texto */
 h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', 'Inter', Arial, sans-serif;
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
@@ -126,4 +129,8 @@ img {
   .container {
     padding: 0 var(--spacing-xs);
   }
+}
+
+.font-inter {
+  font-family: 'Inter', Arial, sans-serif !important;
 } 

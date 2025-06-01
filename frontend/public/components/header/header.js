@@ -1,5 +1,6 @@
 async function getAuthenticatedUser() {
   // Simule usuário autenticado/deslogado
+  if (window.localStorage.getItem('isAuthenticated') === 'false') return null;
   const isAuthenticated = true; // Troque para true/false para simular
   if (!isAuthenticated) return null;
   return {
@@ -74,8 +75,8 @@ async function renderUserInfo() {
     if (logoutBtn) {
       logoutBtn.onclick = function(e) {
         e.preventDefault();
-        alert('Logout realizado!');
-        window.location.href = '../../pages/login-usuario/index.html';
+        window.localStorage.setItem('isAuthenticated', 'false');
+        window.location.href = '../../pages/login-usuario/login.html';
       };
     }
   } catch (error) {
