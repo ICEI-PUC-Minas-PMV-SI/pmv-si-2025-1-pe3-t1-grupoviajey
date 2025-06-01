@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard do Usuário | Viajey</title>
+  <link rel="stylesheet" href="user-dashboard.css">
+</head>
+<body>
+  <div id="header-include"></div>
+  <main>
+    <div id="search-bar-include"></div>
+    <section class="dashboard-container">
+      <nav class="dashboard-tabs" id="dashboard-tabs"></nav>
+      <section id="dashboard-content">
+        <div class="dashboard-actions">
+          <button class="action-btn" id="btn-nova-viagem">Criar nova viagem</button>
+          <button class="action-btn" id="btn-nova-viagem-ia">Criar nova viagem com IA</button>
+        </div>
+        <div id="dashboard-trips"></div>
+      </section>
+    </section>
+  </main>
+  <div id="footer-include"></div>
+  <script src="../../../js/utils/include.js" defer></script>
+  <script src="dashboard-tabs.js" defer></script>
+  <script src="dashboard-trips.js" defer></script>
+  <script src="dashboard-notes.js" defer></script>
+  <script src="dashboard-events.js" defer></script>
+  <script src="user-dashboard.js" defer></script>
+</body>
+</html> 
