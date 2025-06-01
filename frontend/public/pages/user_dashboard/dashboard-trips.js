@@ -1,4 +1,4 @@
-import { renderNotesInput, saveTripNote } from './dashboard-notes.js';
+// import { renderNotesInput, saveTripNote } from './dashboard-notes.js';
 
 export function initDashboardTrips() {
   renderTrips();
@@ -69,25 +69,8 @@ function createTripCard(trip) {
     <div class="trip-info">
       <div class="trip-title">[${trip.title}]</div>
       <div class="trip-date"><span>📅</span> Dias 15 - 25 de Maio de 2025</div>
-      <div class="trip-rating">
-        <span class="star">★</span>
-        <span>4.9</span>
-      </div>
-      <div class="trip-notes-label">Notas</div>
-      <input class="trip-notes-input" type="text" value="${trip.notes || ''}" data-trip-id="${trip.id}" placeholder="Notas"/>
-    </div>
-    <div class="trip-actions">
-      <button class="trip-action-btn edit" title="Editar"><span>✏️</span></button>
-      <button class="trip-action-btn delete" title="Excluir"><span>🗑️</span></button>
     </div>
   `;
-
-  // Listeners dos botões
-  card.querySelector('.trip-action-btn.delete').addEventListener('click', () => deleteTrip(trip.id));
-  card.querySelector('.trip-action-btn.edit').addEventListener('click', () => editTrip(trip.id));
-  card.querySelector('.trip-notes-input').addEventListener('change', (e) => {
-    saveTripNote(trip.id, e.target.value);
-  });
 
   return card;
 }

@@ -10,7 +10,11 @@ export function initDashboardTabs() {
   tabs.forEach(tab => {
     const btn = document.createElement('button');
     btn.className = 'dashboard-tab';
-    btn.textContent = tab.label;
+    const h2 = document.createElement('h2');
+    h2.textContent = tab.label;
+    h2.style.margin = '0';
+    h2.style.fontSize = 'inherit';
+    btn.appendChild(h2);
     btn.dataset.tab = tab.id;
     btn.addEventListener('click', () => selectTab(tab.id));
     tabsContainer.appendChild(btn);
@@ -24,9 +28,12 @@ function selectTab(tabId) {
   });
   // Exibir conteúdo da aba (mock)
   const trips = document.getElementById('dashboard-trips');
+  const actions = document.querySelector('.dashboard-actions');
   if (tabId === 'trips') {
     trips.style.display = '';
+    if (actions) actions.style.display = '';
   } else {
     trips.style.display = 'none';
+    if (actions) actions.style.display = 'none';
   }
 } 
