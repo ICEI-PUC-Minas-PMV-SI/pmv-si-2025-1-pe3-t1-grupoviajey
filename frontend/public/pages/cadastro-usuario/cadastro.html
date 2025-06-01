@@ -26,31 +26,31 @@
 <main class="main-content">   
     <section class="form-container">
       <div class="form-header">
-        <img src="/frontend/public/assets/images/LogoViajeyOficial.svg" alt="Logo Viajey" class="logo-form" />
+        <img src="../../assets/images/LogoViajeyOficial.svg" alt="Logo Viajey" class="logo-form" />
         <p class="texto-inicial">Preencha as informações abaixo para criar sua conta</p>
       </div>
       <div class="user-type">
-        <label><input type="radio" name="tipo-usuario" checked /> Viajante</label>
-        <label><input type="radio" name="tipo-usuario" /> Parceiro do Viajey</label>
+        <label><input type="radio" name="tipo-usuario" id="tipo-viajante" checked /> Viajante</label>
+        <label><input type="radio" name="tipo-usuario" id="tipo-parceiro" /> Parceiro do Viajey</label>
       </div>
 
-      <form>
+      <form id="cadastro-form">
         <label>Nome</label>
-        <input type="text" required />
+        <input type="text" id="cadastro-nome" required />
 
         <label>Sobrenome</label>
-        <input type="text" required />
+        <input type="text" id="cadastro-sobrenome" required />
 
         <label>CPF ou CNPJ</label>
-        <input type="text" required />
+        <input type="text" id="cadastro-cpf-cnpj" required />
 
         <label>Endereço de e-mail</label>
-        <input type="email" required />
+        <input type="email" id="cadastro-email" required />
 
         <label>Senha</label>
-        <input type="password" required />
+        <input type="password" id="cadastro-senha" required />
 
-        <button class="btn-criar-conta" type="submit">Criar Conta</button>
+        <button class="btn-criar-conta" id="btn-criar-conta" type="submit">Criar Conta</button>
         <p class="btn-login">Já tem uma conta? Faça login</p>
       </form>
     </section>
@@ -74,6 +74,8 @@
     <li><a href="#">Contato</a></li>
   </ul>
 </footer> 
+<!-- Script externo de cadastro -->
+<script defer src="cadastro.js"></script>
 </body>
 
 </html>

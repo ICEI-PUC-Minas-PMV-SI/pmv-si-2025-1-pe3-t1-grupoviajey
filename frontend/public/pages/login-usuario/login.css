@@ -17,7 +17,8 @@
   background-color: #002E33;
   color: #fff;
   text-align: center;
-  padding: 60px 30px;
+  padding: 20px 20px;
+  max-height: 150px;
   width: 100%;
 }
 
