@@ -1,0 +1,233 @@
+/* User Profile Page Styles */
+
+body {
+  background: #fff;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #15332B;
+}
+
+.profile-container {
+  max-width: 700px;
+  margin: 40px auto 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  padding: 40px 32px 32px 32px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+#user-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #E6F0EE;
+  object-fit: cover;
+  border: 4px solid #E6F0EE;
+}
+
+.edit-avatar-btn {
+  position: absolute;
+  top: 10px;
+  right: -10px;
+  background: #fff;
+  border: 2px solid #15332B;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
+  z-index: 2;
+}
+.edit-avatar-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.edit-avatar-btn:hover {
+  box-shadow: 0 4px 16px rgba(21,51,43,0.12);
+  border-color: #1e4a3d;
+  background: #E6F0EE;
+}
+
+.greeting h2 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.profile-form-section {
+  margin-top: 12px;
+}
+.profile-form-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+#profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#profile-form label {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+#profile-form input {
+  background: #fff;
+  border: 1.5px solid #B0B0B0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  color: #15332B;
+  margin-bottom: 8px;
+  outline: none;
+  transition: none;
+}
+#profile-form input:focus {
+  box-shadow: none;
+  border: 1.5px solid #B0B0B0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 24px;
+  margin-top: 18px;
+  justify-content: center;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #15332B;
+  border: 2px solid #15332B;
+  border-radius: 6px;
+  padding: 10px 0;
+  width: 180px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline:hover {
+  background: #E6F0EE;
+}
+
+.btn-primary {
+  background: #15332B;
+  color: #fff;
+  border: 2px solid #15332B;
+  border-radius: 6px;
+  padding: 10px 0;
+  width: 220px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-primary:hover {
+  background: #1e4a3d;
+}
+
+@media (max-width: 600px) {
+  .profile-container {
+    padding: 18px 4vw;
+  }
+  .profile-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .btn-outline, .btn-primary {
+    width: 100%;
+  }
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #E6F0EE;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #15332B;
+  padding: 14px 32px 10px 32px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.tab-btn.active {
+  border-bottom: 3px solid #15332B;
+  background: #E6F0EE;
+  border-radius: 6px 6px 0 0;
+}
+.tab-btn:not(.active):hover {
+  background: #F5F8F7;
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+
+/* Security form styles */
+#security-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#security-form label {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+#security-form input {
+  background: #fff;
+  border: 1.5px solid #B0B0B0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  color: #15332B;
+  margin-bottom: 6px;
+  outline: none;
+  transition: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+#security-form input:focus {
+  box-shadow: none;
+  border: 1.5px solid #B0B0B0;
+}
+#security-form .form-actions {
+  display: flex;
+  gap: 24px;
+  margin-top: 18px;
+  justify-content: center;
+}
