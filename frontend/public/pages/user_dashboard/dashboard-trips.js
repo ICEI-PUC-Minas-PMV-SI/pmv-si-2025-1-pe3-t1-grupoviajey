@@ -1,42 +1,43 @@
 // import { renderNotesInput, saveTripNote } from './dashboard-notes.js';
 
-export function initDashboardTrips() {
-  renderTrips();
+export async function initDashboardTrips() {
+  await renderTrips();
 }
 
-function renderTrips() {
-  const tripsContainer = document.getElementById('dashboard-trips');
-  if (!tripsContainer) return;
+async function fetchUserTrips() {
+  // Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
+  // return fetch('/api/viagens').then(res => res.json());
 
-  // Mock de dados
-  const tripsAtuais = [
+  // Simulação de chamada ao backend (mock)
+  return [
     {
       id: 1,
       title: 'Viagem a Paris',
       date: '2025-05-15/2025-05-25',
-      rating: 4.9,
-      notes: '',
       isPast: false
     },
     {
       id: 2,
       title: 'Férias no Rio',
       date: '2025-05-15/2025-05-25',
-      rating: 4.9,
-      notes: '',
       isPast: false
-    }
-  ];
-  const tripsPassadas = [
+    },
     {
       id: 3,
       title: 'Viagem a Roma',
       date: '2025-05-15/2025-05-25',
-      rating: 4.9,
-      notes: '',
       isPast: true
     }
   ];
+}
+
+async function renderTrips() {
+  const tripsContainer = document.getElementById('dashboard-trips');
+  if (!tripsContainer) return;
+
+  const allTrips = await fetchUserTrips();
+  const tripsAtuais = allTrips.filter(trip => !trip.isPast);
+  const tripsPassadas = allTrips.filter(trip => trip.isPast);
 
   tripsContainer.innerHTML = `
     <div class="trips-list" id="trips-atuais-list"></div>
@@ -68,11 +69,25 @@ function createTripCard(trip) {
     </div>
     <div class="trip-info">
       <div class="trip-title">[${trip.title}]</div>
-      <div class="trip-date"><span>📅</span> Dias 15 - 25 de Maio de 2025</div>
+      <div class="trip-date"><span>📅</span> ${formatTripDate(trip.date)}</div>
     </div>
   `;
 
   return card;
+}
+
+function formatTripDate(dateStr) {
+  // Espera formato 'YYYY-MM-DD/YYYY-MM-DD'
+  if (!dateStr.includes('/')) return dateStr;
+  const [start, end] = dateStr.split('/');
+  const [sy, sm, sd] = start.split('-');
+  const [ey, em, ed] = end.split('-');
+  // Exemplo: Dias 15 - 25 de Maio de 2025
+  const meses = [
+    '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `Dias ${parseInt(sd)} - ${parseInt(ed)} de ${meses[parseInt(em)]} de ${ey}`;
 }
 
 function deleteTrip(id) {
