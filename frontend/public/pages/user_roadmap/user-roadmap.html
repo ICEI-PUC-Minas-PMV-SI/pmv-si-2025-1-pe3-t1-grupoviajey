@@ -43,10 +43,11 @@
     </section>
     <section class="roadmap-content">
       <div class="roadmap-itinerary">
-        <!-- Tabs: Roteiro | Check-list -->
+        <!-- Tabs: Roteiro | Check-list | Locais salvos -->
         <div class="tabs-budget-row">
           <div class="tabs">
             <button class="tab active">Roteiro</button>
+            <button class="tab" id="tabSavedPlacesBtn">Locais salvos</button>
             <button class="tab">Check-list</button>
           </div>
           <div class="budget-btn-wrapper">
@@ -65,26 +66,9 @@
             </div>
           </div>
         </div>
-        <!-- Conteúdo do roteiro será adicionado aqui -->
-        <div class="itinerary-details" id="tab-itinerary">
-          <div class="finance-summary-row" id="financeSummaryRow" style="display:none;">
-            <div class="finance-summary-item" id="summaryBudget" style="display:none;">
-              <span class="finance-icon">🪙</span>
-              <span class="summary-label">Orçamento total:</span>
-              <span class="summary-value" id="summaryBudgetValue"></span>
-            </div>
-            <div class="finance-summary-item">
-              <span class="finance-icon">💸</span>
-              <span class="summary-label">Gastos somados:</span>
-              <span class="summary-value" id="summarySpentValue"></span>
-            </div>
-            <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
-              <span class="finance-icon">🟩</span>
-              <span class="summary-label">Orçamento disponível:</span>
-              <span class="summary-value" id="summaryAvailableValue"></span>
-            </div>
-          </div>
-        </div>
+        
+        
+      
         <div id="tab-checklist" style="display:none;">
           <div class="checklists-container" id="checklistsContainer">
             <div class="checklist-details checklist-block">
@@ -124,7 +108,30 @@
           </div>
           <button id="addChecklistBlockBtn" class="add-checklist-btn" style="margin-top:18px;">+ Novo checklist</button>
         </div>
-      </div>
+        <!-- Conteúdo do roteiro será adicionado aqui -->
+        <div class="itinerary-details" id="tab-itinerary">
+          <!-- Os dias do roteiro (.day-section) são inseridos dinamicamente aqui pelo JS -->
+          <!-- O bloco de resumo financeiro deve ficar após os accordions dos dias do roteiro -->
+          <div id="financeSummaryRow">
+            <div class="finance-summary-item" id="summaryBudget" style="display:none;">
+              <span class="finance-icon">🪙</span>
+              <span class="summary-label">Orçamento total:</span>
+              <span class="summary-value" id="summaryBudgetValue"></span>
+            </div>
+            <div class="finance-summary-item">
+              <span class="finance-icon">💸</span>
+              <span class="summary-label">Gastos somados:</span>
+              <span class="summary-value" id="summarySpentValue"></span>
+            </div>
+            <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
+              <span class="finance-icon">🟩</span>
+              <span class="summary-label">Orçamento disponível:</span>
+              <span class="summary-value" id="summaryAvailableValue"></span>
+            </div>
+          </div>
+        </div>
+      </div>  
+    </div>
       <div class="roadmap-map">
         <!-- Mapa será inserido aqui -->
         <div id="map-container">
@@ -219,28 +226,20 @@
     </div>
   </div>
 
+  <div id="tab-saved-places" style="display:none;">
+    <div class="saved-places-container">
+      <h3 class="saved-places-title">Locais salvos sem dia definido</h3>
+      <button id="addSavedPlaceBtn" class="add-place-btn outlined" style="margin-bottom:18px;">+ Adicionar local</button>
+      <div id="savedPlacesList">
+        <p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/core/map/map.js"></script>
   <script src="../../js/utils/include.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-  <script src="/pages/user_roadmap/user-roadmap.js"></script>
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.getElementById('deleteTripBtn');
-    if (btn) {
-      btn.onmouseover = function() { btn.style.background = '#ffd6d6'; btn.style.borderColor = '#c0392b'; };
-      btn.onmouseout = function() { btn.style.background = '#ffeaea'; btn.style.borderColor = '#e05a47'; };
-      btn.onclick = function(e) {
-        e.preventDefault();
-        if (confirm('Tem certeza que quer deletar essa viagem?\nIsso apagará todos os locais adicionados e é irreversível')) {
-          // Aqui você pode chamar a função de deletar viagem
-        }
-      };
-    }
-  });
-
- 
- 
-  </script>
+  <script type="module" src="/pages/user_roadmap/user-roadmap.js" defer></script>
 </body>
 </html>

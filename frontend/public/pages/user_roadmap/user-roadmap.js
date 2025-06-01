@@ -1,12 +1,4 @@
-  function getTrashSVG() {
-    return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>`;
-  }
+import { createLocalCard, getTrashSVG, getDragHandleSVG } from '/pages/user_roadmap/roadmap-utils.js';
 
 // Funções auxiliares de drag-and-drop (escopo global)
 let dragSrcEl = null;
@@ -66,14 +58,30 @@ function attachRoadmapEventListeners() {
       arrow.style.transform = 'rotate(0deg)';
     }
   });
-  // Alternar tabs
-  document.querySelectorAll('.tab').forEach((tab, idx) => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('tab-itinerary').style.display = idx === 0 ? 'flex' : 'none';
-      document.getElementById('tab-checklist').style.display = idx === 1 ? 'block' : 'none';
-    });
+  // Alternar tabs usando data attributes para garantir correspondência correta
+  const tabMap = [
+    { btnSelector: '.tabs .tab:nth-child(1)', contentId: 'tab-itinerary', display: 'flex' },
+    { btnSelector: '.tabs .tab:nth-child(2)', contentId: 'tab-saved-places', display: 'block' },
+    { btnSelector: '.tabs .tab:nth-child(3)', contentId: 'tab-checklist', display: 'block' }
+  ];
+  tabMap.forEach((tab, idx) => {
+    const btn = document.querySelector(tab.btnSelector);
+    if (btn) {
+      btn.addEventListener('click', function() {
+        // Remove active de todos
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        // Esconde todos os conteúdos
+        tabMap.forEach(t => {
+          const el = document.getElementById(t.contentId);
+          if (el) el.style.display = 'none';
+        });
+        // Mostra o conteúdo correto
+        const content = document.getElementById(tab.contentId);
+        if (content) content.style.display = tab.display;
+        if (tab.contentId === 'tab-saved-places') renderSavedPlacesTab();
+      });
+    }
   });
   // Drag and drop checklist
   document.querySelectorAll('.checklist-item').forEach(addDnDHandlers);
@@ -675,7 +683,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Lógica do botão Adicionar do modal
   const confirmBtn = document.getElementById('confirmAddPlaceModal');
   if (confirmBtn) {
-    confirmBtn.onclick = function() {
+    // Remove qualquer onclick antigo para evitar sobrescrita
+    confirmBtn.onclick = null;
+    confirmBtn.addEventListener('click', function() {
       const input = document.getElementById('autocomplete');
       let placeName = '';
       let placeAddress = '';
@@ -721,48 +731,15 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (addBtn && addBtn.parentElement === timeline) {
           lastAddPlaceDayContent.appendChild(addBtn);
         }
-        // Cria card de local igual aos existentes
-        const card = document.createElement('div');
-        card.className = 'local-card';
-        // Monta rating dinâmico
-        let ratingHtml = '';
-        if (placeRating) {
-          const stars = '★'.repeat(Math.round(placeRating)) + '☆'.repeat(5 - Math.round(placeRating));
-          ratingHtml = `<div class="local-rating"><span class="stars">${stars}</span></div>`;
-        } else {
-          ratingHtml = '';
-        }
-        card.innerHTML = `
-          ${getDragHandleSVG()}
-          <button class="remove-place-btn" title="Remover local">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-              <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-              <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-              <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <div class="local-img"></div>
-          <div class="local-info">
-            <div class="local-title">${placeName}</div>
-            <div class="local-address">${placeAddress || ''}</div>
-            ${ratingHtml}
-            <div class="local-actions">
-              <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-              <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
-            </div>
-          </div>
-        `;
-        // Adiciona imagem randômica
-        const imgDiv = card.querySelector('.local-img');
-        if (imgDiv) {
-          const rand = Math.floor(Math.random() * 10000);
-          imgDiv.style.minHeight = '90px';
-          setTimeout(() => {
-            imgDiv.innerHTML = `<img src="https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
-          }, 0);
-        }
+        // Cria card de local usando utilitário
+        const rand = Math.floor(Math.random() * 10000);
+        const img = `https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}`;
+        const card = createLocalCard({
+          name: placeName,
+          address: placeAddress,
+          rating: placeRating,
+          img
+        });
         timeline.appendChild(card);
         // Adiciona evento de remover ao botão do novo card
         const removeBtn = card.querySelector('.remove-place-btn');
@@ -777,6 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
               window.roadmapMarkers[idx].marker.setMap(null);
               window.roadmapMarkers.splice(idx, 1);
             }
+            saveRoadmapToStorage(); // <-- Salva após remover também
           };
         }
         // Adiciona marcador no mapa
@@ -802,11 +780,17 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
         attachLocalCardActions(card);
+        saveRoadmapToStorage(); // <-- Salva imediatamente após adicionar o card
+      }
+      // Se for fluxo de adicionar local salvo:
+      if (window._addingToSavedPlaces) {
+        saveSavedPlacesToStorage();
+        window._addingToSavedPlaces = false;
       }
       closeAddPlaceModal();
       // Limpa o último place selecionado para o próximo uso
       lastSelectedPlace = null;
-    };
+    });
   }
 
   // Array global para guardar os marcadores do roteiro
@@ -1173,44 +1157,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Cria card de local igual ao do modal
-    let ratingHtml = '';
-    if (markerPlace && markerPlace.rating) {
-      const stars = '★'.repeat(Math.round(markerPlace.rating)) + '☆'.repeat(5 - Math.round(markerPlace.rating));
-      ratingHtml = `<div class="local-rating"><span class="stars">${stars}</span></div>`;
-    }
-    const card = document.createElement('div');
-    card.className = 'local-card';
-    card.innerHTML = `
-      ${getDragHandleSVG()}
-      <button class="remove-place-btn" title="Remover local">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
-      <div class="local-img"></div>
-      <div class="local-info">
-        <div class="local-title">${name}</div>
-        <div class="local-address">${address || ''}</div>
-        ${ratingHtml}
-        <div class="local-actions">
-          <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-          <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
-        </div>
-      </div>
-    `;
-    // Adiciona imagem randômica
-    const imgDiv = card.querySelector('.local-img');
-    if (imgDiv) {
-      const rand = Math.floor(Math.random() * 10000);
-      imgDiv.style.minHeight = '90px';
-      setTimeout(() => {
-        imgDiv.innerHTML = `<img src="https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
-      }, 0);
-    }
+    let rating = markerPlace && typeof markerPlace.rating === 'number' ? markerPlace.rating : undefined;
+    const rand = Math.floor(Math.random() * 10000);
+    const img = undefined; // imagem será carregada depois se necessário
+    const card = createLocalCard({
+      name,
+      address,
+      rating,
+      img: `https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}`
+    });
     timeline.appendChild(card);
     // Adiciona evento de remover ao botão do novo card
     const removeBtn = card.querySelector('.remove-place-btn');
@@ -1224,6 +1179,7 @@ document.addEventListener('DOMContentLoaded', function() {
           window.roadmapMarkers[idx].marker.setMap(null);
           window.roadmapMarkers.splice(idx, 1);
         }
+        saveRoadmapToStorage(); // <-- Salva após remover também
       };
     }
     // Eventos de hover para animar e centralizar marcador
@@ -1247,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     attachLocalCardActions(card);
-    setTimeout(updateFinanceSummary, 50);
+    saveRoadmapToStorage(); // <-- Salva imediatamente após adicionar o card
   });
 
   // Funções de drag and drop para local-card
@@ -1286,6 +1242,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.parentNode.insertBefore(el, this);
         if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
       }
+      afterLocalChange();
     }
   }
   function handleLocalCardDragEnd(e) {
@@ -1337,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', function() {
       timeline.appendChild(el);
       if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
     }
+    afterLocalChange();
   }
   function handleDayContentDragLeave(e) {
     this.classList.remove('over');
@@ -1642,6 +1600,119 @@ document.addEventListener('DOMContentLoaded', function() {
     initMultiChecklists();
     setupAddChecklistBlockBtn();
   }
+
+  var btn = document.getElementById('deleteTripBtn');
+  if (btn) {
+    btn.onmouseover = function() { btn.style.background = '#ffd6d6'; btn.style.borderColor = '#c0392b'; };
+    btn.onmouseout = function() { btn.style.background = '#ffeaea'; btn.style.borderColor = '#e05a47'; };
+    btn.onclick = function(e) {
+      e.preventDefault();
+      if (confirm('Tem certeza que quer deletar essa viagem?\nIsso apagará todos os locais adicionados e é irreversível')) {
+        // Aqui você pode chamar a função de deletar viagem
+      }
+    };
+  }
+
+  // Estrutura global para locais salvos sem dia definido
+  window.savedPlaces = window.savedPlaces || [];
+
+  function saveSavedPlacesToStorage() {
+    localStorage.setItem('userRoadmapSavedPlaces', JSON.stringify(window.savedPlaces));
+  }
+
+  function loadSavedPlacesFromStorage() {
+    const data = localStorage.getItem('userRoadmapSavedPlaces');
+    if (data) {
+      try {
+        window.savedPlaces = JSON.parse(data);
+      } catch (e) {
+        window.savedPlaces = [];
+      }
+    }
+  }
+
+  // Função para renderizar os locais salvos na tab
+  function renderSavedPlacesTab() {
+    const container = document.getElementById('savedPlacesList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!window.savedPlaces.length) {
+      container.innerHTML = '<p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>';
+      return;
+    }
+    window.savedPlaces.forEach((place, idx) => {
+      const card = createLocalCard(place);
+      container.appendChild(card);
+      attachLocalCardActions(card);
+      // Botão de remover do local salvo
+      const removeBtn = card.querySelector('.remove-place-btn');
+      if (removeBtn) {
+        removeBtn.onclick = function() {
+          window.savedPlaces.splice(idx, 1);
+          saveSavedPlacesToStorage();
+          renderSavedPlacesTab();
+        };
+      }
+    });
+  }
+
+  // Carregar locais salvos ao abrir a página
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadSavedPlacesFromStorage);
+  } else {
+    loadSavedPlacesFromStorage();
+  }
+
+  // Adicionar local manualmente na tab Locais Salvos
+  const addSavedPlaceBtn = document.getElementById('addSavedPlaceBtn');
+  if (addSavedPlaceBtn) {
+    addSavedPlaceBtn.addEventListener('click', function() {
+      // Reutiliza o modal de busca já existente
+      openAddPlaceModal();
+      // Ao confirmar, adiciona à lista de locais salvos
+      const confirmBtn = document.getElementById('confirmAddPlaceModal');
+      if (confirmBtn) {
+        // Remove listeners antigos para evitar múltiplos
+        confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+        const newConfirmBtn = document.getElementById('confirmAddPlaceModal');
+        newConfirmBtn.onclick = function() {
+          const input = document.getElementById('autocomplete');
+          let placeName = '';
+          let placeAddress = '';
+          let placeRating = null;
+          if (window.lastSelectedPlace) {
+            placeName = window.lastSelectedPlace.name || (input ? input.value.trim() : '');
+            placeAddress = window.lastSelectedPlace.formatted_address || window.lastSelectedPlace.vicinity || '';
+            placeRating = window.lastSelectedPlace.rating;
+          } else {
+            placeName = input ? input.value.trim() : '';
+            placeAddress = '';
+          }
+          if (placeName) {
+            const rand = Math.floor(Math.random() * 10000);
+            const img = `https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}`;
+            window.savedPlaces.push({ name: placeName, address: placeAddress, rating: placeRating, img });
+            saveSavedPlacesToStorage();
+            renderSavedPlacesTab();
+          }
+          closeAddPlaceModal();
+          window.lastSelectedPlace = null;
+        };
+      }
+    });
+  }
+
+  // Ao adicionar local a um dia do roteiro, salvar roteiro no localStorage
+  // (procure por todos os pontos onde um local é adicionado a um dia)
+  // Exemplo: dentro do confirmBtn.onclick do modal principal
+  const mainConfirmBtn = document.getElementById('confirmAddPlaceModal');
+  if (mainConfirmBtn) {
+    const oldHandler = mainConfirmBtn.onclick;
+    mainConfirmBtn.onclick = function() {
+      if (typeof oldHandler === 'function') oldHandler();
+      saveRoadmapToStorage();
+    };
+  }
 });
 
 // Compartilhamento: abrir modal ao clicar no botão do banner
@@ -1711,6 +1782,7 @@ function saveRoadmapToStorage() {
     });
     return { date, places };
   });
+  console.log('Salvando roteiro:', days); // <-- Adicione este log
   localStorage.setItem('userRoadmapData', JSON.stringify({ tripName, tripDestination, tripDate, tripStart, tripEnd, days }));
 }
 
@@ -1757,7 +1829,7 @@ function createDaysFromStorage(tripStart, tripEnd) {
     tabItinerary.appendChild(section);
     current.setDate(current.getDate() + 1);
   }
-  moveFinanceSummaryAfterDays();
+  moveFinanceSummaryAfterDays(); // <-- garantir que o resumo financeiro fique após os accordions
 }
 
 function loadRoadmapFromStorage() {
@@ -1802,30 +1874,12 @@ function loadRoadmapFromStorage() {
           })();
           if (days[i].places && Array.isArray(days[i].places)) {
             days[i].places.forEach(place => {
-              const card = document.createElement('div');
-              card.className = 'local-card';
-              card.innerHTML = `
-                ${getDragHandleSVG()}
-                <button class="remove-place-btn" title="Remover local">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                </button>
-                <div class="local-img" style="min-height:90px;">${place.img ? `<img src="${place.img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
-                <div class="local-info">
-                  <div class="local-title">${place.name}</div>
-                  <div class="local-address">${place.address}</div>
-                  ${place.rating ? `<div class="local-rating"><span class="stars">${place.rating}</span></div>` : ''}
-                  <div class="local-actions">
-                    <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-                    <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
-                  </div>
-                </div>
-              `;
+              const card = createLocalCard({
+                name: place.name,
+                address: place.address,
+                rating: place.rating,
+                img: place.img
+              });
               timeline.appendChild(card);
               attachLocalCardActions(card);
             });
@@ -1836,6 +1890,7 @@ function loadRoadmapFromStorage() {
     // Reatribui listeners do accordion e atualiza sumário financeiro
     attachRoadmapEventListeners();
     setTimeout(updateFinanceSummary, 100);
+    moveFinanceSummaryAfterDays(); // <-- garantir que o resumo financeiro fique após os accordions
   } catch (e) { /* ignora erro */ }
 }
 // =============================
@@ -1844,3 +1899,31 @@ function loadRoadmapFromStorage() {
 
 // Chama load ao abrir a página
 loadRoadmapFromStorage();
+
+// 1. Remover local de um dia do roteiro
+// 2. Remover local de locais salvos
+// 3. Drag and drop entre dias
+// 4. Drag and drop entre locais salvos e dias
+// 5. Qualquer alteração em window.savedPlaces ou nos dias do roteiro
+//
+// Exemplo para remover local de um dia:
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-place-btn')) {
+    setTimeout(() => {
+      saveRoadmapToStorage();
+      saveSavedPlacesToStorage();
+    }, 50);
+  }
+});
+
+// Exemplo para drag and drop entre dias ou entre locais salvos e dias
+function afterLocalChange() {
+  saveRoadmapToStorage();
+  saveSavedPlacesToStorage();
+}
+
+// Chame afterLocalChange() ao final de qualquer handler de drop/movimentação de local
+// Exemplo dentro de handleLocalCardDrop, handleDayContentDrop, etc.:
+// afterLocalChange();
+//
+// Também chame afterLocalChange() ao adicionar/remover local manualmente

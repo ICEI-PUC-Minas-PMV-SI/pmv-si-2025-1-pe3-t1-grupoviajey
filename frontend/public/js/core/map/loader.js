@@ -44,7 +44,7 @@ async function loadGoogleMapsScript() {
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&language=pt-BR&region=BR`;
       
       script.onload = () => {
         console.log('Script do Google Maps carregado com sucesso');
