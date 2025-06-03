@@ -68,7 +68,7 @@ function attachRoadmapEventListeners() {
   tabMap.forEach((tab, idx) => {
     const btn = document.querySelector(tab.btnSelector);
     if (btn) {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function () {
         // Remove active de todos
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ...outros inits do roadmap...
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
   function createNoteDiv(value) {
     const noteDiv = document.createElement('div');
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Defina essas funções ANTES de attachLocalCardActions
 
   function attachNoteActions(noteDiv, card) {
-    noteDiv.querySelector('.edit-note-btn').onclick = function() {
+    noteDiv.querySelector('.edit-note-btn').onclick = function () {
       if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
       const value = noteDiv.querySelector('.note-text').textContent;
       const form = document.createElement('div');
@@ -183,8 +183,8 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       card.parentNode.insertBefore(form, card.nextElementSibling);
       form.querySelector('.note-input').focus();
-      form.querySelector('.cancel-note-btn').onclick = function(e) { if (e) e.stopPropagation(); form.remove(); };
-      form.querySelector('.save-note-btn').onclick = function(e) {
+      form.querySelector('.cancel-note-btn').onclick = function (e) { if (e) e.stopPropagation(); form.remove(); };
+      form.querySelector('.save-note-btn').onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         const newValue = form.querySelector('.note-input').value.trim();
@@ -198,11 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof closeAddPlaceModal === 'function') closeAddPlaceModal();
       };
     };
-    noteDiv.querySelector('.delete-note-btn').onclick = function() { noteDiv.remove(); };
+    noteDiv.querySelector('.delete-note-btn').onclick = function () { noteDiv.remove(); };
   }
 
   function attachExpenseActions(expenseDiv, card) {
-    expenseDiv.querySelector('.edit-expense-btn').onclick = function() {
+    expenseDiv.querySelector('.edit-expense-btn').onclick = function () {
       let next = card.nextElementSibling;
       if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
       if (next && next.classList.contains('expense-inline-form')) return;
@@ -232,10 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
       insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
       const input = form.querySelector('.expense-input');
       const select = form.querySelector('.expense-currency-select');
-      input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
-      select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
-      form.querySelector('.cancel-expense-btn').onclick = function(e) { if (e) e.stopPropagation(); form.remove(); };
-      form.querySelector('.save-expense-btn').onclick = function(e) {
+      input.addEventListener('input', function () { formatCurrencyInput(input, select.value); });
+      select.addEventListener('change', function () { formatCurrencyInput(input, select.value); });
+      form.querySelector('.cancel-expense-btn').onclick = function (e) { if (e) e.stopPropagation(); form.remove(); };
+      form.querySelector('.save-expense-btn').onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         const expenseName = form.querySelector('.expense-name-input').value.trim();
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       };
     };
-    expenseDiv.querySelector('.delete-expense-btn').onclick = function() { expenseDiv.remove(); };
+    expenseDiv.querySelector('.delete-expense-btn').onclick = function () { expenseDiv.remove(); };
   }
 
   function attachLocalCardActions(card) {
@@ -268,25 +268,25 @@ document.addEventListener('DOMContentLoaded', function() {
     addLocalCardDnDHandlers(card);
     const noteBtn = card.querySelector('.local-note-btn');
     if (noteBtn) {
-      noteBtn.addEventListener('click', function() {
-      if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
-      const form = document.createElement('div');
-      form.className = 'note-inline-form';
-      form.innerHTML = `
+      noteBtn.addEventListener('click', function () {
+        if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
+        const form = document.createElement('div');
+        form.className = 'note-inline-form';
+        form.innerHTML = `
           <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
         <div class="note-actions">
           <button class="cancel-note-btn">Cancelar</button>
           <button class="save-note-btn">Salvar</button>
         </div>
       `;
-      card.parentNode.insertBefore(form, card.nextElementSibling);
-      form.querySelector('.note-input').focus();
-        form.querySelector('.cancel-note-btn').onclick = function(e) {
+        card.parentNode.insertBefore(form, card.nextElementSibling);
+        form.querySelector('.note-input').focus();
+        form.querySelector('.cancel-note-btn').onclick = function (e) {
           if (e) e.stopPropagation();
           form.remove();
         };
-      form.querySelector('.save-note-btn').onclick = function(e) {
-        e.preventDefault();
+        form.querySelector('.save-note-btn').onclick = function (e) {
+          e.preventDefault();
           e.stopPropagation();
           const value = form.querySelector('.note-input').value.trim();
           if (value) {
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
             attachNoteActions(noteDiv, card);
           }
-        form.remove();
+          form.remove();
           // Fecha o modal principal SEMPRE ao salvar
           if (typeof closeAddPlaceModal === 'function') {
             closeAddPlaceModal();
@@ -307,15 +307,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const expenseBtn = card.querySelector('.local-expense-btn');
     if (expenseBtn) {
-      expenseBtn.addEventListener('click', function() {
-      // Garante que só um campo de gastos fique aberto
-      let next = card.nextElementSibling;
-      if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
-      if (next && next.classList.contains('expense-inline-form')) return;
+      expenseBtn.addEventListener('click', function () {
+        // Garante que só um campo de gastos fique aberto
+        let next = card.nextElementSibling;
+        if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
+        if (next && next.classList.contains('expense-inline-form')) return;
         // Cria campo de gastos
-      const form = document.createElement('div');
-      form.className = 'expense-inline-form';
-      form.innerHTML = `
+        const form = document.createElement('div');
+        form.className = 'expense-inline-form';
+        form.innerHTML = `
         <div class="expense-input-row">
             <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)">
           <input type="text" class="expense-input" placeholder="Valor do gasto" inputmode="numeric">
@@ -330,33 +330,33 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="save-expense-btn">Salvar</button>
         </div>
       `;
-      // Insere sempre depois da anotação, se houver, senão depois do card
-      let insertAfter = card;
-      if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
-        insertAfter = card.nextElementSibling;
-      }
-      insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
-      const input = form.querySelector('.expense-input');
-      const select = form.querySelector('.expense-currency-select');
-      input.addEventListener('input', function() { formatCurrencyInput(input, select.value); });
-      select.addEventListener('change', function() { formatCurrencyInput(input, select.value); });
-        form.querySelector('.cancel-expense-btn').onclick = function(e) {
+        // Insere sempre depois da anotação, se houver, senão depois do card
+        let insertAfter = card;
+        if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
+          insertAfter = card.nextElementSibling;
+        }
+        insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
+        const input = form.querySelector('.expense-input');
+        const select = form.querySelector('.expense-currency-select');
+        input.addEventListener('input', function () { formatCurrencyInput(input, select.value); });
+        select.addEventListener('change', function () { formatCurrencyInput(input, select.value); });
+        form.querySelector('.cancel-expense-btn').onclick = function (e) {
           if (e) e.stopPropagation();
           form.remove();
         };
-      form.querySelector('.save-expense-btn').onclick = function(e) {
-        e.preventDefault();
+        form.querySelector('.save-expense-btn').onclick = function (e) {
+          e.preventDefault();
           e.stopPropagation();
-        const expenseName = form.querySelector('.expense-name-input').value.trim();
-        const value = input.value.trim();
-        const currency = select.value;
-        if (value) {
+          const expenseName = form.querySelector('.expense-name-input').value.trim();
+          const value = input.value.trim();
+          const currency = select.value;
+          if (value) {
             const newExpenseDiv = createExpenseDiv(expenseName, value, currency);
             form.parentNode.insertBefore(newExpenseDiv, form.nextElementSibling);
             attachExpenseActions(newExpenseDiv, card);
             if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
           }
-        form.remove();
+          form.remove();
           // Fecha o modal principal SEMPRE ao salvar
           if (typeof closeAddPlaceModal === 'function') {
             closeAddPlaceModal();
@@ -372,11 +372,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.local-card').forEach(attachLocalCardActions);
 
   // Para anotações já existentes (caso haja)
-  document.querySelectorAll('.timeline-note').forEach(function(noteDiv) {
+  document.querySelectorAll('.timeline-note').forEach(function (noteDiv) {
     const card = noteDiv.previousElementSibling && noteDiv.previousElementSibling.classList.contains('local-card') ? noteDiv.previousElementSibling : null;
     if (card) attachNoteActions(noteDiv, card);
   });
-  document.querySelectorAll('.timeline-expense').forEach(function(expenseDiv) {
+  document.querySelectorAll('.timeline-expense').forEach(function (expenseDiv) {
     const card = expenseDiv.previousElementSibling;
     while (card && !card.classList.contains('local-card')) card = card.previousElementSibling;
     if (card) attachExpenseActions(expenseDiv, card);
@@ -398,11 +398,11 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     checklistList.appendChild(li);
     addChecklistDnDHandlers(li);
-    li.querySelector('.remove-checklist-btn').onclick = function() { li.remove(); };
+    li.querySelector('.remove-checklist-btn').onclick = function () { li.remove(); };
   }
 
   if (addChecklistForm) {
-    addChecklistForm.onsubmit = function(e) {
+    addChecklistForm.onsubmit = function (e) {
       e.preventDefault();
       const value = newChecklistInput.value.trim();
       if (value) {
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   document.querySelectorAll('.remove-checklist-btn').forEach(btn => {
-    btn.onclick = function() { btn.closest('.checklist-item').remove(); };
+    btn.onclick = function () { btn.closest('.checklist-item').remove(); };
   });
 
   // Drag and drop para novos itens
@@ -444,14 +444,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // --- Clique em POI do Google: criar pin customizado com InfoWindow customizado ---
       const { createMarker } = await import('../../js/core/map/markers.js');
       const createdPoiMarkers = new Set();
-      window.map.addListener('click', function(event) {
+      window.map.addListener('click', function (event) {
         if (event.placeId) {
           // Evita navegação padrão
           event.stop();
           // Não duplique markers para o mesmo placeId
           if (createdPoiMarkers.has(event.placeId)) return;
           const service = new window.google.maps.places.PlacesService(window.map);
-          service.getDetails({ placeId: event.placeId, fields: ['name', 'formatted_address', 'geometry'] }, function(place, status) {
+          service.getDetails({ placeId: event.placeId, fields: ['name', 'formatted_address', 'geometry'] }, function (place, status) {
             if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry && place.geometry.location) {
               // Cria marker customizado
               const marker = createMarker(window.map, {
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Remover local ao clicar na lixeira
   document.querySelectorAll('.remove-place-btn').forEach(btn => {
-    btn.onclick = function() {
+    btn.onclick = function () {
       const card = btn.closest('.local-card');
       if (card) card.remove();
     };
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Atualiza ao adicionar/remover gastos
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (e.target.classList.contains('save-expense-btn') || e.target.classList.contains('delete-expense-btn')) {
       setTimeout(updateFinanceSummary, 50);
     }
@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const budgetInput = document.getElementById('budgetInput');
   const budgetCurrency = document.getElementById('budgetCurrency');
   if (saveBudgetBtn && budgetInput && budgetCurrency) {
-    saveBudgetBtn.addEventListener('click', function(e) {
+    saveBudgetBtn.addEventListener('click', function (e) {
       e.preventDefault();
       const value = budgetInput.value;
       const currency = budgetCurrency.value;
@@ -588,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   // Atualiza ao remover local (pode conter gastos)
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (e.target.closest('.remove-place-btn')) {
       setTimeout(updateFinanceSummary, 50);
     }
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('autocomplete');
     if (input && window.google && window.google.maps) {
       const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ address: cityName }, function(results, status) {
+      geocoder.geocode({ address: cityName }, function (results, status) {
         if (status === 'OK' && results[0]) {
           const bounds = results[0].geometry.viewport;
           const autocomplete = new google.maps.places.Autocomplete(input, {
@@ -614,14 +614,14 @@ document.addEventListener('DOMContentLoaded', function() {
           });
           input.autocomplete = autocomplete;
           // Salva o último place selecionado
-          autocomplete.addListener('place_changed', function() {
+          autocomplete.addListener('place_changed', function () {
             lastSelectedPlace = autocomplete.getPlace();
           });
         } else {
           // fallback: autocomplete sem bounds
           const autocomplete = new google.maps.places.Autocomplete(input);
           input.autocomplete = autocomplete;
-          autocomplete.addListener('place_changed', function() {
+          autocomplete.addListener('place_changed', function () {
             lastSelectedPlace = autocomplete.getPlace();
           });
         }
@@ -676,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let lastAddPlaceDayContent = null;
 
   // Adicione este bloco logo após o DOMContentLoaded:
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     // Delegação para todos os botões .add-place-btn
     if (e.target.classList.contains('add-place-btn')) {
       e.preventDefault();
@@ -686,14 +686,14 @@ document.addEventListener('DOMContentLoaded', function() {
       lastAddPlaceDayContent = btn.closest('.day-content');
       openAddPlaceModal();
     }
-    });
+  });
 
   // Lógica do botão Adicionar do modal
   const confirmBtn = document.getElementById('confirmAddPlaceModal');
   if (confirmBtn) {
     // Remove qualquer onclick antigo para evitar sobrescrita
     confirmBtn.onclick = null;
-    confirmBtn.addEventListener('click', function() {
+    confirmBtn.addEventListener('click', function () {
       const input = document.getElementById('autocomplete');
       let placeName = '';
       let placeAddress = '';
@@ -752,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Adiciona evento de remover ao botão do novo card
         const removeBtn = card.querySelector('.remove-place-btn');
         if (removeBtn) {
-          removeBtn.onclick = function() {
+          removeBtn.onclick = function () {
             card.remove();
             setTimeout(updateFinanceSummary, 50);
             // Remove marcador do mapa
@@ -768,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Adiciona marcador no mapa
         addPlaceToMap(placeName, placeAddress, lastSelectedPlace);
         // Eventos de hover para animar e centralizar marcador
-        card.addEventListener('mouseenter', async function() {
+        card.addEventListener('mouseenter', async function () {
           const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
           const key = getPlaceKey(placeName, placeAddress);
           const m = window.roadmapMarkers.find(m => m.key === key);
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
         });
-        card.addEventListener('mouseleave', async function() {
+        card.addEventListener('mouseleave', async function () {
           const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
           const m = window.roadmapMarkers.find(m => m.key === key);
           if (m && m.marker) {
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (placeAddress) {
       if (window.google && window.google.maps) {
         const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: placeAddress }, function(results, status) {
+        geocoder.geocode({ address: placeAddress }, function (results, status) {
           if (status === 'OK' && results[0]) {
             markerPlace = {
               name: placeName,
@@ -949,12 +949,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Evento para fechar modal
   const closeEditTripModalBtn = document.getElementById('closeEditTripModal');
   if (closeEditTripModalBtn) {
-    closeEditTripModalBtn.onclick = function() {
+    closeEditTripModalBtn.onclick = function () {
       document.getElementById('editTripModal').style.display = 'none';
     };
   }
   // Fecha ao clicar fora do modal
-  window.addEventListener('click', function(e) {
+  window.addEventListener('click', function (e) {
     const modal = document.getElementById('editTripModal');
     if (modal && e.target === modal) {
       modal.style.display = 'none';
@@ -963,7 +963,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Unificação do onsubmit do formulário de edição da viagem
   const editTripForm = document.getElementById('editTripForm');
   if (editTripForm) {
-    editTripForm.onsubmit = function(e) {
+    editTripForm.onsubmit = function (e) {
       e.preventDefault();
       console.log('submit do modal de edição de viagem');
       const name = document.getElementById('tripName').value;
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // =============================
         // Reatribui listeners do accordion
         attachRoadmapEventListeners();
-+       moveFinanceSummaryAfterDays();
+        +       moveFinanceSummaryAfterDays();
       }
       document.getElementById('editTripModal').style.display = 'none';
       attachRoadmapEventListeners();
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Dropdown orçamento
   const budgetBtn = document.getElementById('budgetBtn');
   const budgetDropdown = document.getElementById('budgetDropdown');
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (budgetBtn && budgetDropdown) {
       if (budgetBtn.contains(e.target)) {
         budgetDropdown.classList.toggle('show');
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   function getCurrencyLocale(currency) {
-    switch(currency) {
+    switch (currency) {
       case 'USD': return 'en-US';
       case 'EUR': return 'de-DE';
       default: return 'pt-BR';
@@ -1076,14 +1076,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (budgetInput) {
     budgetInput.addEventListener('input', formatInput);
-    budgetInput.addEventListener('keydown', function(e) {
+    budgetInput.addEventListener('keydown', function (e) {
       if (!["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) && !/\d/.test(e.key)) {
         e.preventDefault();
       }
     });
   }
   if (budgetCurrency) {
-    budgetCurrency.addEventListener('change', function() {
+    budgetCurrency.addEventListener('change', function () {
       if (budgetInput.value) {
         let raw = budgetInput.value.replace(/\D/g, '');
         let number = Number(raw) / 100;
@@ -1100,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', function() {
   attachRoadmapEventListeners();
 
   // Listener para adicionar local do InfoWindow do mapa
-  window.addEventListener('addPlaceToRoadmap', async function(e) {
+  window.addEventListener('addPlaceToRoadmap', async function (e) {
     const { name, address } = e.detail;
     // Adiciona no primeiro dia do roteiro
     const firstDayContent = document.querySelector('.day-content');
@@ -1136,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aqui, como fallback, geocodifica e cria um novo marker
         const geocoder = new window.google.maps.Geocoder();
         await new Promise(resolve => {
-          geocoder.geocode({ address }, function(results, status) {
+          geocoder.geocode({ address }, function (results, status) {
             if (status === 'OK' && results[0]) {
               markerPlace = {
                 name,
@@ -1178,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adiciona evento de remover ao botão do novo card
     const removeBtn = card.querySelector('.remove-place-btn');
     if (removeBtn) {
-      removeBtn.onclick = function() {
+      removeBtn.onclick = function () {
         card.remove();
         setTimeout(updateFinanceSummary, 50);
         // Remove marcador do mapa
@@ -1191,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
     // Eventos de hover para animar e centralizar marcador
-    card.addEventListener('mouseenter', async function() {
+    card.addEventListener('mouseenter', async function () {
       const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
       const m = window.roadmapMarkers.find(m => m.key === key);
       if (m && m.marker) {
@@ -1203,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
-    card.addEventListener('mouseleave', async function() {
+    card.addEventListener('mouseleave', async function () {
       const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
       const m = window.roadmapMarkers.find(m => m.key === key);
       if (m && m.marker) {
@@ -1351,27 +1351,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeAddBtn = document.getElementById('closeAddPlaceModal');
     if (addPlaceModal) {
       // Clicar fora
-      window.addEventListener('click', function(e) {
+      window.addEventListener('click', function (e) {
         if (e.target === addPlaceModal) closeModal(addPlaceModal);
       });
       // ESC
-      window.addEventListener('keydown', function(e) {
+      window.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && addPlaceModal.style.display === 'flex') closeModal(addPlaceModal);
       });
       // Cancelar
-      if (closeAddBtn) closeAddBtn.onclick = function() { closeModal(addPlaceModal); };
+      if (closeAddBtn) closeAddBtn.onclick = function () { closeModal(addPlaceModal); };
     }
     // Edit Trip Modal
     const editTripModal = document.getElementById('editTripModal');
     const closeEditBtn = document.getElementById('closeEditTripModal');
     if (editTripModal) {
-      window.addEventListener('click', function(e) {
+      window.addEventListener('click', function (e) {
         if (e.target === editTripModal) closeModal(editTripModal);
       });
-      window.addEventListener('keydown', function(e) {
+      window.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && editTripModal.style.display === 'flex') closeModal(editTripModal);
       });
-      if (closeEditBtn) closeEditBtn.onclick = function() { closeModal(editTripModal); };
+      if (closeEditBtn) closeEditBtn.onclick = function () { closeModal(editTripModal); };
     }
   }
   setupModalCloseHandlers();
@@ -1383,23 +1383,23 @@ document.addEventListener('DOMContentLoaded', function() {
   var copyCollabBtn = document.getElementById('copyCollabLinkBtn');
   var closeCollabBtn = document.getElementById('closeCollabModal');
   if (collabBtn && collabModal && collabInput && copyCollabBtn && closeCollabBtn) {
-    collabBtn.addEventListener('click', function() {
+    collabBtn.addEventListener('click', function () {
       collabInput.value = window.location.href;
       collabModal.style.display = 'flex';
       copyCollabBtn.textContent = 'Copiar';
       collabInput.select();
       renderCollabList();
     });
-    copyCollabBtn.addEventListener('click', function() {
+    copyCollabBtn.addEventListener('click', function () {
       collabInput.select();
       document.execCommand('copy');
       copyCollabBtn.textContent = 'Link copiado!';
-      setTimeout(function(){ copyCollabBtn.textContent = 'Copiar'; }, 1800);
+      setTimeout(function () { copyCollabBtn.textContent = 'Copiar'; }, 1800);
     });
-    closeCollabBtn.addEventListener('click', function() {
+    closeCollabBtn.addEventListener('click', function () {
       collabModal.style.display = 'none';
     });
-    window.addEventListener('click', function(e) {
+    window.addEventListener('click', function (e) {
       if (e.target === collabModal) collabModal.style.display = 'none';
     });
   }
@@ -1453,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evento de remoção do checklist
     const removeBtn = block.querySelector('.remove-checklist-block-btn');
     if (removeBtn) {
-      removeBtn.onclick = function(e) {
+      removeBtn.onclick = function (e) {
         e.preventDefault();
         showRemoveChecklistModal(block);
       };
@@ -1473,10 +1473,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ul.appendChild(li);
     addChecklistDnDHandlers(li);
     // Remover item
-    li.querySelector('.remove-checklist-btn').onclick = function() { li.remove(); };
+    li.querySelector('.remove-checklist-btn').onclick = function () { li.remove(); };
     // Riscar ao marcar
     const checkbox = li.querySelector('input[type="checkbox"]');
-    checkbox.addEventListener('change', function() {
+    checkbox.addEventListener('change', function () {
       if (checkbox.checked) {
         li.classList.add('checked');
       } else {
@@ -1487,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function attachChecklistBlockEvents(block) {
     // Delegação para editar título
-    block.addEventListener('click', function(e) {
+    block.addEventListener('click', function (e) {
       if (e.target.closest('.edit-checklist-title-btn')) {
         const titleEl = block.querySelector('.checklist-title');
         if (!titleEl) return;
@@ -1503,7 +1503,7 @@ document.addEventListener('DOMContentLoaded', function() {
         titleEl.replaceWith(input);
         input.focus();
         input.onblur = save;
-        input.onkeydown = function(e) { if (e.key === 'Enter') save(); };
+        input.onkeydown = function (e) { if (e.key === 'Enter') save(); };
         function save() {
           const newTitle = input.value.trim() || 'Checklist';
           const h3 = document.createElement('h3');
@@ -1517,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = block.querySelector('.add-checklist-form');
     const input = form.querySelector('.newChecklistInput');
     const ul = block.querySelector('.checklist-list');
-    form.onsubmit = function(e) {
+    form.onsubmit = function (e) {
       e.preventDefault();
       const value = input.value.trim();
       if (value) {
@@ -1560,13 +1560,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelRemoveChecklistBtn');
     const confirmBtn = document.getElementById('confirmRemoveChecklistBtn');
     if (cancelBtn) {
-      cancelBtn.onclick = function() {
+      cancelBtn.onclick = function () {
         modal.style.display = 'none';
         _checklistBlockToRemove = null;
       };
     }
     if (confirmBtn) {
-      confirmBtn.onclick = function() {
+      confirmBtn.onclick = function () {
         if (_checklistBlockToRemove) {
           _checklistBlockToRemove.remove();
         }
@@ -1596,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function setupAddChecklistBlockBtn() {
     const btn = document.getElementById('addChecklistBlockBtn');
     if (btn) {
-      btn.onclick = function() {
+      btn.onclick = function () {
         const container = document.getElementById('checklistsContainer');
         container.appendChild(createChecklistBlock('Novo checklist', []));
       };
@@ -1611,9 +1611,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var btn = document.getElementById('deleteTripBtn');
   if (btn) {
-    btn.onmouseover = function() { btn.style.background = '#ffd6d6'; btn.style.borderColor = '#c0392b'; };
-    btn.onmouseout = function() { btn.style.background = '#ffeaea'; btn.style.borderColor = '#e05a47'; };
-    btn.onclick = function(e) {
+    btn.onmouseover = function () { btn.style.background = '#ffd6d6'; btn.style.borderColor = '#c0392b'; };
+    btn.onmouseout = function () { btn.style.background = '#ffeaea'; btn.style.borderColor = '#e05a47'; };
+    btn.onclick = function (e) {
       e.preventDefault();
       if (confirm('Tem certeza que quer deletar essa viagem?\nIsso apagará todos os locais adicionados e é irreversível')) {
         // Aqui você pode chamar a função de deletar viagem
@@ -1655,7 +1655,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Botão de remover do local salvo
       const removeBtn = card.querySelector('.remove-place-btn');
       if (removeBtn) {
-        removeBtn.onclick = function() {
+        removeBtn.onclick = function () {
           window.savedPlaces.splice(idx, 1);
           saveSavedPlacesToStorage();
           renderSavedPlacesTab();
@@ -1674,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Adicionar local manualmente na tab Locais Salvos
   const addSavedPlaceBtn = document.getElementById('addSavedPlaceBtn');
   if (addSavedPlaceBtn) {
-    addSavedPlaceBtn.addEventListener('click', function() {
+    addSavedPlaceBtn.addEventListener('click', function () {
       // Reutiliza o modal de busca já existente
       openAddPlaceModal();
       // Ao confirmar, adiciona à lista de locais salvos
@@ -1683,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remove listeners antigos para evitar múltiplos
         confirmBtn.replaceWith(confirmBtn.cloneNode(true));
         const newConfirmBtn = document.getElementById('confirmAddPlaceModal');
-        newConfirmBtn.onclick = function() {
+        newConfirmBtn.onclick = function () {
           const input = document.getElementById('autocomplete');
           let placeName = '';
           let placeAddress = '';
@@ -1716,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const mainConfirmBtn = document.getElementById('confirmAddPlaceModal');
   if (mainConfirmBtn) {
     const oldHandler = mainConfirmBtn.onclick;
-    mainConfirmBtn.onclick = function() {
+    mainConfirmBtn.onclick = function () {
       if (typeof oldHandler === 'function') oldHandler();
       saveRoadmapToStorage();
     };
@@ -1724,32 +1724,32 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Compartilhamento: abrir modal ao clicar no botão do banner
-document.addEventListener('DOMContentLoaded', function() {
- var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
- var shareModal = document.getElementById('shareModal');
- var shareInput = document.getElementById('shareLinkInput');
- var copyBtn = document.getElementById('copyShareLinkBtn');
- var closeBtn = document.getElementById('closeShareModal');
- if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
-   shareBtn.addEventListener('click', function() {
-     shareInput.value = window.location.href;
-     shareModal.style.display = 'flex';
-     copyBtn.textContent = 'Copiar link';
-     shareInput.select();
-   });
-   copyBtn.addEventListener('click', function() {
-     shareInput.select();
-     document.execCommand('copy');
-     copyBtn.textContent = 'Link copiado!';
-     setTimeout(function(){ copyBtn.textContent = 'Copiar link'; }, 1800);
-   });
-   closeBtn.addEventListener('click', function() {
-     shareModal.style.display = 'none';
-   });
-   window.addEventListener('click', function(e) {
-     if (e.target === shareModal) shareModal.style.display = 'none';
-   });
- }
+document.addEventListener('DOMContentLoaded', function () {
+  var shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
+  var shareModal = document.getElementById('shareModal');
+  var shareInput = document.getElementById('shareLinkInput');
+  var copyBtn = document.getElementById('copyShareLinkBtn');
+  var closeBtn = document.getElementById('closeShareModal');
+  if (shareBtn && shareModal && shareInput && copyBtn && closeBtn) {
+    shareBtn.addEventListener('click', function () {
+      shareInput.value = window.location.href;
+      shareModal.style.display = 'flex';
+      copyBtn.textContent = 'Copiar link';
+      shareInput.select();
+    });
+    copyBtn.addEventListener('click', function () {
+      shareInput.select();
+      document.execCommand('copy');
+      copyBtn.textContent = 'Link copiado!';
+      setTimeout(function () { copyBtn.textContent = 'Copiar link'; }, 1800);
+    });
+    closeBtn.addEventListener('click', function () {
+      shareModal.style.display = 'none';
+    });
+    window.addEventListener('click', function (e) {
+      if (e.target === shareModal) shareModal.style.display = 'none';
+    });
+  }
 });
 
 let autoScrollInterval = null;
@@ -1915,7 +1915,7 @@ loadRoadmapFromStorage();
 // 5. Qualquer alteração em window.savedPlaces ou nos dias do roteiro
 //
 // Exemplo para remover local de um dia:
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   if (e.target.closest('.remove-place-btn')) {
     setTimeout(() => {
       saveRoadmapToStorage();
@@ -1935,3 +1935,35 @@ function afterLocalChange() {
 // afterLocalChange();
 //
 // Também chame afterLocalChange() ao adicionar/remover local manualmente
+
+// Exemplo: user-roadmap.js
+document.addEventListener('DOMContentLoaded', () => {
+  const tripId = localStorage.getItem('selectedTripId');
+  if (!tripId) {
+    // Redireciona ou mostra erro
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return;
+  }
+
+  // Mock: buscar viagem do localStorage
+  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+  const trip = trips.find(t => t.id == tripId);
+
+  if (trip) {
+    // Renderize os dados da viagem na tela
+    document.getElementById('trip-title').textContent = trip.title;
+    // ... e assim por diante
+  } else {
+    // Futuro: buscar do backend usando tripId
+    // fetch(`/api/viagens/${tripId}`).then(...)
+  }
+});
+
+const tripId = localStorage.getItem('selectedTripId');
+const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+const trip = trips.find(t => String(t.id) === String(tripId));
+if (!trip) {
+  // Redireciona ou mostra erro
+  window.location.href = '/pages/user_dashboard/user-dashboard.html';
+  return;
+}

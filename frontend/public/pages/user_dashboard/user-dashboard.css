@@ -1,38 +1,64 @@
 /* user-dashboard.css */
 
+/* Garante que todos os containers principais tenham largura mínima */
 .dashboard-container {
+  min-width: 1000px;
   max-width: 1100px;
   margin: var(--spacing-lg) auto;
-  padding: var(--spacing-lg);
-  background: var(--background-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 2px 16px var(--shadow-color);
 }
 
 .dashboard-tabs {
   display: flex;
-  gap: var(--spacing-lg);
-  border-bottom: 2px solid var(--primary-color);
+  gap: 5px;
   margin-bottom: var(--spacing-lg);
   font-size: 1.3rem;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
 }
 
 .dashboard-tab {
-  padding: var(--spacing-sm) var(--spacing-lg);
+  flex: 1 1 0;
+  padding: 1.1rem 0;
   cursor: pointer;
   font-weight: 500;
   color: var(--text-color);
   border: none;
-  background: none;
-  transition: color 0.2s;
+  background: #ffffff;
+  transition: background 0.2s, color 0.2s;
+  font-size: 1.15rem;
+  border-bottom: 1px solid #004954;
+}
+
+.dashboard-tab:last-child {
+  border-right: none;
 }
 
 .dashboard-tab.active {
-  color: var(--primary-color);
-  border-bottom: 3px solid var(--primary-color);
+  background: var(--primary-color);
+  border-radius: 10px 10px 0 0;
+  color: #fff;
+  z-index: 1;
 }
 
-.dashboard-tabs .dashboard-tab h2 {
+.dashboard-tab.active:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+
+.dashboard-tab:not(.active) {
+  background: #ffffff;
+  color: var(--text-color);
+}
+
+.dashboard-tab:hover {
+  background: #317883;
+  color: #fff;
+  border-radius: 10px 10px 0 0;
+}
+
+#dashboard-tabs .dashboard-tab h2 {
   font-size: 2.2rem;
   font-weight: 700;
   margin: 0;
@@ -50,9 +76,9 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-sm) 0;
   border: 1px solid var(--primary-color);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   background: var(--background-color);
   color: var(--primary-color);
   font-size: 1rem;
@@ -60,6 +86,7 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .action-btn:hover {
   background: var(--primary-color);
   color: #fff;
@@ -90,8 +117,9 @@
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
 }
+
 .trip-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   transform: scale(1.02);
   border-color: #e0e0e0;
@@ -173,14 +201,17 @@
   color: var(--primary-color);
   font-size: 1.2rem;
   transition: color 0.2s;
-  padding: 0.2rem;
+  padding: 0.5rem;
 }
+
 .trip-action-btn.delete {
   color: #d32f2f;
 }
+
 .trip-action-btn:hover {
   color: #0d47a1;
 }
+
 .trip-action-btn.delete:hover {
   color: #b71c1c;
 }
@@ -189,10 +220,12 @@
   .dashboard-container {
     padding: var(--spacing-sm);
   }
+
   .trip-card {
     flex-direction: column;
     align-items: stretch;
   }
+
   .dashboard-actions {
     flex-direction: column;
     gap: var(--spacing-sm);
@@ -202,7 +235,7 @@
 #dashboard-favorites {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
+  gap: 24px;
   margin-top: var(--spacing-lg);
 }
 
@@ -218,6 +251,14 @@
   }
 }
 
+/* Garante que os cards de favoritos usem o mesmo visual do result-card */
+#dashboard-favorites .results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  flex: 2 1 0;
+}
+
 .review-card {
   background: #fff;
   border-radius: 12px;
@@ -229,9 +270,57 @@
   border: 1.5px solid #e0e0e0;
   transition: box-shadow 0.2s, transform 0.2s;
 }
+
 .review-card:hover {
   box-shadow: 0 6px 24px rgba(160, 132, 232, 0.10);
   cursor: pointer;
   transform: scale(1.02);
   border-color: #e0e0e0;
-} 
+}
+
+@media (max-width: 1100px) {
+  #dashboard-favorites .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  #dashboard-favorites .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+#dashboard-favorites .trash-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  padding: 0;
+  z-index: 2;
+}
+
+#dashboard-favorites .trash-btn svg {
+  width: 22px;
+  height: 22px;
+  color: #e05a47;
+  transition: color 0.2s;
+}
+
+#dashboard-favorites .trash-btn:hover {
+  background: #fff0f0;
+  box-shadow: 0 4px 16px rgba(224, 90, 71, 0.10);
+}
+
+#dashboard-favorites .trash-btn:hover svg {
+  color: #b71c1c;
+}

@@ -1,4 +1,22 @@
-(function() {
+let modalInitialized = false;
+
+async function initModal() {
+  if (modalInitialized) return;
+
+  // Carregar HTML se necessário
+  if (!document.getElementById('place-details-modal')) {
+    const response = await fetch('../../components/modal/place_details/PlaceDetailsModal.html');
+    const html = await response.text();
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  // Carregar modal de avaliações se necessário
+  if (!document.getElementById('reviews-modal')) {
+    const response = await fetch('../../components/modal/reviews/ReviewsModal.html');
+    const html = await response.text();
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
   const modal = document.getElementById('place-details-modal');
   if (!modal) return;
   const closeBtn = modal.querySelector('.place-details-modal-close');
@@ -53,7 +71,7 @@
   }
 
   // Função global para abrir o modal
-  window.openPlaceDetailsModal = function(data) {
+  window.openPlaceDetailsModal = function (data) {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     roteiroDropdown.style.display = 'none';
@@ -69,7 +87,7 @@
       const address = modal.querySelector('.place-details-list li span');
       const rating = modal.querySelector('.place-details-list li:nth-child(4) span');
       const starsContainer = modal.querySelector('.avaliacoes-estrelas');
-      
+
       if (title) title.textContent = data.name || '';
       if (address) {
         address.textContent = data.address || storageData.address || '';
@@ -77,10 +95,10 @@
       if (rating && starsContainer) {
         // Usar a avaliação do data passado pelo card
         const ratingValue = parseFloat(data.rating) || 0;
-        
+
         // Atualizar o texto da avaliação
         rating.textContent = `${ratingValue.toFixed(1)}/5`;
-        
+
         // Atualizar as estrelas
         starsContainer.innerHTML = '';
         for (let i = 1; i <= 5; i++) {
@@ -116,7 +134,7 @@
 
   // Fechar modal
   closeBtn.onclick = fecharModal;
-  overlay.onclick = function(e) {
+  overlay.onclick = function (e) {
     if (e.target === overlay) fecharModal();
   };
   function fecharModal() {
@@ -125,7 +143,7 @@
   }
 
   // Adicionar listener para tecla ESC
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modal.style.display === 'flex') {
       fecharModal();
     }
@@ -135,11 +153,11 @@
   function toggleDropdown() {
     const modalBox = document.querySelector('.place-details-modal');
     const isOpen = roteiroDropdown.style.display === 'block';
-    
+
     roteiroDropdown.style.display = isOpen ? 'none' : 'block';
     roteiroCriar.style.display = 'none';
     roteiroFeedback.style.display = 'none';
-    
+
     if (!isOpen) {
       modalBox.classList.add('dropdown-active');
     } else {
@@ -147,16 +165,16 @@
     }
   }
 
-  abrirRoteiroBtn.onclick = function(e) {
+  abrirRoteiroBtn.onclick = function (e) {
     e.stopPropagation();
     toggleDropdown();
   };
-  addBtn.onclick = function(e) {
+  addBtn.onclick = function (e) {
     e.stopPropagation();
     toggleDropdown();
   };
   // Fechar dropdown ao clicar fora
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (!roteiroDropdown.contains(e.target) && e.target !== abrirRoteiroBtn && e.target !== addBtn) {
       roteiroDropdown.style.display = 'none';
       roteiroCriar.style.display = 'none';
@@ -168,14 +186,14 @@
   // Selecionar roteiro existente
   roteiroLista.querySelectorAll('.roteiro-item').forEach(item => {
     if (item.textContent === '+ Criar novo roteiro') {
-      item.onclick = function(e) {
+      item.onclick = function (e) {
         e.stopPropagation();
         roteiroCriar.style.display = 'flex';
         roteiroInput.value = '';
         roteiroInput.focus();
       };
     } else {
-      item.onclick = function(e) {
+      item.onclick = function (e) {
         e.stopPropagation();
         roteiroDropdown.style.display = 'none';
         mostrarFeedback(`Adicionado ao roteiro <b>${item.textContent}</b>`);
@@ -183,7 +201,7 @@
     }
   });
   // Salvar novo roteiro
-  roteiroSalvar.onclick = function(e) {
+  roteiroSalvar.onclick = function (e) {
     e.stopPropagation();
     const nome = roteiroInput.value.trim();
     if (nome) {
@@ -199,7 +217,7 @@
   }
 
   // Função para compartilhar
-  shareBtn.onclick = function(e) {
+  shareBtn.onclick = function (e) {
     e.stopPropagation();
     const shareModal = document.getElementById('share-modal');
     const shareLinkInput = document.getElementById('share-link-input');
@@ -213,15 +231,15 @@
     shareModal.style.display = 'flex';
 
     // Função para copiar o link
-    copyLinkBtn.onclick = function() {
+    copyLinkBtn.onclick = function () {
       shareLinkInput.select();
       document.execCommand('copy');
-      
+
       // Feedback visual
       const originalText = copyLinkBtn.innerHTML;
       copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
       copyLinkBtn.style.background = '#27ae60';
-      
+
       setTimeout(() => {
         copyLinkBtn.innerHTML = originalText;
         copyLinkBtn.style.background = '';
@@ -229,12 +247,12 @@
     };
 
     // Fechar o modal
-    closeBtn.onclick = function() {
+    closeBtn.onclick = function () {
       shareModal.style.display = 'none';
     };
 
     // Fechar ao clicar fora
-    shareModal.onclick = function(e) {
+    shareModal.onclick = function (e) {
       if (e.target === shareModal) {
         shareModal.style.display = 'none';
       }
@@ -250,7 +268,7 @@
   };
 
   // Função para favoritar
-  favoriteBtn.onclick = function(e) {
+  favoriteBtn.onclick = function (e) {
     e.stopPropagation();
     const icon = this.querySelector('i');
     if (icon.classList.contains('far')) {
@@ -265,11 +283,24 @@
   };
 
   // Tornar o bloco de avaliações clicável para abrir o modal de avaliações
-  document.querySelector('.avaliacoes-bloco-clicavel').onclick = function() {
-    if (window.openReviewsModal) {
-      const title = document.querySelector('.place-details-title');
-      const localName = title ? title.textContent : '';
-      window.openReviewsModal(localName);
-    }
-  };
-})();
+  const avaliacoesBloco = modal.querySelector('.avaliacoes-bloco-clicavel');
+  if (avaliacoesBloco) {
+    avaliacoesBloco.onclick = async function () {
+      // Garantir que o modal de avaliações está inicializado
+      if (typeof initReviewsModal === 'function') {
+        await initReviewsModal();
+      }
+
+      if (window.openReviewsModal) {
+        const title = modal.querySelector('.place-details-title');
+        const localName = title ? title.textContent : '';
+        window.openReviewsModal(localName);
+      }
+    };
+  }
+
+  modalInitialized = true;
+}
+
+// Inicializa o modal quando o módulo é carregado
+initModal();

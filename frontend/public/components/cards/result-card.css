@@ -1,7 +1,8 @@
 .result-card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid #d1d1d1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -13,6 +14,7 @@
   max-height: 400px;
   cursor: pointer;
 }
+
 .result-image {
   background: #e0e0e0;
   height: 200px;
@@ -29,12 +31,15 @@
   border-radius: 12px;
   position: relative;
 }
-.result-image img, .result-image span {
+
+.result-image img,
+.result-image span {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   display: block;
 }
+
 .result-info {
   padding: 16px;
   display: flex;
@@ -45,6 +50,7 @@
   max-height: 100%;
   overflow: hidden;
 }
+
 .result-title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -57,20 +63,24 @@
   max-height: 2.7em;
   min-height: 2.7em;
 }
+
 .result-rating {
   color: #f5b50a;
   font-size: 1rem;
 }
+
 .result-tags {
   color: #757575;
   font-size: 0.95rem;
 }
+
 .result-actions {
   display: flex;
   gap: 8px;
   margin-top: auto;
   justify-content: center;
 }
+
 .result-btn {
   background: #ffffff;
   color: #0d353a;
@@ -81,10 +91,12 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .result-btn:hover {
   background: #0d353a;
   color: #fff;
 }
+
 .result-address {
   color: #757575;
   font-size: 0.97rem;
@@ -93,16 +105,19 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
 .result-price {
   color: #0d353a;
   font-size: 0.97rem;
   margin-bottom: 4px;
 }
+
 .result-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.16);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
   transform: scale(1.03);
   z-index: 2;
 }
+
 .favorite-btn {
   position: absolute;
   top: 12px;
@@ -120,19 +135,23 @@
   z-index: 2;
   padding: 0;
 }
+
 .favorite-btn svg {
   width: 24px;
   height: 24px;
   color: #666;
   transition: all 0.2s ease;
 }
+
 .favorite-btn:hover {
   background: #fff;
   transform: scale(1.1);
 }
+
 .favorite-btn.active svg {
   color: #ff4d4d;
 }
+
 .favorite-feedback {
   position: fixed;
   background: rgba(0, 0, 0, 0.8);
@@ -147,7 +166,8 @@
   white-space: nowrap;
   z-index: 9999;
 }
+
 .favorite-feedback.show {
   opacity: 1;
   transform: translateX(0);
-} 
+}

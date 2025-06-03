@@ -1,74 +1,79 @@
 import { renderFavorites } from './dashboard-favorites.js';
+import { renderTrips } from './dashboard-trips.js';
 import { renderReviews } from './dashboard-reviews.js';
 
-export function initDashboardTabs() {
-  const tabs = [
-    { id: 'trips', label: 'Minhas viagens' },
-    { id: 'favorites', label: 'Favoritos' },
-    { id: 'reviews', label: 'Avaliações' }
-  ];
-  const tabsContainer = document.getElementById('dashboard-tabs');
-  if (!tabsContainer) return;
-  tabsContainer.innerHTML = '';
-  tabs.forEach(tab => {
-    const btn = document.createElement('button');
-    btn.className = 'dashboard-tab';
-    const h2 = document.createElement('h2');
-    h2.textContent = tab.label;
-    h2.style.margin = '0';
-    h2.style.fontSize = 'inherit';
-    btn.appendChild(h2);
-    btn.dataset.tab = tab.id;
-    btn.addEventListener('click', () => selectTab(tab.id));
-    tabsContainer.appendChild(btn);
-  });
-  selectTab('trips');
+// Inicializa dados mockados no localStorage se não existirem
+function initMockData() {
+  if (!localStorage.getItem('userTrips')) {
+    localStorage.setItem('userTrips', JSON.stringify([
+      {
+        id: 1,
+        title: 'Viagem a Paris',
+        date: '2025-05-15/2025-05-25',
+        descricao: 'Uma viagem inesquecível pela capital francesa.',
+        isPast: false
+      },
+      {
+        id: 2,
+        title: 'Férias no Rio',
+        date: '2025-05-15/2025-05-25',
+        descricao: 'Aproveite as praias e o clima carioca.',
+        isPast: false
+      }
+    ]));
+  }
+
+  if (!localStorage.getItem('userReviews')) {
+    localStorage.setItem('userReviews', JSON.stringify([
+      {
+        id: 1,
+        place: 'Museu do Amanhã',
+        rating: 4,
+        comment: 'Museu incrível com exposições interativas!'
+      },
+      {
+        id: 2,
+        place: 'Cristo Redentor',
+        rating: 5,
+        comment: 'Vista deslumbrante da cidade!'
+      }
+    ]));
+  }
 }
 
-function selectTab(tabId) {
-  document.querySelectorAll('.dashboard-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tabId);
-  });
-  const trips = document.getElementById('dashboard-trips');
-  const actions = document.querySelector('.dashboard-actions');
-  let favorites = document.getElementById('dashboard-favorites');
-  if (!favorites) {
-    favorites = document.createElement('div');
-    favorites.id = 'dashboard-favorites';
-    favorites.style.display = 'none';
-    const dashboardContent = document.getElementById('dashboard-content');
-    dashboardContent.appendChild(favorites);
-  }
-  let reviews = document.getElementById('dashboard-reviews');
-  if (!reviews) {
-    reviews = document.createElement('div');
-    reviews.id = 'dashboard-reviews';
-    reviews.style.display = 'none';
-    const dashboardContent = document.getElementById('dashboard-content');
-    dashboardContent.appendChild(reviews);
+document.addEventListener('DOMContentLoaded', () => {
+  initMockData();
+
+  const tabs = document.querySelectorAll('.dashboard-tabs [data-tab]');
+  const contentIds = {
+    trips: 'dashboard-trips',
+    favorites: 'dashboard-favorites',
+    reviews: 'dashboard-reviews',
+  };
+
+  function showTab(tabName) {
+    Object.values(contentIds).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    const activeEl = document.getElementById(contentIds[tabName]);
+    if (activeEl) activeEl.style.display = 'block';
+
+    // Renderização dinâmica
+    if (tabName === 'favorites') renderFavorites();
+    if (tabName === 'trips') renderTrips();
+    if (tabName === 'reviews') renderReviews();
   }
 
-  if (tabId === 'trips') {
-    trips.style.display = '';
-    if (actions) actions.style.display = '';
-    favorites.style.display = 'none';
-    reviews.style.display = 'none';
-  } else if (tabId === 'favorites') {
-    trips.style.display = 'none';
-    if (actions) actions.style.display = 'none';
-    favorites.style.display = '';
-    reviews.style.display = 'none';
-    renderFavorites();
-  } else if (tabId === 'reviews') {
-    trips.style.display = 'none';
-    if (actions) actions.style.display = 'none';
-    favorites.style.display = 'none';
-    reviews.style.display = '';
-    renderReviews(1);
-  } else {
-    trips.style.display = 'none';
-    if (actions) actions.style.display = 'none';
-    favorites.style.display = 'none';
-    reviews.style.display = 'none';
-  }
-} 
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      showTab(tab.dataset.tab);
+    });
+  });
+
+  // Exibe a primeira aba por padrão
+  showTab('trips');
+  tabs[0].classList.add('active');
+}); 

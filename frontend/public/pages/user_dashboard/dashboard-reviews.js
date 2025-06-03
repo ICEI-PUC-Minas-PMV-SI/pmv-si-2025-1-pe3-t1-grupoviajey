@@ -1,80 +1,113 @@
 import { openReviewModal } from '../../components/modal/review_modal/ReviewModal.js';
 
-export async function renderReviews(page = 1) {
-  const reviewsContainer = document.getElementById('dashboard-reviews');
-  if (!reviewsContainer) return;
-  reviewsContainer.innerHTML = '';
-  const { reviews, total, perPage } = await fetchUserReviews(page);
+export function renderReviews() {
+  const el = document.getElementById('dashboard-reviews');
+  if (!el) return;
 
-  reviews.forEach((review, idx) => {
-    const card = document.createElement('div');
-    card.className = 'review-card';
-    card.style.background = '#fff';
-    card.style.borderRadius = '12px';
-    card.style.marginBottom = '20px';
-    card.style.padding = '20px';
-    card.style.display = 'flex';
-    card.style.gap = '24px';
-    card.style.alignItems = 'flex-start';
+  // Busca avaliações do localStorage
+  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
 
-    const avatar = document.createElement('div');
-    avatar.className = 'review-avatar';
-    avatar.style.width = '60px';
-    avatar.style.height = '60px';
-    avatar.style.borderRadius = '50%';
-    avatar.style.background = '#e0e0e0';
-    avatar.style.display = 'flex';
-    avatar.style.alignItems = 'center';
-    avatar.style.justifyContent = 'center';
-    avatar.style.fontSize = '2.2rem';
-    avatar.textContent = '';
+  el.innerHTML = `
+    <div class="reviews-list"></div>
+  `;
 
-    const info = document.createElement('div');
-    info.style.flex = '1';
+  const list = el.querySelector('.reviews-list');
+  if (!reviews.length) {
+    list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
+    return;
+  }
 
-    const title = document.createElement('div');
-    title.style.fontWeight = '600';
-    title.style.fontSize = '1.1rem';
-    title.style.marginBottom = '8px';
-    title.textContent = review.name;
+  reviews.forEach(review => {
+    const card = createReviewCard(review);
+    list.appendChild(card);
+  });
+}
 
-    const rating = document.createElement('div');
-    rating.style.fontSize = '1.1rem';
-    rating.style.marginBottom = '8px';
-    rating.innerHTML = `<span style="color:#f5b50a;font-size:1.2rem;">${'★'.repeat(Math.round(review.rating))}${'☆'.repeat(5 - Math.round(review.rating))}</span> <span style="color:#222;font-size:1rem;vertical-align:middle;">${review.rating.toFixed(1)}</span>`;
+function openReviewForm() {
+  const el = document.getElementById('dashboard-reviews');
+  el.innerHTML = `
+    <div class="review-form">
+      <h3>Nova avaliação (mock)</h3>
+      <form id="form-review">
+        <label>Nome do lugar:<input type="text" name="place" required></label><br>
+        <label>Nota:<input type="number" name="rating" min="1" max="5" required></label><br>
+        <label>Comentário:<textarea name="comment"></textarea></label><br>
+        <button type="submit" class="action-btn">Salvar</button>
+        <button type="button" id="cancel-review" class="action-btn">Cancelar</button>
+      </form>
+    </div>
+  `;
+  document.getElementById('cancel-review').onclick = renderReviews;
+  document.getElementById('form-review').onsubmit = function (e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(this));
+    addReview(data);
+    renderReviews();
+  };
+}
 
-    const comment = document.createElement('div');
-    comment.style.fontSize = '1rem';
-    comment.style.color = '#222';
-    comment.textContent = review.comment;
+function addReview(review) {
+  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  review.id = Date.now();
+  reviews.push(review);
+  localStorage.setItem('userReviews', JSON.stringify(reviews));
+}
 
-    info.appendChild(title);
-    info.appendChild(rating);
-    info.appendChild(comment);
+function createReviewCard(review) {
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.innerHTML = `
+    <div class="review-info">
+      <div class="review-place">${review.place}</div>
+      <div class="review-rating">${'★'.repeat(Number(review.rating))}${'☆'.repeat(5 - Number(review.rating))}</div>
+      <div class="review-comment">${review.comment || ''}</div>
+    </div>
+  `;
 
-    card.appendChild(avatar);
-    card.appendChild(info);
-    reviewsContainer.appendChild(card);
-
-    // Abrir modal ao clicar no card
-    card.addEventListener('click', () => {
-      openReviewModal({
-        local: { name: review.name, address: 'Endereço do local' },
-        userReview: { rating: review.rating, comment: review.comment },
-        otherReviews: [
-          { user: 'Maria', rating: 4.5, comment: 'Ótimo local!' },
-          { user: 'João', rating: 4, comment: 'Gostei bastante.' }
-        ],
-        onSave: async ({ rating, comment }) => {
-          // Aqui você faria a chamada ao backend para salvar
-          return new Promise(resolve => setTimeout(resolve, 800));
+  // Adiciona evento de clique para abrir o modal
+  card.addEventListener('click', () => {
+    openReviewModal({
+      local: {
+        name: review.place,
+        address: review.address || ''
+      },
+      userReview: {
+        rating: review.rating,
+        comment: review.comment
+      },
+      otherReviews: [
+        {
+          user: 'João Silva',
+          rating: 4.5,
+          comment: 'Lugar incrível! Vale muito a pena visitar.'
+        },
+        {
+          user: 'Maria Santos',
+          rating: 5,
+          comment: 'Experiência única, superou minhas expectativas!'
         }
-      });
+      ],
+      onSave: async (data) => {
+        // Atualiza a avaliação no localStorage
+        const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+        const index = reviews.findIndex(r => r.id === review.id);
+        if (index !== -1) {
+          reviews[index] = { ...reviews[index], ...data };
+          localStorage.setItem('userReviews', JSON.stringify(reviews));
+          renderReviews(); // Atualiza a lista
+        }
+      }
     });
   });
 
-  // Paginação
-  renderReviewsPagination(reviewsContainer, page, total, perPage);
+  return card;
+}
+
+function deleteReview(id) {
+  let reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  reviews = reviews.filter(review => review.id !== id);
+  localStorage.setItem('userReviews', JSON.stringify(reviews));
+  renderReviews();
 }
 
 async function fetchUserReviews(page = 1, perPage = 4) {

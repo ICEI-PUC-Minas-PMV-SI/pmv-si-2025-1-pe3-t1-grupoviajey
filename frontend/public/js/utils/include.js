@@ -24,56 +24,74 @@ export function includeHTML(id, file, callback) {
 }
 
 // Função para incluir a search bar
-export function includeSearchBar() {
+export function includeSearchBar(callback) {
   const searchBarContainer = document.getElementById('search-bar-include');
   if (searchBarContainer) {
-    fetch('../../components/search-bar/search-bar.html')
+    fetch('/components/search-bar/search-bar.html')
       .then(res => res.text())
       .then(html => {
         searchBarContainer.innerHTML = html;
         const script = document.createElement('script');
-        script.src = '../../components/search-bar/search-bar.js';
+        script.src = '/components/search-bar/search-bar.js';
+        script.type = 'module';
+        script.defer = true;
         document.body.appendChild(script);
+        if (typeof callback === 'function') callback();
       });
   }
 }
 
 // Funções para incluir header/footer/modal, se quiser padronizar
 export function includeHeader() {
-  includeHTML('header', '../../components/header/header.html', function() {
+  includeHTML('header', '/components/header/header.html', function () {
     const script = document.createElement('script');
-    script.src = '../../components/header/header.js';
+    script.src = '/components/header/header.js';
+    script.type = 'module';
+    script.defer = true;
     document.body.appendChild(script);
   });
 }
+
 export function includeFooter() {
-  includeHTML('footer', '../../components/footer/footer.html');
+  includeHTML('footer', '/components/footer/footer.html');
 }
+
 export function includePlaceDetailsModal() {
-  includeHTML('place-details-modal-include', '../../components/modal/place_details/PlaceDetailsModal.html', function() {
+  includeHTML('place-details-modal-include', '/components/modal/place_details/PlaceDetailsModal.html', function () {
     const script = document.createElement('script');
-    script.src = '../../components/modal/place_details/PlaceDetailsModal.js';
+    script.src = '/components/modal/place_details/PlaceDetailsModal.js';
+    script.type = 'module';
+    script.defer = true;
     document.body.appendChild(script);
   });
 }
+
 export function includeReviewsModal() {
-  includeHTML('reviews-modal-include', '../../components/modal/reviews/ReviewsModal.html', function() {
+  includeHTML('reviews-modal-include', '/components/modal/reviews/ReviewsModal.html', function () {
     const script = document.createElement('script');
-    script.src = '../../components/modal/reviews/ReviewsModal.js';
+    script.src = '/components/modal/reviews/ReviewsModal.js';
+    script.type = 'module';
+    script.defer = true;
     document.body.appendChild(script);
   });
 }
+
 export function includeAiModal() {
-  includeHTML('ai-modal-root', '../../components/modal/ai_modal/ai-modal.html', function() {
+  includeHTML('ai-modal-root', '/components/modal/ai_modal/ai-modal.html', function () {
     const script = document.createElement('script');
-    script.src = '../../components/modal/ai_modal/ai-modal.js';
+    script.src = '/components/modal/ai_modal/ai-modal.js';
+    script.type = 'module';
+    script.defer = true;
     document.body.appendChild(script);
   });
 }
+
 export function includeUserReviewModal() {
-  includeHTML('user-review-modal-include', '../../components/modal/user_review_modal/user-review.html', function() {
+  includeHTML('user-review-modal-include', '/components/modal/user_review_modal/user-review.html', function () {
     const script = document.createElement('script');
-    script.src = '../../components/modal/user_review_modal/user-review.js';
+    script.src = '/components/modal/user_review_modal/user-review.js';
+    script.type = 'module';
+    script.defer = true;
     document.body.appendChild(script);
   });
 }
