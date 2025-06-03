@@ -1,4 +1,5 @@
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
+import { loadGoogleMapsScript } from '../../js/core/map/loader.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   includeHeader();
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Garante que o botão do banner abre o modal
           const openBtn = document.getElementById('open-ai-modal');
           if (openBtn) {
-            openBtn.addEventListener('click', function() {
+            openBtn.addEventListener('click', function () {
               if (window.openAiModal) {
                 window.openAiModal();
               }
@@ -56,17 +57,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Carrega a API key do backend antes de carregar o script do Google Maps
-  async function loadGoogleMapsScript() {
-    try {
-      const response = await fetch('/api/config');
-      const data = await response.json();
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&libraries=places`;
-      document.head.appendChild(script);
-    } catch (error) {
-      console.error('Erro ao carregar API key:', error);
-    }
-  }
   loadGoogleMapsScript();
 });

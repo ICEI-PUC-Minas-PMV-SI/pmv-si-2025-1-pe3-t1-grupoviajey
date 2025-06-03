@@ -106,3 +106,6 @@ if (typeof window !== 'undefined') {
   window.includeAiModal = includeAiModal;
   window.includeUserReviewModal = includeUserReviewModal;
 }
+
+import { loadGoogleMapsScript } from '../core/map/loader.js';
+export { loadGoogleMapsScript };

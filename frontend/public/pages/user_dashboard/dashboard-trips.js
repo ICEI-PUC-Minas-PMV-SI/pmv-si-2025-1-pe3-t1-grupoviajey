@@ -1,6 +1,7 @@
-// import { renderNotesInput, saveTripNote } from './dashboard-notes.js';
+import { initCreateTripModal, openCreateTripModal } from '../../components/modal/create_trip/CreateTripModal.js';
 
 export async function initDashboardTrips() {
+  await initCreateTripModal();
   await renderTrips();
 }
 
@@ -46,6 +47,9 @@ export function renderTrips() {
     <div class="trips-list"></div>
   `;
 
+  // Adicionar evento ao botão de criar viagem
+  document.getElementById('btn-create-trip').onclick = openCreateTripModal;
+
   const list = el.querySelector('.trips-list');
   if (!trips.length) {
     list.innerHTML = '<p>Nenhuma viagem criada ainda.</p>';
@@ -58,47 +62,37 @@ export function renderTrips() {
   });
 }
 
-function openTripForm() {
-  const el = document.getElementById('dashboard-trips');
-  el.innerHTML = `
-    <div class="trip-form">
-      <h3>Criar nova viagem</h3>
-      <form id="form-trip">
-        <label>Título:<input type="text" name="title" required></label><br>
-        <label>Data (início/fim):<input type="text" name="date" placeholder="2025-05-15/2025-05-25" required></label><br>
-        <label>Descrição:<textarea name="descricao"></textarea></label><br>
-        <button type="submit" class="action-btn">Salvar</button>
-        <button type="button" id="cancel-trip" class="action-btn">Cancelar</button>
-      </form>
-    </div>
-  `;
-  document.getElementById('cancel-trip').onclick = renderTrips;
-  document.getElementById('form-trip').onsubmit = function (e) {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(this));
-    addTrip(data);
-    renderTrips();
-  };
-}
-
-function addTrip(trip) {
-  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-  trip.id = Date.now();
-  trips.push(trip);
-  localStorage.setItem('userTrips', JSON.stringify(trips));
-}
-
 function createTripCard(trip) {
   const card = document.createElement('div');
   card.className = 'trip-card';
+  // Extrai cidade, estado, país do destino (esperando string "cidade, estado, país")
+  let city = '', state = '', country = '';
+  if (trip.destination) {
+    const parts = trip.destination.split(',').map(s => s.trim());
+    [city, state, country] = parts;
+  }
+
+  // Cria o conteúdo da imagem baseado na foto disponível
+  const imageContent = trip.photo
+    ? `<img src="${trip.photo}" alt="${trip.title}" class="trip-photo">`
+    : `<span>📷</span>`;
+
   card.innerHTML = `
-    <div class="trip-img-placeholder"><span>📷</span></div>
+    <div class="trip-img-placeholder">${imageContent}</div>
     <div class="trip-info">
       <div class="trip-title">${trip.title}</div>
-      <div class="trip-date"><span>📅</span> ${formatTripDate(trip.date)}</div>
-      <div class="trip-desc">${trip.descricao || ''}</div>
+      <div class="trip-destination-row">
+        <span class="dashboard-pin-icon"><img src="../../../assets/images/pin.svg" alt="Local" /></span>
+        <span class="trip-destination">${city || 'Destino não definido'}${state ? ', ' + state : ''}${country ? ', ' + country : ''}</span>
+      </div>
+      <div class="trip-dates-row">
+        <span class="dashboard-date-icon"><img src="../../../assets/images/calendar.svg" alt="Calendário" /></span>
+        <span class="trip-date">${formatTripPeriod(trip)}</span>
+      </div>
+      <div class="trip-desc">${trip.description || ''}</div>
     </div>
   `;
+
   // Evento de clique para abrir o roadmap
   card.addEventListener('click', () => {
     localStorage.setItem('selectedTripId', trip.id);
@@ -108,13 +102,22 @@ function createTripCard(trip) {
   return card;
 }
 
-function formatTripDate(dateStr) {
-  if (!dateStr || !dateStr.includes('/')) return dateStr || '';
-  const [start, end] = dateStr.split('/');
-  const [sy, sm, sd] = start.split('-');
-  const [ey, em, ed] = end.split('-');
-  const meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  return `Dias ${parseInt(sd)} - ${parseInt(ed)} de ${meses[parseInt(em)]} de ${ey}`;
+function formatTripPeriod(trip) {
+  if (trip.startDate && trip.endDate) {
+    return formatDate(trip.startDate) + ' a ' + formatDate(trip.endDate);
+  } else if (trip.startDate) {
+    return formatDate(trip.startDate);
+  } else if (trip.endDate) {
+    return formatDate(trip.endDate);
+  } else {
+    return 'Data não definida';
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
 }
 
 function deleteTrip(id) {

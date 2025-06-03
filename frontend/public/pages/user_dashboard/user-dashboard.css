@@ -112,10 +112,11 @@
   background: var(--background-color);
   border: 1.5px solid #e0e0e0;
   border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  align-items: flex-start;
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
+  overflow: hidden;
+  min-height: 180px;
+  align-items: stretch;
 }
 
 .trip-card:hover {
@@ -126,19 +127,42 @@
 }
 
 .trip-img-placeholder {
-  width: 110px;
-  height: 90px;
+  width: 350px;
+  min-width: 350px;
+  height: auto;
   background: var(--secondary-color);
   border-radius: var(--border-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #bbb;
-  font-size: 2.2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.trip-img-placeholder img.trip-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.trip-img-placeholder span {
+  font-size: 2rem;
+  opacity: 0.5;
+  z-index: 1;
 }
 
 .trip-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--spacing-xs);
 }
 
 .trip-title {
@@ -147,13 +171,32 @@
   margin-bottom: 0.3rem;
 }
 
+.trip-dates-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.trip-dates-row .dashboard-date-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+}
+
 .trip-date {
   font-size: 0.98rem;
   color: #444;
-  margin-bottom: 0.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+}
+
+.trip-desc {
+  margin-top: 0.2rem;
+  color: #444;
+  font-size: 0.98rem;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .trip-rating {
@@ -226,9 +269,21 @@
     align-items: stretch;
   }
 
+  .trip-img-placeholder {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+  }
+
   .dashboard-actions {
     flex-direction: column;
     gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 700px) {
+  .trip-img-placeholder {
+    height: 180px;
   }
 }
 
@@ -323,4 +378,32 @@
 
 #dashboard-favorites .trash-btn:hover svg {
   color: #b71c1c;
+}
+
+.trip-destination-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.dashboard-pin-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5px;
+}
+
+.dashboard-pin-icon img {
+  width: 25px;
+  height: 25px;
+  bor: 1px solid red;
+  display: block;
+}
+
+.trip-destination {
+  font-size: 1rem;
+  color: #444;
 }
