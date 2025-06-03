@@ -1755,6 +1755,18 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+
+  // Photo requirements popup
+  const photoRequirementsPopup = document.getElementById('edit-photo-requirements-popup');
+  const photoRequirementsOverlay = document.getElementById('edit-photo-requirements-overlay');
+  const closePopupBtn = document.querySelector('.close-popup');
+
+  if (closePopupBtn) {
+    closePopupBtn.addEventListener('click', function () {
+      photoRequirementsPopup.style.display = 'none';
+      photoRequirementsOverlay.style.display = 'none';
+    });
+  }
 });
 
 // Compartilhamento: abrir modal ao clicar no botão do banner

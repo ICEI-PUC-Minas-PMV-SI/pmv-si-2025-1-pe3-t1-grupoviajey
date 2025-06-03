@@ -1,4 +1,6 @@
-/* Layout principal */
+/* ==========================================================================
+   Base Styles & Layout
+   ========================================================================== */
 .body {
   font-family: Poppins, Inter, arial;
 }
@@ -9,6 +11,9 @@
   padding: 0 16px;
 }
 
+/* ==========================================================================
+   Hero Section & Cover Image
+   ========================================================================== */
 .roadmap-hero {
   position: relative;
   margin-bottom: 32px;
@@ -40,6 +45,33 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+.cover-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 12px;
+  z-index: 2;
+}
+
+.cover-action-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 50%;
+  padding: 7px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.cover-action-btn:hover {
+  background: #e0f3f1;
+  box-shadow: 0 2px 8px rgba(10, 124, 106, 0.10);
+}
+
 .trip-destination-banner-row {
   display: flex;
   align-items: center;
@@ -62,6 +94,9 @@
   margin: 0;
 }
 
+/* ==========================================================================
+   Main Content Layout
+   ========================================================================== */
 .roadmap-content {
   display: grid;
   grid-template-columns: 1fr 420px;
@@ -75,6 +110,9 @@
   padding: 24px 20px;
 }
 
+/* ==========================================================================
+   Tabs & Navigation
+   ========================================================================== */
 .tabs {
   display: flex;
   gap: 8px;
@@ -98,6 +136,9 @@
   color: #0a7c6a;
 }
 
+/* ==========================================================================
+   Itinerary Details & Day Sections
+   ========================================================================== */
 .itinerary-details {
   display: flex;
   flex-direction: column;
@@ -167,6 +208,9 @@
   transition: background 0.2s, border 0.2s;
 }
 
+/* ==========================================================================
+   Place Cards & Timeline
+   ========================================================================== */
 .place-card {
   display: flex;
   flex-direction: column;
@@ -286,6 +330,9 @@
   color: #fff;
 }
 
+/* ==========================================================================
+   Map Section
+   ========================================================================== */
 .roadmap-map {
   position: sticky;
   top: 24px;
@@ -321,6 +368,9 @@
   border-radius: 12px !important;
 }
 
+/* ==========================================================================
+   Budget Section
+   ========================================================================== */
 .tabs-budget-row {
   display: flex;
   align-items: flex-start;
@@ -431,6 +481,9 @@
   text-align: right;
 }
 
+/* ==========================================================================
+   Checklist Section
+   ========================================================================== */
 .checklist-details {
   background: #fff;
   border-radius: 12px;
@@ -552,6 +605,9 @@
   background: #0e9c85;
 }
 
+/* ==========================================================================
+   Timeline & Notes
+   ========================================================================== */
 .day-timeline {
   display: flex;
   flex-direction: column;
@@ -674,32 +730,6 @@
   color: #065c4e;
 }
 
-.remove-place-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: none;
-  border: none;
-  color: #e05a47;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 2px 8px;
-  border-radius: 4px;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.remove-place-btn svg {
-  display: block;
-}
-
-.remove-place-btn:hover {
-  background: #ffeaea;
-}
-
 .timeline-info {
   display: flex;
   flex-direction: column;
@@ -811,194 +841,9 @@
   color: #e05a47;
 }
 
-.add-place-btn.outlined {
-  background: #fff;
-  color: #0a7c6a;
-  border: 1.5px solid #0a7c6a;
-  border-radius: 8px;
-  padding: 10px 22px;
-  font-size: 1.08rem;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  transition: background 0.2s, color 0.2s;
-  margin-top: 10px;
-  margin-left: 90px;
-}
-
-.add-place-btn.outlined:hover {
-  background: #065c4e;
-  color: #fff;
-}
-
-.note-inline-form,
-.expense-inline-form {
-  background: #f8fafc;
-  border: 1.5px solid #e0e7ef;
-  border-radius: 10px;
-  margin: 0 0 18px 90px;
-  padding: 14px 16px 10px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  max-width: 600px;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.note-input {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1.2px solid #b0b8c1;
-  border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 1rem;
-  resize: vertical;
-  min-height: 38px;
-}
-
-.note-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.save-note-btn,
-.save-expense-btn {
-  background: #0a7c6a;
-  border: 1.5px solid #0a7c6a;
-  color: #fff;
-  border-radius: 6px;
-  padding: 5px 16px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.save-note-btn:hover,
-.save-expense-btn:hover {
-  background: #065c4e;
-  border-color: #065c4e;
-  color: #fff;
-}
-
-.cancel-expense-btn,
-.cancel-note-btn {
-  background: none;
-  border: 1.5px solid #0a7c6a;
-  color: #0a7c6a;
-  border-radius: 6px;
-  padding: 5px 16px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.cancel-expense-btn:hover,
-.cancel-note-btn:hover {
-  background: #0a7c6a;
-  color: #fff;
-}
-
-.expense-input-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.expense-input {
-  flex: 2 1 0;
-  margin-bottom: 0;
-  border: 1.2px solid #b0b8c1;
-  border-radius: 6px;
-  padding: 7px 10px;
-  font-size: 1rem;
-  min-width: 0;
-}
-
-.expense-currency-select {
-  flex: 1 1 0;
-  padding: 7px 10px;
-  border: 1.5px solid #b0b8c1;
-  border-radius: 5px;
-  font-size: 1rem;
-  background: #f8fafc;
-  color: #1a3c4e;
-  outline: none;
-  transition: border 0.2s;
-  height: 38px;
-}
-
-.expense-currency-select:focus {
-  border-color: #0a7c6a;
-}
-
-.cover-actions {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  display: flex;
-  gap: 12px;
-  z-index: 2;
-}
-
-.cover-action-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: none;
-  border-radius: 50%;
-  padding: 7px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-
-.cover-action-btn:hover {
-  background: #e0f3f1;
-  box-shadow: 0 2px 8px rgba(10, 124, 106, 0.10);
-}
-
-@media (max-width: 900px) {
-  .roadmap-content {
-    grid-template-columns: 1fr;
-  }
-
-  .roadmap-map {
-    margin-top: 32px;
-    min-height: 320px;
-  }
-
-  .day-timeline {
-    margin-left: 0;
-  }
-
-  .timeline-info,
-  .add-place-btn.outlined {
-    margin-left: 0;
-  }
-
-  .local-card {
-    padding-left: 20px;
-  }
-
-  .timeline-note,
-  .timeline-expense {
-    margin-left: 0;
-    max-width: 100%;
-    width: 100%;
-  }
-}
-
+/* ==========================================================================
+   Financial Summary
+   ========================================================================== */
 #financeSummaryRow {
   display: flex;
   flex-direction: column;
@@ -1057,17 +902,9 @@
   font-weight: 600;
 }
 
-@media (max-width: 700px) {
-  .finance-summary-row {
-    padding: 14px 8px;
-    max-width: 100%;
-  }
-
-  .finance-summary-item {
-    font-size: 1rem;
-  }
-}
-
+/* ==========================================================================
+   Modals
+   ========================================================================== */
 .modal-add-place {
   display: none;
   /* será alterado para flex via JS */
@@ -1267,13 +1104,6 @@
   background: #e0f3f1;
 }
 
-@media (max-width: 600px) {
-  .modal-edit-trip .modal-content {
-    max-width: 98vw;
-    padding: 18px 6vw 18px 6vw;
-  }
-}
-
 .modal-date-btn {
   width: 100%;
   padding: 7px 10px;
@@ -1298,6 +1128,9 @@
   z-index: 11001 !important;
 }
 
+/* ==========================================================================
+   Info Windows & Map Controls
+   ========================================================================== */
 .info-window-add-btn {
   font-size: 0.98rem;
   padding: 7px 16px;
@@ -1347,28 +1180,23 @@
   color: #065c4e;
 }
 
-.checklist-item.checked label {
-  text-decoration: line-through;
-  color: #888;
+/* ==========================================================================
+   Photo Upload & Requirements
+   ========================================================================== */
+.photo-upload-actions-row {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 10px;
+  justify-content: center;
 }
 
-.edit-title-input {
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: 1.2px solid #b0b8c1;
-  border-radius: 6px;
-  background: #fff;
-  color: #1a3c4e;
-  padding: 6px 10px;
-  margin-right: 8px;
-  outline: none;
-  box-shadow: none;
-}
-
-.edit-title-input:focus {
-  border-color: #0a7c6a;
-  outline: none;
-  box-shadow: none;
+#edit-trip-description,
+#editTripForm textarea {
+  min-height: 150px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #edit-photo-requirements-overlay {
@@ -1396,24 +1224,129 @@
   max-width: 90vw;
   text-align: center;
   pointer-events: auto;
+  display: none;
 }
 
 #edit-photo-requirements-popup.active {
   display: block;
 }
 
-.photo-upload-actions-row {
-  display: flex;
-  gap: 16px;
-  align-items: stretch;
-  margin-bottom: 10px;
-  justify-content: center;
+.popup-title {
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-#edit-trip-description,
-#editTripForm textarea {
-  min-height: 150px;
-  resize: vertical;
-  width: 100%;
-  box-sizing: border-box;
+.photo-requirements-popup ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.close-popup {
+  margin-top: 12px;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-popup:hover {
+  background: #e5e5e5;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+@media (max-width: 900px) {
+  .roadmap-content {
+    grid-template-columns: 1fr;
+  }
+
+  .roadmap-map {
+    margin-top: 32px;
+    min-height: 320px;
+  }
+
+  .day-timeline {
+    margin-left: 0;
+  }
+
+  .timeline-info,
+  .add-place-btn.outlined {
+    margin-left: 0;
+  }
+
+  .local-card {
+    padding-left: 20px;
+  }
+
+  .timeline-note,
+  .timeline-expense {
+    margin-left: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .finance-summary-row {
+    padding: 14px 8px;
+    max-width: 100%;
+  }
+
+  .finance-summary-item {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-edit-trip .modal-content {
+    max-width: 98vw;
+    padding: 18px 6vw 18px 6vw;
+  }
+}
+
+.delete-trip-btn {
+  background: #ffeaea;
+  color: #e05a47;
+  border: 1.5px solid #e05a47;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 7px;
+  min-width: 0;
+  font-size: 0.98rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+.privacy-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.privacy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.privacy-option input[type="radio"] {
+  margin-top: 2px;
+}
+
+.privacy-option-text {
+  font-weight: normal;
+  color: #666;
+}
+
+.modal-content-scrollable {
+  max-height: 80vh;
+  overflow-y: auto;
 }

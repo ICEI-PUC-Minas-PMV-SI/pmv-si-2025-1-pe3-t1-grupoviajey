@@ -106,10 +106,9 @@
         <div id="tab-checklist" style="display:none;">
           <div class="checklists-container" id="checklistsContainer">
             <div class="checklist-details checklist-block">
-              <div class="checklist-title-row" style="display:flex;align-items:center;gap:8px;">
+              <div class="checklist-title-row">
                 <h3 class="checklist-title">Check-list de Viagem</h3>
-                <button class="edit-checklist-title-btn" title="Editar título"
-                  style="background:none;border:none;cursor:pointer;vertical-align:middle;padding:0;">
+                <button class="edit-checklist-title-btn" title="Editar título">
                   <svg width="18" height="18" viewBox="0 0 20 20">
                     <path
                       d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z"
@@ -233,7 +232,7 @@
 
   <!-- Modal de edição de viagem -->
   <div id="editTripModal" class="modal-edit-trip" style="display:none;">
-    <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
+    <div class="modal-content modal-content-scrollable">
       <button class="modal-close-btn" id="closeEditTripModal" title="Fechar">×</button>
       <h2 class="modal-title">Editar detalhes da viagem</h2>
       <form id="editTripForm">
@@ -250,7 +249,7 @@
         </div>
         <div class="form-group">
           <label for="edit-trip-photo">Foto da viagem (opcional)</label>
-          <div class="photo-upload-container">
+          <div class="photo-upload-ontainer">
             <input type="file" id="edit-trip-photo" name="photo" accept="image/*" class="photo-input">
             <div class="photo-upload-actions-row">
               <button type="button" id="edit-search-destination-photo" class="btn-secondary">
@@ -267,6 +266,7 @@
           <div id="edit-photo-credits" class="photo-credits"></div>
           <input type="hidden" id="edit-photo-url-hidden" name="photo_url" />
         </div>
+        <div id="edit-photo-requirements-overlay" style="display:none"></div>
         <div id="edit-photo-requirements-popup" style="display:none">
           <div class="popup-title">Recomendações para a imagem</div>
           <ul>
@@ -276,21 +276,19 @@
           </ul>
           <button class="close-popup" type="button">OK</button>
         </div>
-        <label style="margin-top:12px;">Privacidade da viagem</label>
-        <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px;">
-          <label style="display:flex; align-items:flex-start; gap:8px;">
-            <input type="radio" name="tripPrivacy" value="publica" style="margin-top:2px;" />
-            <span><b>Pública</b><br><span style="font-weight:normal; color:#666;">Visível para toda a comunidade Viajey.
-                Por privacidade, só mostramos o mês e ano da viagem após as datas passarem.</span></span>
+        <div class="privacy-options">
+          <label class="privacy-option">
+            <input type="radio" name="tripPrivacy" value="publica" />
+            <span><b>Pública</b><br><span class="privacy-option-text">Visível para toda a comunidade Viajey. Por
+                privacidade, só mostramos o mês e ano da viagem após as datas passarem.</span></span>
           </label>
-          <label style="display:flex; align-items:flex-start; gap:8px;">
-            <input type="radio" name="tripPrivacy" value="restrita" checked style="margin-top:2px;" />
-            <span><b>Restrita</b><br><span style="font-weight:normal; color:#666;">Visível apenas para quem receber o
-                link de compartilhamento ou for convidado a colaborar.</span></span>
+          <label class="privacy-option">
+            <input type="radio" name="tripPrivacy" value="restrita" checked />
+            <span><b>Restrita</b><br><span class="privacy-option-text">Visível apenas para quem receber o link de
+                compartilhamento ou for convidado a colaborar.</span></span>
           </label>
         </div>
-        <button type="button" id="deleteTripBtn"
-          style="background:#ffeaea; color:#e05a47; border:1.5px solid #e05a47; display:flex; align-items:center; gap:6px; font-weight:600; padding:6px 14px; border-radius:7px; min-width:0; font-size:0.98rem; cursor:pointer; transition:background 0.2s, border 0.2s; margin-top:24px; margin-bottom:0;">
+        <button type="button" id="deleteTripBtn" class="delete-trip-btn">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47"
               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -311,43 +309,36 @@
 
   <!-- Modal de Compartilhamento -->
   <div id="shareModal" class="modal-add-place" style="display:none;">
-    <div class="modal-content" style="max-width:380px;align-items:center;position:relative;">
-      <button id="closeShareModal" class="modal-close-btn" title="Fechar"
-        style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;color:#0a7c6a;cursor:pointer;z-index:2;">&times;</button>
-      <h2 class="modal-title" style="margin-bottom:18px;">Compartilhar viagem</h2>
-      <div style="display:flex;gap:8px;width:100%;align-items:center;">
-        <input id="shareLinkInput" type="text" readonly
-          style="flex:1;margin-bottom:0;padding:8px 10px;font-size:1.05rem;border-radius:6px;border:1.2px solid #b0b8c1;" />
-        <button id="copyShareLinkBtn" class="modal-confirm-btn" style="padding:8px 16px;min-width:110px;">Copiar
-          link</button>
+    <div class="modal-content">
+      <button id="closeShareModal" class="modal-close-btn" title="Fechar">&times;</button>
+      <h2 class="modal-title">Compartilhar viagem</h2>
+      <div class="share-link-container">
+        <input id="shareLinkInput" type="text" readonly class="share-link-input" />
+        <button id="copyShareLinkBtn" class="modal-confirm-btn copy-link-btn">Copiar link</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de Colaboração -->
   <div id="collabModal" class="modal-add-place" style="display:none;">
-    <div class="modal-content" style="max-width:380px;align-items:center;position:relative;">
-      <button id="closeCollabModal" class="modal-close-btn" title="Fechar"
-        style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;color:#0a7c6a;cursor:pointer;z-index:2;">&times;</button>
-      <h2 class="modal-title" style="margin-bottom:18px;">Colaboração da viagem</h2>
-      <div style="width:100%;">
-        <label style="font-weight:600;display:block;margin-bottom:8px;">Convidar colaboradores</label>
-        <p style="font-size:0.98rem;margin-bottom:10px;">Copie e envie o link abaixo para convidar colaboradores.
-          Qualquer pessoa com este link poderá editar e adicionar à sua viagem.</p>
-        <div style="display:flex;gap:8px;width:100%;align-items:center;">
-          <input id="collabLinkInput" type="text" readonly
-            style="flex:1;margin-bottom:0;padding:8px 10px;font-size:1.05rem;border-radius:6px;border:1.2px solid #b0b8c1;" />
-          <button id="copyCollabLinkBtn" class="modal-confirm-btn"
-            style="padding:8px 16px;min-width:110px;">Copiar</button>
+    <div class="modal-content">
+      <button id="closeCollabModal" class="modal-close-btn" title="Fechar">&times;</button>
+      <h2 class="modal-title">Colaboração da viagem</h2>
+      <div class="collab-section">
+        <label class="collab-label">Convidar colaboradores</label>
+        <p class="collab-description">Copie e envie o link abaixo para convidar colaboradores. Qualquer pessoa com este
+          link poderá editar e adicionar à sua viagem.</p>
+        <div class="share-link-container">
+          <input id="collabLinkInput" type="text" readonly class="share-link-input" />
+          <button id="copyCollabLinkBtn" class="modal-confirm-btn copy-link-btn">Copiar</button>
         </div>
       </div>
-      <div style="width:100%;margin-top:24px;">
-        <label style="font-weight:600;display:block;margin-bottom:8px;">Colaboradores</label>
-        <div id="collabList" style="display:flex;align-items:center;gap:10px;">
-          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Amanda M"
-            style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-          <span style="font-weight:600;">Amanda M</span>
-          <span style="color:#888;font-size:0.98rem;">(Dono)</span>
+      <div class="collab-section">
+        <label class="collab-label">Colaboradores</label>
+        <div id="collabList" class="collab-list">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Amanda M" class="collab-avatar">
+          <span class="collab-name">Amanda M</span>
+          <span class="collab-role">(Dono)</span>
         </div>
       </div>
     </div>
