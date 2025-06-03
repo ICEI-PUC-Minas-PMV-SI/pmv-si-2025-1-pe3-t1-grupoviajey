@@ -17,7 +17,7 @@
 .create-trip-modal {
     background: #fff;
     border-radius: 16px;
-    max-width: 600px;
+    max-width: 700px;
     width: 95vw;
     box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
     padding: 32px 28px 24px 28px;
@@ -188,13 +188,16 @@
 }
 
 .btn-secondary {
-    background: #f5f5f5;
+    background: #fafbfc;
     color: #333;
-    border: 1.5px solid #E0E0E0;
+    border: 2px solid #E0E0E0;
 }
 
-.btn-secondary:hover {
-    background: #e8e8e8;
+.btn-secondary:hover,
+.photo-upload-label:hover {
+    border-color: var(--primary-color, #004954);
+    background-color: rgba(0, 73, 84, 0.02);
+    color: #333;
 }
 
 .destination-input-container {
@@ -248,16 +251,39 @@
     border: 0;
 }
 
-.photo-upload-label {
-    display: block;
-    width: 100%;
-    min-height: 120px;
-    border: 2px dashed #E0E0E0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
+.photo-upload-actions-row {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 10px;
+    justify-content: center;
 }
 
+.btn-secondary,
+.photo-upload-label {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #E0E0E0;
+    background: #fafbfc;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 !important;
+    box-sizing: border-box;
+}
+
+.btn-secondary {
+    border: 2px solid #E0E0E0;
+    background: #fafbfc;
+    color: #333;
+}
+
+.btn-secondary:hover,
 .photo-upload-label:hover {
     border-color: var(--primary-color, #004954);
     background-color: rgba(0, 73, 84, 0.02);
@@ -318,7 +344,7 @@
 
 .photo-preview {
     margin-top: 12px;
-    display: none;
+    display: block;
     position: relative;
 }
 
@@ -332,6 +358,7 @@
 
 .photo-preview.active {
     display: block;
+    max-height: none;
 }
 
 .photo-actions {
@@ -369,4 +396,110 @@
 
 .photo-credits a:hover {
     text-decoration: underline;
+}
+
+/* Galeria de imagens do Unsplash */
+.unsplash-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.unsplash-thumb {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: border 0.2s, transform 0.2s;
+    cursor: pointer;
+    background: #f5f5f5;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.unsplash-thumb:hover,
+.unsplash-thumb[data-selected="true"] {
+    border: 2px solid var(--primary-color, #004954);
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+@media (max-width: 500px) {
+    .unsplash-thumb {
+        width: 60px;
+        height: 45px;
+    }
+
+    .unsplash-gallery {
+        gap: 6px;
+    }
+}
+
+/* Popup de recomendações */
+#photo-requirements-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+    padding: 28px 32px;
+    z-index: 20000;
+    min-width: 280px;
+    max-width: 90vw;
+    text-align: center;
+}
+
+#photo-requirements-popup.active {
+    display: block;
+}
+
+#photo-requirements-popup .popup-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color, #004954);
+    margin-bottom: 12px;
+}
+
+#photo-requirements-popup ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+    display: inline-block;
+}
+
+#photo-requirements-popup li {
+    margin: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#photo-requirements-popup li::before {
+    content: "•";
+    color: var(--primary-color, #004954);
+    font-weight: bold;
+}
+
+#photo-requirements-popup .close-popup {
+    margin-top: 18px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    background: var(--primary-color, #004954);
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+#photo-requirements-popup .close-popup:hover {
+    background: var(--primary-color-dark, #003a43);
+    color: #fff;
 }

@@ -36,6 +36,30 @@ function initMockData() {
         place: 'Cristo Redentor',
         rating: 5,
         comment: 'Vista deslumbrante da cidade!'
+      },
+      {
+        id: 3,
+        place: 'Pão de Açúcar',
+        rating: 5,
+        comment: 'Visual maravilhoso do Rio!'
+      },
+      {
+        id: 4,
+        place: 'Jardim Botânico',
+        rating: 4,
+        comment: 'Natureza exuberante e muito bem cuidado.'
+      },
+      {
+        id: 5,
+        place: 'Praia de Copacabana',
+        rating: 4,
+        comment: 'Ótima praia para passear e relaxar.'
+      },
+      {
+        id: 6,
+        place: 'Maracanã',
+        rating: 5,
+        comment: 'Estádio histórico, vale a visita!'
       }
     ]));
   }

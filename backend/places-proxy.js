@@ -64,7 +64,7 @@ app.get('/api/unsplash/search', async (req, res) => {
     return res.status(400).json({ error: 'Destino obrigatório' });
   }
   try {
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(destination)}&orientation=landscape&per_page=1`;
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(destination)}&orientation=landscape&per_page=10`;
     const response = await fetch(url, {
       headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` }
     });

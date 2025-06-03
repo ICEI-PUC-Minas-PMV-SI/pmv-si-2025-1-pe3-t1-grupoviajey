@@ -1,4 +1,5 @@
 import { initCreateTripModal, openCreateTripModal } from '../../components/modal/create_trip/CreateTripModal.js';
+import { formatShortDateRange } from '../../js/utils/date.js';
 
 export async function initDashboardTrips() {
   await initCreateTripModal();
@@ -104,20 +105,14 @@ function createTripCard(trip) {
 
 function formatTripPeriod(trip) {
   if (trip.startDate && trip.endDate) {
-    return formatDate(trip.startDate) + ' a ' + formatDate(trip.endDate);
+    return formatShortDateRange(trip.startDate, trip.endDate);
   } else if (trip.startDate) {
-    return formatDate(trip.startDate);
+    return formatShortDateRange(trip.startDate, trip.startDate);
   } else if (trip.endDate) {
-    return formatDate(trip.endDate);
+    return formatShortDateRange(trip.endDate, trip.endDate);
   } else {
     return 'Data não definida';
   }
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-');
-  return `${day}/${month}/${year}`;
 }
 
 function deleteTrip(id) {

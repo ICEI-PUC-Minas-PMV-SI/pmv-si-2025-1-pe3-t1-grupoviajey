@@ -1,26 +1,46 @@
 import { openReviewModal } from '../../components/modal/review_modal/ReviewModal.js';
 
-export function renderReviews() {
+const ITEMS_PER_PAGE = 5;
+
+export async function renderReviews(page = 1) {
   const el = document.getElementById('dashboard-reviews');
   if (!el) return;
 
   // Busca avaliações do localStorage
   const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  const totalReviews = reviews.length;
+  const totalPages = Math.ceil(totalReviews / ITEMS_PER_PAGE);
+  const start = (page - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const pageReviews = reviews.slice(start, end);
 
+  // Limpa o container e cria a estrutura
   el.innerHTML = `
-    <div class="reviews-list"></div>
+    <div class="reviews-container">
+      <div class="reviews-list"></div>
+      <div class="reviews-pagination"></div>
+    </div>
   `;
 
   const list = el.querySelector('.reviews-list');
+  const paginationContainer = el.querySelector('.reviews-pagination');
+
   if (!reviews.length) {
     list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
     return;
   }
 
-  reviews.forEach(review => {
+  // Renderiza apenas as reviews da página atual
+  list.innerHTML = ''; // Limpa a lista antes de adicionar os novos cards
+  pageReviews.forEach(review => {
     const card = createReviewCard(review);
     list.appendChild(card);
   });
+
+  // Renderiza a paginação
+  if (totalPages > 1) {
+    renderReviewsPagination(paginationContainer, page, totalReviews, ITEMS_PER_PAGE);
+  }
 }
 
 function openReviewForm() {
@@ -135,45 +155,34 @@ async function fetchUserReviews(page = 1, perPage = 4) {
 function renderReviewsPagination(container, page, total, perPage) {
   const totalPages = Math.ceil(total / perPage);
   if (totalPages <= 1) return;
-  const nav = document.createElement('nav');
-  nav.className = 'reviews-pagination';
-  nav.style.display = 'flex';
-  nav.style.justifyContent = 'center';
-  nav.style.gap = '8px';
-  nav.style.margin = '24px 0 0 0';
+
+  container.innerHTML = ''; // Limpa a paginação existente
 
   function createPageBtn(p, label = null) {
     const btn = document.createElement('button');
     btn.textContent = label || p;
     btn.disabled = p === page;
-    btn.style.minWidth = '36px';
-    btn.style.height = '36px';
-    btn.style.borderRadius = '50%';
-    btn.style.border = '1px solid #ccc';
-    btn.style.background = p === page ? '#222' : '#fff';
-    btn.style.color = p === page ? '#fff' : '#222';
-    btn.style.fontWeight = '600';
-    btn.style.cursor = p === page ? 'default' : 'pointer';
     btn.addEventListener('click', () => renderReviews(p));
     return btn;
   }
 
   // Prev
-  nav.appendChild(createPageBtn(Math.max(1, page - 1), '‹'));
+  if (page > 1) {
+    container.appendChild(createPageBtn(Math.max(1, page - 1), '‹'));
+  }
 
   for (let p = 1; p <= totalPages; p++) {
     if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) {
-      nav.appendChild(createPageBtn(p));
+      container.appendChild(createPageBtn(p));
     } else if (p === page - 2 || p === page + 2) {
       const dots = document.createElement('span');
       dots.textContent = '...';
-      dots.style.padding = '0 8px';
-      nav.appendChild(dots);
+      container.appendChild(dots);
     }
   }
 
   // Next
-  nav.appendChild(createPageBtn(Math.min(totalPages, page + 1), '›'));
-
-  container.appendChild(nav);
+  if (page < totalPages) {
+    container.appendChild(createPageBtn(Math.min(totalPages, page + 1), '›'));
+  }
 } 

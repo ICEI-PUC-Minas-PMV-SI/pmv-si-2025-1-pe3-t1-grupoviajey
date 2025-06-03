@@ -1,5 +1,7 @@
 import { createLocalCard, getTrashSVG, getDragHandleSVG } from '/pages/user_roadmap/roadmap-utils.js';
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
+import { formatShortDateRange } from '../../js/utils/date.js';
+import { searchDestinationImage } from '../../js/services/unsplash.js';
 
 // Funções auxiliares de drag-and-drop (escopo global)
 let dragSrcEl = null;
@@ -428,32 +430,29 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
 
   // --- INÍCIO MAPA ---
-  (async function initRoadmapMap() {
-    if (document.readyState === 'loading') {
-      await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
-    }
+  async function loadRoadmapMapForCurrentTrip() {
     const destElem = document.getElementById('tripDestinationBanner');
-    let cidade = destElem ? destElem.textContent.trim() : 'Florianópolis';
-    if (!cidade) cidade = 'Florianópolis';
+    let cidade = destElem ? destElem.innerText.trim() : 'Florianópolis';
+    console.log('Cidade para o mapa:', cidade);
     try {
-      const loader = await import('../../js/core/map/loader.js');
-      const mapConfig = await import('../search-results/map-config.js');
-      await loader.loadGoogleMapsScript();
-      await mapConfig.initializeMapWithCity(cidade);
+      // Limpa o mapa anterior
+      const mapContainer = document.getElementById('map');
+      if (mapContainer) {
+        mapContainer.innerHTML = '';
+      }
+      const roadmapMapInit = await import('./map-init.js');
+      await roadmapMapInit.initializeRoadmapMapWithCity(cidade);
       console.log('window.map:', window.map);
       // --- Clique em POI do Google: criar pin customizado com InfoWindow customizado ---
       const { createMarker } = await import('../../js/core/map/markers.js');
       const createdPoiMarkers = new Set();
       window.map.addListener('click', function (event) {
         if (event.placeId) {
-          // Evita navegação padrão
           event.stop();
-          // Não duplique markers para o mesmo placeId
           if (createdPoiMarkers.has(event.placeId)) return;
           const service = new window.google.maps.places.PlacesService(window.map);
           service.getDetails({ placeId: event.placeId, fields: ['name', 'formatted_address', 'geometry'] }, function (place, status) {
             if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry && place.geometry.location) {
-              // Cria marker customizado
               const marker = createMarker(window.map, {
                 name: place.name,
                 vicinity: place.formatted_address,
@@ -461,16 +460,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 types: [],
               });
               createdPoiMarkers.add(event.placeId);
-              // Abre o InfoWindow customizado imediatamente
               window.google.maps.event.trigger(marker, 'click');
             }
           });
         }
       });
+      // Inicializa o botão de buscar nesta área
+      setupSearchAreaBtn(window.map);
     } catch (e) {
       console.error('Erro ao inicializar mapa:', e);
     }
-  })();
+  }
   // --- FIM MAPA ---
 
   // Remover local ao clicar na lixeira
@@ -860,17 +860,28 @@ document.addEventListener('DOMContentLoaded', function () {
   function openEditTripModal() {
     const modal = document.getElementById('editTripModal');
     if (!modal) return;
+    // Garante que o popup de recomendações está fechado
+    const popup = document.getElementById('edit-photo-requirements-popup');
+    if (popup) popup.classList.remove('active');
+    const overlay = document.getElementById('edit-photo-requirements-overlay');
+    if (overlay) overlay.style.display = 'none';
     const tripNameInput = document.getElementById('tripName');
     const tripDestinationInput = document.getElementById('tripDestination');
     const tripNameBanner = document.getElementById('tripNameBanner');
     const tripDestinationBanner = document.getElementById('tripDestinationBanner');
     const tripDateBanner = document.getElementById('tripDateBanner');
+    const tripDescriptionInput = document.getElementById('edit-trip-description');
+    const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
     tripNameInput.value = tripNameBanner ? tripNameBanner.textContent : '';
     // Remover SVG do texto do destino para o input
     if (tripDestinationBanner && tripDestinationBanner.innerText) {
       tripDestinationInput.value = tripDestinationBanner.innerText.trim();
     } else {
       tripDestinationInput.value = '';
+    }
+    // Preencher descrição atual
+    if (tripDescriptionInput && tripDescriptionBanner) {
+      tripDescriptionInput.value = tripDescriptionBanner.textContent || '';
     }
     // Preencher datas atuais do banner, se houver
     const tripDateInput = document.getElementById('editTripDateRange');
@@ -965,67 +976,63 @@ document.addEventListener('DOMContentLoaded', function () {
   if (editTripForm) {
     editTripForm.onsubmit = function (e) {
       e.preventDefault();
-      console.log('submit do modal de edição de viagem');
       const name = document.getElementById('tripName').value;
       const dest = document.getElementById('tripDestination').value;
       const dateInput = document.getElementById('editTripDateRange');
       const tripNameBanner = document.getElementById('tripNameBanner');
       const tripDestinationBanner = document.getElementById('tripDestinationBanner');
       const tripDateBanner = document.getElementById('tripDateBanner');
+      const tripDescriptionInput = document.getElementById('edit-trip-description');
+      const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
+      const photoUrl = document.getElementById('edit-photo-url-hidden').value;
+
       // Atualiza na tela
       if (tripNameBanner) tripNameBanner.textContent = name;
-      if (tripDestinationBanner) tripDestinationBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z' stroke='#fff' stroke-width='1.7' fill='#fff' /><circle cx='12' cy='10' r='3' fill='none' stroke='#0a7c6a' stroke-width='1.5'/></svg>` + dest;
-      // Reatribui listeners do accordion após atualizar destino
-      attachRoadmapEventListeners();
-      if (tripDateBanner && dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
-        const startDate = dateInput._flatpickr.selectedDates[0];
-        const endDate = dateInput._flatpickr.selectedDates[1];
-        const opts = { day: '2-digit', month: 'short', year: 'numeric' };
-        const start = startDate.toLocaleDateString('pt-BR', opts);
-        const end = endDate.toLocaleDateString('pt-BR', opts);
-        tripDateBanner.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='16' rx='3' fill='#fff' stroke='#fff' stroke-width='1.7'/><path d='M7 3v4M17 3v4' stroke='#0a7c6a' stroke-width='1.5' stroke-linecap='round'/></svg>` + `${start} - ${end}`;
-        // =============================
-        // Criação dinâmica dos dias do roteiro conforme o intervalo de datas
-        // =============================
-        const tabItinerary = document.getElementById('tab-itinerary');
-        // Remove todos os day-section existentes
-        tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
-        // Calcula todas as datas do intervalo
-        let current = new Date(startDate.getTime());
-        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        let idx = 0;
-        while (current <= endDate) {
-          const diaSemana = dias[current.getDay()];
-          const dia = current.getDate().toString().padStart(2, '0');
-          const mes = meses[current.getMonth()];
-          const ano = current.getFullYear();
-          // Cria o elemento do dia
-          const section = document.createElement('div');
-          section.className = 'day-section';
-          section.innerHTML = `
-            <div class="day-header clickable">
-              <h3>${diaSemana}, ${dia} de ${mes} de ${ano}</h3>
-              <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
-            </div>
-            <div class="day-content">
-              <button class="add-place-btn outlined">+ Adicionar local</button>
-            </div>
-          `;
-          tabItinerary.appendChild(section);
-          current.setDate(current.getDate() + 1);
-          idx++;
+      if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
+      if (tripDescriptionBanner && tripDescriptionInput) tripDescriptionBanner.textContent = tripDescriptionInput.value;
+
+      // Atualiza os dados no localStorage
+      const tripId = localStorage.getItem('selectedTripId');
+      if (tripId) {
+        const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+        const tripIndex = trips.findIndex(t => String(t.id) === String(tripId));
+
+        if (tripIndex !== -1) {
+          // Atualiza os dados básicos
+          trips[tripIndex].title = name;
+          trips[tripIndex].destination = dest;
+          trips[tripIndex].description = tripDescriptionInput.value;
+
+          // Atualiza a foto se houver uma nova
+          if (photoUrl) {
+            trips[tripIndex].photo = photoUrl;
+            // Atualiza a imagem de capa
+            const coverImg = document.getElementById('cover-img');
+            if (coverImg) coverImg.src = photoUrl;
+          }
+
+          // Atualiza as datas se houver seleção
+          if (dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
+            const startDate = dateInput._flatpickr.selectedDates[0];
+            const endDate = dateInput._flatpickr.selectedDates[1];
+            trips[tripIndex].startDate = startDate.toISOString().split('T')[0];
+            trips[tripIndex].endDate = endDate.toISOString().split('T')[0];
+            if (tripDateBanner) tripDateBanner.textContent = formatShortDateRange(startDate, endDate);
+            createDaysFromStorage(trips[tripIndex].startDate, trips[tripIndex].endDate);
+          }
+
+          // Salva as alterações
+          localStorage.setItem('userTrips', JSON.stringify(trips));
         }
-        // =============================
-        // Fim da criação dinâmica dos dias
-        // =============================
-        // Reatribui listeners do accordion
-        attachRoadmapEventListeners();
-        +       moveFinanceSummaryAfterDays();
       }
+
+      // Fecha o modal
       document.getElementById('editTripModal').style.display = 'none';
+
+      // Reatribui listeners e atualiza o roteiro
       attachRoadmapEventListeners();
       saveRoadmapToStorage();
+      setTimeout(updateFinanceSummary, 100);
     };
   }
 
@@ -1721,6 +1728,33 @@ document.addEventListener('DOMContentLoaded', function () {
       saveRoadmapToStorage();
     };
   }
+
+  // Preview e fechamento automático do popup ao selecionar imagem
+  const fileInput = document.getElementById('edit-trip-photo');
+  const popup = document.getElementById('edit-photo-requirements-popup');
+  const overlay = document.getElementById('edit-photo-requirements-overlay');
+  const photoPreview = document.getElementById('edit-photo-preview');
+  const photoUrlHidden = document.getElementById('edit-photo-url-hidden');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function (e) {
+      if (fileInput.files && fileInput.files[0]) {
+        // Fecha o popup e overlay
+        if (popup) popup.classList.remove('active');
+        if (overlay) overlay.style.display = 'none';
+        // Mostra o preview
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          if (photoPreview) {
+            photoPreview.innerHTML = `<img src="${ev.target.result}" style="max-width:100%;border-radius:10px;box-shadow:0 2px 8px #0002;">`;
+            photoPreview.classList.add('active');
+          }
+          if (photoUrlHidden) photoUrlHidden.value = ev.target.result;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    });
+  }
 });
 
 // Compartilhamento: abrir modal ao clicar no botão do banner
@@ -1764,6 +1798,7 @@ function saveRoadmapToStorage() {
   const tripName = document.getElementById('tripNameBanner')?.textContent || '';
   const tripDestination = document.getElementById('tripDestinationBanner')?.innerText || '';
   const tripDate = document.getElementById('tripDateBanner')?.innerText || '';
+  const tripDescription = document.getElementById('tripDescriptionBanner')?.textContent || '';
   // Salva datas de início e fim (ISO)
   let tripStart = '';
   let tripEnd = '';
@@ -1791,7 +1826,7 @@ function saveRoadmapToStorage() {
     return { date, places };
   });
   console.log('Salvando roteiro:', days); // <-- Adicione este log
-  localStorage.setItem('userRoadmapData', JSON.stringify({ tripName, tripDestination, tripDate, tripStart, tripEnd, days }));
+  localStorage.setItem('userRoadmapData', JSON.stringify({ tripName, tripDestination, tripDate, tripStart, tripEnd, tripDescription, days }));
 }
 
 function moveFinanceSummaryAfterDays() {
@@ -1807,14 +1842,17 @@ function moveFinanceSummaryAfterDays() {
 }
 
 function createDaysFromStorage(tripStart, tripEnd) {
-  // Cria dinamicamente os dias do roteiro conforme o intervalo salvo
   const tabItinerary = document.getElementById('tab-itinerary');
   if (!tabItinerary) return;
-  // Remove todos os day-section existentes
   tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
   if (!tripStart || !tripEnd) return;
-  const startDate = new Date(tripStart);
-  const endDate = new Date(tripEnd);
+
+  // Corrige parsing das datas
+  const [y1, m1, d1] = tripStart.split('-');
+  const [y2, m2, d2] = tripEnd.split('-');
+  const startDate = new Date(Number(y1), Number(m1) - 1, Number(d1));
+  const endDate = new Date(Number(y2), Number(m2) - 1, Number(d2));
+
   const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   let current = new Date(startDate.getTime());
@@ -1837,14 +1875,14 @@ function createDaysFromStorage(tripStart, tripEnd) {
     tabItinerary.appendChild(section);
     current.setDate(current.getDate() + 1);
   }
-  moveFinanceSummaryAfterDays(); // <-- garantir que o resumo financeiro fique após os accordions
+  moveFinanceSummaryAfterDays();
 }
 
 function loadRoadmapFromStorage() {
   const data = localStorage.getItem('userRoadmapData');
   if (!data) return;
   try {
-    const { tripName, tripDestination, tripDate, tripStart, tripEnd, days } = JSON.parse(data);
+    const { tripName, tripDestination, tripDate, tripStart, tripEnd, tripDescription, days } = JSON.parse(data);
     // Cria os dias do roteiro conforme as datas salvas
     if (tripStart && tripEnd) {
       createDaysFromStorage(tripStart, tripEnd);
@@ -1860,6 +1898,10 @@ function loadRoadmapFromStorage() {
     if (tripDate) {
       const el = document.getElementById('tripDateBanner');
       if (el) el.innerHTML = `<svg style='vertical-align:middle;margin-right:6px;' width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='16' rx='3' fill='#fff' stroke='#fff' stroke-width='1.7'/><path d='M7 3v4M17 3v4' stroke='#0a7c6a' stroke-width='1.5' stroke-linecap='round'/></svg>` + tripDate;
+    }
+    if (tripDescription) {
+      const el = document.getElementById('tripDescriptionBanner');
+      if (el) el.textContent = tripDescription;
     }
     if (days && Array.isArray(days)) {
       const daySections = document.querySelectorAll('.day-section');
@@ -1949,21 +1991,199 @@ document.addEventListener('DOMContentLoaded', () => {
   const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
   const trip = trips.find(t => t.id == tripId);
 
+  function formatTripPeriod(start, end) {
+    if (start && end) {
+      return formatShortDateRange(start, end);
+    }
+    return '';
+  }
+
   if (trip) {
     // Renderize os dados da viagem na tela
-    document.getElementById('trip-title').textContent = trip.title;
-    // ... e assim por diante
+    if (document.getElementById('trip-title')) {
+      document.getElementById('trip-title').textContent = trip.title;
+    }
+    if (document.getElementById('tripNameBanner')) {
+      document.getElementById('tripNameBanner').textContent = trip.title;
+    }
+    if (document.getElementById('tripDestinationBanner')) {
+      document.getElementById('tripDestinationBanner').textContent = trip.destination;
+    }
+    if (document.getElementById('tripDateBanner')) {
+      document.getElementById('tripDateBanner').textContent = formatTripPeriod(trip.startDate, trip.endDate);
+    }
+    if (trip.photo && document.getElementById('cover-img')) {
+      document.getElementById('cover-img').src = trip.photo;
+    }
+    if (trip.description && document.getElementById('tripDescriptionBanner')) {
+      document.getElementById('tripDescriptionBanner').textContent = trip.description;
+    }
+    // MONTA OS DIAS DO ROTEIRO
+    if (typeof createDaysFromStorage === 'function') {
+      createDaysFromStorage(trip.startDate, trip.endDate);
+    }
   } else {
     // Futuro: buscar do backend usando tripId
     // fetch(`/api/viagens/${tripId}`).then(...)
   }
 });
 
-const tripId = localStorage.getItem('selectedTripId');
-const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-const trip = trips.find(t => String(t.id) === String(tripId));
-if (!trip) {
-  // Redireciona ou mostra erro
-  window.location.href = '/pages/user_dashboard/user-dashboard.html';
-  return;
+document.addEventListener('DOMContentLoaded', () => {
+  const tripId = localStorage.getItem('selectedTripId');
+  if (!tripId) {
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return;
+  }
+
+  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+  const trip = trips.find(t => String(t.id) === String(tripId));
+  if (!trip) {
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return;
+  }
+
+  function formatTripPeriod(start, end) {
+    if (start && end) {
+      return formatShortDateRange(start, end);
+    }
+    return '';
+  }
+
+  // Renderize os dados da viagem na tela
+  if (document.getElementById('trip-title')) {
+    document.getElementById('trip-title').textContent = trip.title;
+  }
+  if (document.getElementById('tripNameBanner')) {
+    document.getElementById('tripNameBanner').textContent = trip.title;
+  }
+  if (document.getElementById('tripDestinationBanner')) {
+    document.getElementById('tripDestinationBanner').textContent = trip.destination;
+  }
+  if (document.getElementById('tripDateBanner')) {
+    document.getElementById('tripDateBanner').textContent = formatTripPeriod(trip.startDate, trip.endDate);
+  }
+  if (trip.photo && document.getElementById('cover-img')) {
+    document.getElementById('cover-img').src = trip.photo;
+  }
+});
+
+function setupEditPhotoRequirementsPopup() {
+  const uploadLabel = document.querySelector('.photo-upload-label');
+  const popup = document.getElementById('edit-photo-requirements-popup');
+  const closeBtn = popup?.querySelector('.close-popup');
+  const fileInput = document.getElementById('edit-trip-photo');
+  const overlay = document.getElementById('edit-photo-requirements-overlay');
+  if (uploadLabel && popup && closeBtn && fileInput) {
+    uploadLabel.addEventListener('click', (e) => {
+      e.preventDefault();
+      popup.classList.add('active');
+      popup.style.display = 'block';
+      if (overlay) {
+        overlay.style.display = 'block';
+        overlay.style.pointerEvents = 'none';
+      }
+    });
+    closeBtn.addEventListener('click', () => {
+      popup.classList.remove('active');
+      if (overlay) {
+        overlay.style.display = 'none';
+        overlay.style.pointerEvents = 'none';
+      }
+      setTimeout(() => fileInput.click(), 50);
+    });
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        popup.classList.remove('active');
+        overlay.style.display = 'none';
+        overlay.style.pointerEvents = 'none';
+      });
+    }
+  }
 }
+
+// Chame essa função ao abrir o modal de edição:
+document.addEventListener('DOMContentLoaded', () => {
+  setupEditPhotoRequirementsPopup();
+});
+
+// Corrigir busca de foto do destino para garantir funcionamento
+const searchBtn = document.getElementById('edit-search-destination-photo');
+if (searchBtn) {
+  searchBtn.onclick = async function () {
+    const destination = document.getElementById('tripDestination').value;
+    if (!destination) {
+      alert('Por favor, selecione um destino primeiro.');
+      return;
+    }
+    await buscarFotosUnsplashParaEdicao(destination);
+  };
+}
+
+async function buscarFotosUnsplashParaEdicao(destination) {
+  // ...chame seu serviço de busca...
+  const imageData = await searchDestinationImage(destination);
+  const photoPreview = document.getElementById('edit-photo-preview');
+  if (imageData && imageData.length > 0) {
+    photoPreview.innerHTML = `
+      <div class="unsplash-gallery">
+        ${imageData.map((img, idx) => `
+          <img src="${img.thumb}" 
+               data-url="${img.url}" 
+               data-photographer="${img.photographer}" 
+               data-photographer-link="${img.photographerLink}"
+               class="unsplash-thumb" 
+               style="cursor:pointer; border-radius:8px; margin:4px; border:2px solid transparent;"
+               ${idx === 0 ? 'data-selected="true" style="border:2px solid #004954;"' : ''}
+          />
+        `).join('')}
+      </div>
+    `;
+    photoPreview.classList.add('active');
+    document.getElementById('edit-photo-url-hidden').value = imageData[0].url;
+    document.querySelectorAll('.unsplash-thumb').forEach(img => {
+      img.addEventListener('click', function () {
+        document.querySelectorAll('.unsplash-thumb').forEach(i => i.style.border = '2px solid transparent');
+        this.style.border = '2px solid #004954';
+        document.getElementById('edit-photo-url-hidden').value = this.dataset.url;
+      });
+    });
+  } else {
+    alert('Não foi possível encontrar uma imagem para este destino.');
+  }
+}
+
+function setupSearchAreaBtn(map) {
+  const btn = document.getElementById('search-area-btn');
+  if (!btn) return;
+
+  let moved = false;
+
+  function showBtn() {
+    btn.style.display = 'block';
+  }
+  function hideBtn() {
+    btn.style.display = 'none';
+  }
+
+  // Mostra o botão ao mover/zoom
+  map.addListener('dragstart', showBtn);
+  map.addListener('zoom_changed', showBtn);
+
+  // Esconde ao clicar no botão
+  btn.addEventListener('click', () => {
+    // Aqui você pode chamar sua função de busca de locais na área visível
+    // Exemplo: searchNearby(map.getCenter());
+    hideBtn();
+  });
+
+  // Inicialmente escondido
+  hideBtn();
+}
+
+// Após inicializar o mapa:
+setupSearchAreaBtn(window.map);
+
+// Chame loadRoadmapMapForCurrentTrip() após atualizar os dados da viagem
+// Exemplo: após atualizar tripNameBanner, tripDestinationBanner, etc.
+// loadRoadmapMapForCurrentTrip();
+

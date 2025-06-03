@@ -6,14 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roteiro do Usuário | Viajey</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="/components/modal/place_details/PlaceDetailsModal.css">
-  <link rel="stylesheet" href="/components/modal/reviews/ReviewsModal.css">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/pages/user_roadmap/user-roadmap.css">
-  <link rel="stylesheet" href="/components/map/map.css">
-  <link rel="stylesheet" href="/components/header/header.css">
-  <link rel="stylesheet" href="/components/footer/footer.css">
-  <link rel="stylesheet" href="/components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/modal/place_details/PlaceDetailsModal.css">
+  <link rel="stylesheet" href="../../components/modal/reviews/ReviewsModal.css">
+  <link rel="stylesheet" href="../../global/global.css">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../pages/user_roadmap/user-roadmap.css">
+  <link rel="stylesheet" href="../../components/map/map.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/modal/create_trip/CreateTripModal.css">
 </head>
 
 <body>
@@ -25,8 +27,7 @@
       <!-- Imagem de capa e informações principais -->
       <div class="roadmap-cover">
         <!-- Imagem de fundo -->
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
-          alt="Florianópolis" class="cover-img">
+        <img id="cover-img" class="cover-img" src="" alt="Foto da viagem">
         <div class="cover-actions">
           <button class="cover-action-btn" title="Adicionar pessoa">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -53,8 +54,23 @@
         </div>
         <div class="cover-info">
           <h1 id="tripNameBanner">Minha Viagem</h1>
-          <p id="tripDestinationBanner">Florianópolis</p>
-          <p id="tripDateBanner">23 Maio - 25 Maio</p>
+
+          <div class="trip-destination-banner-row">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z" stroke="#fff" stroke-width="1.7" />
+              <circle cx="12" cy="10" r="3" fill="none" stroke="#fff" stroke-width="1.5" />
+            </svg>
+            <p id="tripDestinationBanner">Destino</p>
+          </div>
+
+          <div class="trip-date-banner-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="5" width="18" height="16" rx="3" fill="#fff" stroke="#fff" stroke-width="1.7" />
+              <path d="M7 3v4M17 3v4" stroke="#0a7c6a" stroke-width="1" stroke-linecap="round" />
+            </svg>
+            <p id="tripDateBanner">Datas</p>
+          </div>
+          <p id="tripDescriptionBanner" class="trip-description-banner"></p>
         </div>
       </div>
     </section>
@@ -195,7 +211,7 @@
         <!-- Mapa será inserido aqui -->
         <div id="map-container">
           <button id="search-area-btn" style="display:none;">Buscar nesta área</button>
-          <div id="map" style="width:100%;height:100%;background:#e0e0e0;"></div>
+          <div id="map"></div>
         </div>
       </div>
     </section>
@@ -215,6 +231,7 @@
     </div>
   </div>
 
+  <!-- Modal de edição de viagem -->
   <div id="editTripModal" class="modal-edit-trip" style="display:none;">
     <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
       <button class="modal-close-btn" id="closeEditTripModal" title="Fechar">×</button>
@@ -226,7 +243,39 @@
         <input type="text" id="tripDestination" name="tripDestination" required />
         <label for="editTripDateRange">Datas da viagem</label>
         <input type="text" id="editTripDateRange" name="editTripDateRange" required />
-        <textarea id="tripDescription"></textarea>
+        <div class="form-group">
+          <label for="edit-trip-description">Descrição (opcional)</label>
+          <textarea id="edit-trip-description" name="description" rows="6"
+            placeholder="Adicione detalhes sobre sua viagem..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit-trip-photo">Foto da viagem (opcional)</label>
+          <div class="photo-upload-container">
+            <input type="file" id="edit-trip-photo" name="photo" accept="image/*" class="photo-input">
+            <div class="photo-upload-actions-row">
+              <button type="button" id="edit-search-destination-photo" class="btn-secondary">
+                Buscar foto do destino
+              </button>
+              <label for="edit-trip-photo" class="photo-upload-label">
+                <div class="photo-upload-content">
+                  <span>Upload</span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div id="edit-photo-preview" class="photo-preview"></div>
+          <div id="edit-photo-credits" class="photo-credits"></div>
+          <input type="hidden" id="edit-photo-url-hidden" name="photo_url" />
+        </div>
+        <div id="edit-photo-requirements-popup" style="display:none">
+          <div class="popup-title">Recomendações para a imagem</div>
+          <ul>
+            <li>Formato paisagem (horizontal)</li>
+            <li>Mínimo de 800x600 pixels</li>
+            <li>Máximo de 5MB</li>
+          </ul>
+          <button class="close-popup" type="button">OK</button>
+        </div>
         <label style="margin-top:12px;">Privacidade da viagem</label>
         <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px;">
           <label style="display:flex; align-items:flex-start; gap:8px;">
@@ -253,9 +302,8 @@
           </svg>
           Deletar viagem
         </button>
-        <div class="modal-actions-row"
-          style="position:sticky; bottom:0; left:0; right:0; display:flex; justify-content:flex-end; align-items:center; background:#fff; padding:0 16px 0 0; z-index:2; gap:12px;">
-          <button type="submit" class="modal-save-btn" style="min-width:120px;">Salvar</button>
+        <div class="modal-actions-row">
+          <button class="modal-save-btn" type="submit">Salvar</button>
         </div>
       </form>
     </div>
@@ -315,7 +363,6 @@
       </div>
     </div>
   </div>
-
 
   <script type="module" src="/js/core/map/map.js"></script>
   <script type="module" src="../../js/utils/include.js" defer></script>

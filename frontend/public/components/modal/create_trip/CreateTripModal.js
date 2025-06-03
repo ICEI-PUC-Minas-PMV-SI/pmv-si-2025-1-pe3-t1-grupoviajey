@@ -144,6 +144,7 @@ function handlePhotoUpload(event) {
 }
 
 async function handleDestinationPhotoSearch() {
+    console.log('Cliquei no botão!');
     const destination = document.getElementById('trip-destination').value;
     if (!destination) {
         alert('Por favor, selecione um destino primeiro.');
@@ -152,25 +153,41 @@ async function handleDestinationPhotoSearch() {
 
     const searchButton = document.getElementById('search-destination-photo');
     const originalText = searchButton.innerHTML;
-    searchButton.disabled = true;
+    searchButton.disabled = false;
     searchButton.innerHTML = '<span>Buscando...</span>';
 
     try {
         const imageData = await searchDestinationImage(destination);
-        if (imageData) {
+        console.log(imageData);
+        if (imageData && imageData.length > 0) {
             const photoPreview = document.getElementById('photo-preview');
-            const photoCredits = document.getElementById('photo-credits');
-
-            photoPreview.innerHTML = `<img src="${imageData.url}" alt="Foto do destino">`;
+            photoPreview.innerHTML = `
+                <div class="unsplash-gallery">
+                    ${imageData.map((img, idx) => `
+                        <img src="${img.thumb}" 
+                             data-url="${img.url}" 
+                             data-photographer="${img.photographer}" 
+                             data-photographer-link="${img.photographerLink}"
+                             class="unsplash-thumb" 
+                             style="cursor:pointer; border-radius:8px; margin:4px; border:2px solid transparent;"
+                             ${idx === 0 ? 'data-selected="true" style="border:2px solid #004954;"' : ''}
+                        />
+                    `).join('')}
+                </div>
+            `;
             photoPreview.classList.add('active');
-
-            photoCredits.innerHTML = `Foto por <a href="${imageData.photographerUrl}" target="_blank" rel="noopener">${imageData.photographer}</a> no Unsplash`;
-
-            // Atualiza o FormData com a URL da imagem
-            const form = document.getElementById('create-trip-form');
-            const formData = new FormData(form);
-            formData.set('photo_url', imageData.url);
-            document.getElementById('photo-url-hidden').value = imageData.url;
+            // Seleciona a primeira por padrão
+            document.querySelector('input[name="photo_url"]').value = imageData[0].url;
+            // Adiciona evento de clique para cada thumb
+            document.querySelectorAll('.unsplash-thumb').forEach(img => {
+                img.addEventListener('click', function () {
+                    // Remove seleção anterior
+                    document.querySelectorAll('.unsplash-thumb').forEach(i => i.style.border = '2px solid transparent');
+                    this.style.border = '2px solid #004954';
+                    document.querySelector('input[name="photo_url"]').value = this.dataset.url;
+                    // Atualize créditos, preview, etc, se quiser
+                });
+            });
         } else {
             alert('Não foi possível encontrar uma imagem para este destino.');
         }
@@ -256,6 +273,25 @@ function waitForInputAndGoogleMaps(cb) {
     check();
 }
 
+// Adiciona evento para abrir o popup de recomendações ao clicar no label de upload
+function setupPhotoRequirementsPopup() {
+    const uploadLabel = document.querySelector('.photo-upload-label');
+    const popup = document.getElementById('photo-requirements-popup');
+    const closeBtn = popup?.querySelector('.close-popup');
+    const fileInput = document.getElementById('trip-photo');
+    if (uploadLabel && popup && closeBtn && fileInput) {
+        uploadLabel.addEventListener('click', (e) => {
+            e.preventDefault();
+            popup.classList.add('active');
+        });
+        closeBtn.addEventListener('click', () => {
+            popup.classList.remove('active');
+            // Abre o seletor de arquivo
+            fileInput.click();
+        });
+    }
+}
+
 export async function initCreateTripModal() {
     if (modalInitialized) return;
 
@@ -314,6 +350,8 @@ export async function initCreateTripModal() {
                 closeModal();
             }
         });
+
+        setupPhotoRequirementsPopup();
 
         modalInitialized = true;
     } catch (error) {

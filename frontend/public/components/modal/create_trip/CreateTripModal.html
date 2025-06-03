@@ -26,7 +26,7 @@
             <div class="form-group">
                 <label for="trip-dates">Período da viagem</label>
                 <div class="date-range-container">
-                    <input type="text" id="trip-dates" name="dates" placeholder="Selecione as datas" readonly>
+                    <input type="text" id="trip-dates" name="dates" placeholder="Selecione as datas" readonly required>
                     <span class="date-icon">
                         <img src="../../../assets/images/calendar.svg" alt="Calendário" />
                     </span>
@@ -43,37 +43,36 @@
                 <label for="trip-photo">Foto da viagem (opcional)</label>
                 <div class="photo-upload-container">
                     <input type="file" id="trip-photo" name="photo" accept="image/*" class="photo-input">
-                    <label for="trip-photo" class="photo-upload-label">
-                        <div class="photo-upload-content">
-                            <img src="../../../assets/images/upload.svg" alt="Upload" class="upload-icon">
-                            <span>Clique para adicionar uma foto</span>
-                            <div class="photo-requirements">
-                                <p>Recomendado:</p>
-                                <ul>
-                                    <li>Formato paisagem (horizontal)</li>
-                                    <li>Mínimo de 800x600 pixels</li>
-                                    <li>Máximo de 5MB</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </label>
-                    <div id="photo-preview" class="photo-preview"></div>
-                    <div class="photo-actions">
+                    <div class="photo-upload-actions-row">
                         <button type="button" id="search-destination-photo" class="btn-secondary">
-                            <img src="../../../assets/images/search.svg" alt="Buscar" class="action-icon">
                             Buscar foto do destino
                         </button>
+                        <label for="trip-photo" class="photo-upload-label">
+                            <div class="photo-upload-content">
+                                <span>Upload</span>
+                            </div>
+                        </label>
                     </div>
-                    <div id="photo-credits" class="photo-credits"></div>
                 </div>
-            </div>
 
-            <input type="hidden" id="photo-url-hidden" name="photo_url" />
+                <div id="photo-preview" class="photo-preview"></div>
+                <div id="photo-credits" class="photo-credits"></div>
 
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" id="cancel-trip">Cancelar</button>
-                <button type="submit" class="btn-primary">Criar viagem</button>
-            </div>
+                <input type="hidden" id="photo-url-hidden" name="photo_url" />
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Criar viagem</button>
+                </div>
         </form>
     </div>
+</div>
+
+<div id="photo-requirements-popup">
+    <div class="popup-title">Recomendações para a imagem</div>
+    <ul>
+        <li>Formato paisagem (horizontal)</li>
+        <li>Mínimo de 800x600 pixels</li>
+        <li>Máximo de 5MB</li>
+    </ul>
+    <button class="close-popup" type="button">OK</button>
 </div>
