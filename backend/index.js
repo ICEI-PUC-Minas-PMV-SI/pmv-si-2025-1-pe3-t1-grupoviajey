@@ -5,30 +5,27 @@ const path = require('path');
 const livereload = require('livereload');
 const connectLivereload = require('connect-livereload');
 
-const app = express();
-
-app.use(cors());
-
-// Importar rotas separadas
 const configRoutes = require('./routes/config');
 const placesRoutes = require('./routes/places');
 
-app.use('/api', configRoutes);
-app.use('/api', placesRoutes);
+const app = express();
 
-// Ative o livereload
+app.use(cors());
+app.use(express.json());
+
+// Livereload setup (se quiser)
 const liveReloadServer = livereload.createServer();
 liveReloadServer.watch(path.join(__dirname, '../frontend/public'));
-
-// Middleware para injetar o script do livereload
 app.use(connectLivereload());
 
-// Servir arquivos estáticos do frontend
+// Rotas
+app.use('/api/config', configRoutes);
+app.use('/api/places', placesRoutes);
+
+// Servir frontend estático
 app.use(express.static(path.join(__dirname, '../frontend/public')));
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Proxy rodando em http://localhost:${PORT}`);
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-
-console.log('Testando autoreload');
