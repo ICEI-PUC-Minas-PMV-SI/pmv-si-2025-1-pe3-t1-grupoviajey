@@ -2,6 +2,7 @@ import { createLocalCard, getTrashSVG, getDragHandleSVG } from '/pages/user_road
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
 import { searchDestinationImage } from '../../js/services/unsplash.js';
+import { initRoadmapMap } from './map-init.js';
 
 // Funções auxiliares de drag-and-drop (escopo global)
 let dragSrcEl = null;
@@ -44,6 +45,8 @@ function addDnDHandlers(elem) {
   elem.addEventListener('dragend', handleDragEnd, false);
 }
 
+
+// ROADMAP EVENT LISTENERS
 function attachRoadmapEventListeners() {
   // Accordion para day-section - delegação de evento
   const container = document.querySelector('#tab-itinerary') || document;
@@ -105,11 +108,59 @@ function handleDayHeaderClick(e) {
   }
 }
 
+// =============================================
+// DOM CONTENT LOADED INITIALIZATION
+// =============================================
 document.addEventListener('DOMContentLoaded', () => {
   includeHeader();
   includeFooter();
   includeSearchBar();
-  // ...outros inits do roadmap...
+
+  const tripId = localStorage.getItem('selectedTripId');
+  if (!tripId) {
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return;
+  }
+
+  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+  const trip = trips.find(t => String(t.id) === String(tripId));
+  if (!trip) {
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return;
+  }
+
+  function formatTripPeriod(start, end) {
+    if (start && end) {
+      return formatShortDateRange(start, end);
+    }
+    return '';
+  }
+
+  // Atualiza o DOM com os dados da viagem
+  if (document.getElementById('trip-title')) {
+    document.getElementById('trip-title').textContent = trip.title;
+  }
+  if (document.getElementById('tripNameBanner')) {
+    document.getElementById('tripNameBanner').textContent = trip.title;
+  }
+  if (document.getElementById('tripDestinationBanner')) {
+    document.getElementById('tripDestinationBanner').textContent = trip.destination;
+  }
+  if (document.getElementById('tripDateBanner')) {
+    document.getElementById('tripDateBanner').textContent = formatTripPeriod(trip.startDate, trip.endDate);
+  }
+  if (trip.photo && document.getElementById('cover-img')) {
+    document.getElementById('cover-img').src = trip.photo;
+  }
+  if (trip.description && document.getElementById('tripDescriptionBanner')) {
+    document.getElementById('tripDescriptionBanner').textContent = trip.description;
+  }
+  if (typeof createDaysFromStorage === 'function') {
+    createDaysFromStorage(trip.startDate, trip.endDate);
+  }
+
+  // Inicializa o mapa com o destino correto usando o novo módulo
+  initRoadmapMap(trip.destination);
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -429,50 +480,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   document.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
 
-  // --- INÍCIO MAPA ---
-  async function loadRoadmapMapForCurrentTrip() {
-    const destElem = document.getElementById('tripDestinationBanner');
-    let cidade = destElem ? destElem.innerText.trim() : 'Florianópolis';
-    console.log('Cidade para o mapa:', cidade);
-    try {
-      // Limpa o mapa anterior
-      const mapContainer = document.getElementById('map');
-      if (mapContainer) {
-        mapContainer.innerHTML = '';
-      }
-      const roadmapMapInit = await import('./map-init.js');
-      await roadmapMapInit.initializeRoadmapMapWithCity(cidade);
-      console.log('window.map:', window.map);
-      // --- Clique em POI do Google: criar pin customizado com InfoWindow customizado ---
-      const { createMarker } = await import('../../js/core/map/markers.js');
-      const createdPoiMarkers = new Set();
-      window.map.addListener('click', function (event) {
-        if (event.placeId) {
-          event.stop();
-          if (createdPoiMarkers.has(event.placeId)) return;
-          const service = new window.google.maps.places.PlacesService(window.map);
-          service.getDetails({ placeId: event.placeId, fields: ['name', 'formatted_address', 'geometry'] }, function (place, status) {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry && place.geometry.location) {
-              const marker = createMarker(window.map, {
-                name: place.name,
-                vicinity: place.formatted_address,
-                geometry: { location: place.geometry.location },
-                types: [],
-              });
-              createdPoiMarkers.add(event.placeId);
-              window.google.maps.event.trigger(marker, 'click');
-            }
-          });
-        }
-      });
-      // Inicializa o botão de buscar nesta área
-      setupSearchAreaBtn(window.map);
-    } catch (e) {
-      console.error('Erro ao inicializar mapa:', e);
-    }
-  }
-  // --- FIM MAPA ---
-
   // Remover local ao clicar na lixeira
   document.querySelectorAll('.remove-place-btn').forEach(btn => {
     btn.onclick = function () {
@@ -688,173 +695,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Lógica do botão Adicionar do modal
-  const confirmBtn = document.getElementById('confirmAddPlaceModal');
-  if (confirmBtn) {
-    // Remove qualquer onclick antigo para evitar sobrescrita
-    confirmBtn.onclick = null;
-    confirmBtn.addEventListener('click', function () {
-      const input = document.getElementById('autocomplete');
-      let placeName = '';
-      let placeAddress = '';
-      let placeRating = null;
-      // Usa o último place selecionado se houver
-      if (lastSelectedPlace) {
-        if (lastSelectedPlace.name) {
-          placeName = lastSelectedPlace.name;
-        } else {
-          placeName = input ? input.value.trim() : '';
-        }
-        if (lastSelectedPlace.formatted_address) {
-          placeAddress = lastSelectedPlace.formatted_address;
-        } else if (lastSelectedPlace.vicinity) {
-          placeAddress = lastSelectedPlace.vicinity;
-        } else {
-          placeAddress = '';
-        }
-        if (lastSelectedPlace.rating) {
-          placeRating = lastSelectedPlace.rating;
-        }
-      } else {
-        // fallback: só nome
-        placeName = input ? input.value.trim() : '';
-        placeAddress = '';
-      }
-      if (placeName && lastAddPlaceDayContent) {
-        // Remove a mensagem de vazio, se existir
-        const emptyMsg = lastAddPlaceDayContent.querySelector('.place-card.empty');
-        if (emptyMsg) emptyMsg.remove();
-        // Garante que existe .day-timeline
-        let timeline = lastAddPlaceDayContent.querySelector('.day-timeline');
-        const addBtn = lastAddPlaceDayContent.querySelector('.add-place-btn');
-        if (!timeline) {
-          timeline = document.createElement('div');
-          timeline.className = 'day-timeline';
-          timeline.innerHTML = '<div class="timeline-line"></div>';
-          if (addBtn) {
-            lastAddPlaceDayContent.insertBefore(timeline, addBtn);
-          } else {
-            lastAddPlaceDayContent.appendChild(timeline);
-          }
-        } else if (addBtn && addBtn.parentElement === timeline) {
-          lastAddPlaceDayContent.appendChild(addBtn);
-        }
-        // Cria card de local usando utilitário
-        const rand = Math.floor(Math.random() * 10000);
-        const img = `https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}`;
-        const card = createLocalCard({
-          name: placeName,
-          address: placeAddress,
-          rating: placeRating,
-          img
-        });
-        timeline.appendChild(card);
-        // Adiciona evento de remover ao botão do novo card
-        const removeBtn = card.querySelector('.remove-place-btn');
-        if (removeBtn) {
-          removeBtn.onclick = function () {
-            card.remove();
-            setTimeout(updateFinanceSummary, 50);
-            // Remove marcador do mapa
-            const key = getPlaceKey(placeName, placeAddress);
-            const idx = window.roadmapMarkers.findIndex(m => m.key === key);
-            if (idx !== -1) {
-              window.roadmapMarkers[idx].marker.setMap(null);
-              window.roadmapMarkers.splice(idx, 1);
-            }
-            saveRoadmapToStorage(); // <-- Salva após remover também
-          };
-        }
-        // Adiciona marcador no mapa
-        addPlaceToMap(placeName, placeAddress, lastSelectedPlace);
-        // Eventos de hover para animar e centralizar marcador
-        card.addEventListener('mouseenter', async function () {
-          const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-          const key = getPlaceKey(placeName, placeAddress);
-          const m = window.roadmapMarkers.find(m => m.key === key);
-          if (m && m.marker) {
-            updateMarkerAnimation(m.marker, true);
-            // Centraliza o mapa no marcador
-            if (m.marker.getPosition) {
-              window.map.panTo(m.marker.getPosition());
-            }
-          }
-        });
-        card.addEventListener('mouseleave', async function () {
-          const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-          const m = window.roadmapMarkers.find(m => m.key === key);
-          if (m && m.marker) {
-            updateMarkerAnimation(m.marker, false);
-          }
-        });
-        attachLocalCardActions(card);
-        saveRoadmapToStorage(); // <-- Salva imediatamente após adicionar o card
-      }
-      // Se for fluxo de adicionar local salvo:
-      if (window._addingToSavedPlaces) {
-        saveSavedPlacesToStorage();
-        window._addingToSavedPlaces = false;
-      }
-      closeAddPlaceModal();
-      // Limpa o último place selecionado para o próximo uso
-      lastSelectedPlace = null;
-    });
-  }
-
-  // Array global para guardar os marcadores do roteiro
-  window.roadmapMarkers = [];
-
-  // Função utilitária para gerar chave única do local
-  function getPlaceKey(name, address) {
-    return `${name}__${address}`;
-  }
-
-  // Função para adicionar marcador no mapa
-  async function addPlaceToMap(placeName, placeAddress, lastSelectedPlace) {
-    const { createMarker, updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-    let marker = null;
-    let markerPlace = null;
-    if (lastSelectedPlace && lastSelectedPlace.geometry && lastSelectedPlace.geometry.location) {
-      markerPlace = {
-        name: lastSelectedPlace.name || placeName,
-        geometry: lastSelectedPlace.geometry,
-        rating: lastSelectedPlace.rating,
-        types: lastSelectedPlace.types,
-        vicinity: lastSelectedPlace.formatted_address || lastSelectedPlace.vicinity || placeAddress
-      };
-      marker = createMarker(window.map, markerPlace);
-    } else if (placeAddress) {
-      if (window.google && window.google.maps) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: placeAddress }, function (results, status) {
-          if (status === 'OK' && results[0]) {
-            markerPlace = {
-              name: placeName,
-              geometry: { location: results[0].geometry.location },
-              vicinity: placeAddress
-            };
-            marker = createMarker(window.map, markerPlace);
-            // Salva o marcador
-            if (marker) {
-              window.roadmapMarkers.push({
-                key: getPlaceKey(placeName, placeAddress),
-                marker,
-                markerPlace
-              });
-            }
-          }
-        });
-      }
-    }
-    // Salva o marcador se já criado (caso autocomplete)
-    if (marker) {
-      window.roadmapMarkers.push({
-        key: getPlaceKey(placeName, placeAddress),
-        marker,
-        markerPlace
-      });
-    }
-  }
 
   // Função para abrir o modal de edição da viagem
   function openEditTripModal() {
@@ -1106,120 +946,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   attachRoadmapEventListeners();
 
-  // Listener para adicionar local do InfoWindow do mapa
-  window.addEventListener('addPlaceToRoadmap', async function (e) {
-    const { name, address } = e.detail;
-    // Adiciona no primeiro dia do roteiro
-    const firstDayContent = document.querySelector('.day-content');
-    if (!firstDayContent) return;
-    // Remove mensagem de vazio, se existir
-    const emptyMsg = firstDayContent.querySelector('.place-card.empty');
-    if (emptyMsg) emptyMsg.remove();
-    // Garante que existe .day-timeline
-    let timeline = firstDayContent.querySelector('.day-timeline');
-    const addBtn = firstDayContent.querySelector('.add-place-btn');
-    if (!timeline) {
-      timeline = document.createElement('div');
-      timeline.className = 'day-timeline';
-      timeline.innerHTML = '<div class="timeline-line"></div>';
-      if (addBtn) {
-        firstDayContent.insertBefore(timeline, addBtn);
-      } else {
-        firstDayContent.appendChild(timeline);
-      }
-    } else if (addBtn && addBtn.parentElement === timeline) {
-      firstDayContent.appendChild(addBtn);
-    }
-
-    // Busca o marker correspondente
-    const key = getPlaceKey(name, address);
-    let markerObj = window.roadmapMarkers.find(m => m.key === key);
-    let marker = null;
-    let markerPlace = null;
-    if (!markerObj) {
-      // Tenta encontrar o marker no mapa (pode ter sido criado mas não adicionado ao array)
-      if (window.map && window.google && window.google.maps) {
-        // Procura entre todos os markers do mapa (pode ser necessário adaptar se markers não forem globais)
-        // Aqui, como fallback, geocodifica e cria um novo marker
-        const geocoder = new window.google.maps.Geocoder();
-        await new Promise(resolve => {
-          geocoder.geocode({ address }, function (results, status) {
-            if (status === 'OK' && results[0]) {
-              markerPlace = {
-                name,
-                geometry: { location: results[0].geometry.location },
-                vicinity: address
-              };
-              import('../../js/core/map/markers.js').then(({ createMarker }) => {
-                marker = createMarker(window.map, markerPlace);
-                window.roadmapMarkers.push({ key, marker, markerPlace });
-                resolve();
-              });
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-    } else {
-      marker = markerObj.marker;
-      markerPlace = markerObj.markerPlace;
-    }
-
-    // Se markerPlace não tem rating/types, tenta obter do marker (caso tenha sido criado via Nearby/POI)
-    if (marker && marker.placeData) {
-      markerPlace = marker.placeData;
-    }
-
-    // Cria card de local igual ao do modal
-    let rating = markerPlace && typeof markerPlace.rating === 'number' ? markerPlace.rating : undefined;
-    const rand = Math.floor(Math.random() * 10000);
-    const img = undefined; // imagem será carregada depois se necessário
-    const card = createLocalCard({
-      name,
-      address,
-      rating,
-      img: `https://source.unsplash.com/400x300/?travel,city,landscape&sig=${rand}`
-    });
-    timeline.appendChild(card);
-    // Adiciona evento de remover ao botão do novo card
-    const removeBtn = card.querySelector('.remove-place-btn');
-    if (removeBtn) {
-      removeBtn.onclick = function () {
-        card.remove();
-        setTimeout(updateFinanceSummary, 50);
-        // Remove marcador do mapa
-        const idx = window.roadmapMarkers.findIndex(m => m.key === key);
-        if (idx !== -1) {
-          window.roadmapMarkers[idx].marker.setMap(null);
-          window.roadmapMarkers.splice(idx, 1);
-        }
-        saveRoadmapToStorage(); // <-- Salva após remover também
-      };
-    }
-    // Eventos de hover para animar e centralizar marcador
-    card.addEventListener('mouseenter', async function () {
-      const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-      const m = window.roadmapMarkers.find(m => m.key === key);
-      if (m && m.marker) {
-        updateMarkerAnimation(m.marker, true);
-        // Centraliza o mapa no marcador
-        if (m.marker.getPosition) {
-          window.map.panTo(m.marker.getPosition());
-          window.map.setZoom(16);
-        }
-      }
-    });
-    card.addEventListener('mouseleave', async function () {
-      const { updateMarkerAnimation } = await import('../../js/core/map/markers.js');
-      const m = window.roadmapMarkers.find(m => m.key === key);
-      if (m && m.marker) {
-        updateMarkerAnimation(m.marker, false);
-      }
-    });
-    attachLocalCardActions(card);
-    saveRoadmapToStorage(); // <-- Salva imediatamente após adicionar o card
-  });
 
   // Funções de drag and drop para local-card
   let _draggedLocalCardGroup = null;
@@ -2030,13 +1756,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (trip.description && document.getElementById('tripDescriptionBanner')) {
       document.getElementById('tripDescriptionBanner').textContent = trip.description;
     }
+
     // MONTA OS DIAS DO ROTEIRO
     if (typeof createDaysFromStorage === 'function') {
       createDaysFromStorage(trip.startDate, trip.endDate);
     }
-  } else {
-    // Futuro: buscar do backend usando tripId
-    // fetch(`/api/viagens/${tripId}`).then(...)
   }
 });
 
@@ -2163,39 +1887,3 @@ async function buscarFotosUnsplashParaEdicao(destination) {
     alert('Não foi possível encontrar uma imagem para este destino.');
   }
 }
-
-function setupSearchAreaBtn(map) {
-  const btn = document.getElementById('search-area-btn');
-  if (!btn) return;
-
-  let moved = false;
-
-  function showBtn() {
-    btn.style.display = 'block';
-  }
-  function hideBtn() {
-    btn.style.display = 'none';
-  }
-
-  // Mostra o botão ao mover/zoom
-  map.addListener('dragstart', showBtn);
-  map.addListener('zoom_changed', showBtn);
-
-  // Esconde ao clicar no botão
-  btn.addEventListener('click', () => {
-    // Aqui você pode chamar sua função de busca de locais na área visível
-    // Exemplo: searchNearby(map.getCenter());
-    hideBtn();
-  });
-
-  // Inicialmente escondido
-  hideBtn();
-}
-
-// Após inicializar o mapa:
-setupSearchAreaBtn(window.map);
-
-// Chame loadRoadmapMapForCurrentTrip() após atualizar os dados da viagem
-// Exemplo: após atualizar tripNameBanner, tripDestinationBanner, etc.
-// loadRoadmapMapForCurrentTrip();
-
