@@ -1,6 +1,6 @@
 import { includeSearchBar } from '../../../js/utils/include.js';
 import { loadGoogleMapsScript } from '../../../js/core/map/loader.js';
-import { searchDestinationImage } from '../../../js/services/unsplash.js';
+import { searchDestinationImage } from '../../../services/api/unsplash.js';
 
 let modalInitialized = false;
 let datePicker = null;

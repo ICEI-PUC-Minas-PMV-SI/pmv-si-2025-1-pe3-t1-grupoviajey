@@ -1,4 +1,4 @@
-import { userService } from '../../js/services/user-service.js';
+import { userService } from '../../services/user/userService.js';
 
 export function createResultCard({ id, image, title, rating, tags, address, favorite = false }) {
   const card = document.createElement('div');

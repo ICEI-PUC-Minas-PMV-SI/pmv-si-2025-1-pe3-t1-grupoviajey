@@ -13,10 +13,10 @@
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
   <link rel="stylesheet" href="../../components/cards/result-card.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="../../js/config/config.js"></script>
+  <script type="module" src="../../js/config/config.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-  <script type="module" src="../../components/cards/result-card.js"></script>
+  <script type="module" src="../../components/cards/result-card.js" defer></script>
 </head>
 
 <body>
@@ -184,6 +184,7 @@
 
   <!-- Scripts -->
   <script type="module" src="./main.js" defer></script>
+  <script type="module" src="../../services/user/userService.js" defer></script>
 </body>
 
 </html>

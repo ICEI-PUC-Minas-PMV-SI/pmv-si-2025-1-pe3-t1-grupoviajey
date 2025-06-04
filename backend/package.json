@@ -4,7 +4,7 @@
   "main": "places-proxy.js",
   "scripts": {
     "start": "node places-proxy.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon places-proxy.js"
   },
   "keywords": [],
   "author": "",

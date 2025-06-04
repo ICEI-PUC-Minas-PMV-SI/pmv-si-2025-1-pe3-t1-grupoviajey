@@ -1,5 +1,5 @@
 import { createResultCard } from '../../components/cards/result-card.js';
-import { userService } from '../../js/services/user-service.js';
+import { userService } from '../../services/user/userService.js';
 import { getTrashSVG } from '../user_roadmap/roadmap-utils.js';
 
 export async function renderFavorites() {

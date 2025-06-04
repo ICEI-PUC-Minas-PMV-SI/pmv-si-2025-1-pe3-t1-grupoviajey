@@ -1,23 +1,23 @@
-import { userService } from '../../js/services/user-service.js';
+import { userService } from '../../services/user/userService.js';
 
 export function createFavoritesComponent() {
-    const container = document.createElement('div');
-    container.className = 'favorites-container';
+  const container = document.createElement('div');
+  container.className = 'favorites-container';
 
-    function renderFavorites() {
-        const favorites = userService.getFavorites();
+  function renderFavorites() {
+    const favorites = userService.getFavorites();
 
-        if (favorites.length === 0) {
-            container.innerHTML = `
+    if (favorites.length === 0) {
+      container.innerHTML = `
         <div class="empty-favorites">
           <p>Você ainda não tem lugares favoritos.</p>
           <p>Explore lugares e adicione aos favoritos clicando no coração!</p>
         </div>
       `;
-            return;
-        }
+      return;
+    }
 
-        container.innerHTML = `
+    container.innerHTML = `
       <div class="favorites-grid">
         ${favorites.map(place => `
           <div class="favorite-card" data-id="${place.id}">
@@ -39,22 +39,22 @@ export function createFavoritesComponent() {
       </div>
     `;
 
-        // Add event listeners to favorite buttons
-        container.querySelectorAll('.favorite-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const card = btn.closest('.favorite-card');
-                const placeId = card.dataset.id;
+    // Add event listeners to favorite buttons
+    container.querySelectorAll('.favorite-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.favorite-card');
+        const placeId = card.dataset.id;
 
-                if (userService.removeFromFavorites(placeId)) {
-                    renderFavorites(); // Re-render the list
-                }
-            });
-        });
-    }
+        if (userService.removeFromFavorites(placeId)) {
+          renderFavorites(); // Re-render the list
+        }
+      });
+    });
+  }
 
-    // Initial render
-    renderFavorites();
+  // Initial render
+  renderFavorites();
 
-    return container;
+  return container;
 } 

@@ -1,7 +1,7 @@
 import { createLocalCard, getTrashSVG, getDragHandleSVG } from '/pages/user_roadmap/roadmap-utils.js';
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
-import { searchDestinationImage } from '../../js/services/unsplash.js';
+import { searchDestinationImage } from '../../services/api/unsplash.js';
 import { initRoadmapMap } from './map-init.js';
 
 // Funções auxiliares de drag-and-drop (escopo global)
@@ -868,11 +868,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Fecha o modal
       document.getElementById('editTripModal').style.display = 'none';
-
       // Reatribui listeners e atualiza o roteiro
       attachRoadmapEventListeners();
       saveRoadmapToStorage();
       setTimeout(updateFinanceSummary, 100);
+      // Atualiza o mapa de forma robusta após DOM atualizado
+      setTimeout(() => {
+        resetAndInitMap(dest);
+      }, 50);
     };
   }
 
@@ -1885,5 +1888,40 @@ async function buscarFotosUnsplashParaEdicao(destination) {
     });
   } else {
     alert('Não foi possível encontrar uma imagem para este destino.');
+  }
+}
+
+// Após atualizar tripDestinationBanner e salvar no localStorage:
+const novoDestino = document.getElementById('tripDestinationBanner').textContent;
+const oldMap = document.getElementById('map');
+if (oldMap) {
+  const parent = oldMap.parentNode;
+  oldMap.remove();
+  const newMap = document.createElement('div');
+  newMap.id = 'map';
+  newMap.style.width = '100%';
+  newMap.style.height = '100%';
+  newMap.style.background = '#e0e0e0';
+  parent.appendChild(newMap);
+}
+initRoadmapMap(novoDestino);
+
+// Função utilitária para reinicializar o mapa de forma robusta
+function resetAndInitMap(novoDestino) {
+  const oldMap = document.getElementById('map');
+  if (oldMap) {
+    const parent = oldMap.parentNode;
+    oldMap.remove();
+    const newMap = document.createElement('div');
+    newMap.id = 'map';
+    newMap.style.width = '100%';
+    newMap.style.height = '100%';
+    newMap.style.background = '#e0e0e0';
+    parent.appendChild(newMap);
+    setTimeout(() => {
+      initRoadmapMap(novoDestino);
+    }, 0);
+  } else {
+    initRoadmapMap(novoDestino);
   }
 }
