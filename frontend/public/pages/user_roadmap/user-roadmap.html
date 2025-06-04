@@ -15,7 +15,6 @@
   <link rel="stylesheet" href="../../components/footer/footer.css">
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
   <link rel="stylesheet" href="../../components/modal/create_trip/CreateTripModal.css">
-  <script src="../../js/config/config.js"></script>
   <!-- <link rel="icon" href="/favicon.ico"> -->
 </head>
 
@@ -102,8 +101,6 @@
           </div>
         </div>
 
-
-
         <div id="tab-checklist" style="display:none;">
           <div class="checklists-container" id="checklistsContainer">
             <div class="checklist-details checklist-block">
@@ -182,6 +179,16 @@
             </div>
           </div>
           <button id="addChecklistBlockBtn" class="add-checklist-btn" style="margin-top:18px;">+ Novo checklist</button>
+        </div>
+        <div id="tab-saved-places" style="display:none;">
+          <div class="saved-places-container">
+            <h4 class="saved-places-title">Locais salvos sem dia definido</h4>
+            <button id="addSavedPlaceBtn" class="add-place-btn outlined" style="margin-bottom:18px;">+ Adicionar
+              local</button>
+            <div id="savedPlacesList">
+              <p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>
+            </div>
+          </div>
         </div>
         <!-- Conteúdo do roteiro será adicionado aqui -->
         <div class="itinerary-details" id="tab-itinerary">
@@ -342,25 +349,17 @@
     </div>
   </div>
 
-  <div id="tab-saved-places" style="display:none;">
-    <div class="saved-places-container">
-      <h3 class="saved-places-title">Locais salvos sem dia definido</h3>
-      <button id="addSavedPlaceBtn" class="add-place-btn outlined" style="margin-bottom:18px;">+ Adicionar
-        local</button>
-      <div id="savedPlacesList">
-        <p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>
-      </div>
-    </div>
-  </div>
-
   <script type="module" src="../../js/core/map/init.js" defer></script>
   <script type="module" src="../../js/core/map/utils.js" defer></script>
   <script type="module" src="../../js/core/map/markers.js" defer></script>
   <script type="module" src="../../js/utils/include.js" defer></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-  <script type="module" src="roadmap-utils.js"></script>
-  <script type="module" src="main.js"></script>
+  <script type="module" src="../../js/config/config.js" defer></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js" defer></script>
+  <script type="module" src="roadmap-utils.js" defer></script>
+  <script type="module" src="roadmap-core.js" defer></script>
+  <script type="module" src="roadmap-finance.js" defer></script>
+  <script type="module" src="main.js" defer></script>
 </body>
 
 </html>

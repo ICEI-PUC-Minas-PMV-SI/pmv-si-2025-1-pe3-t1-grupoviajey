@@ -1,30 +1,29 @@
 // Service para persistência do roteiro do usuário (user_roadmap)
 
+import { roadmapStorage, budgetStorage, unassignedPlacesStorage } from '../../pages/user_roadmap/roadmap-storage.js';
+
 export function saveRoadmapToStorage(data) {
-    localStorage.setItem('userRoadmapData', JSON.stringify(data));
+    return roadmapStorage.save(data);
 }
 
 export function loadRoadmapFromStorage() {
-    const data = localStorage.getItem('userRoadmapData');
-    return data ? JSON.parse(data) : null;
+    return roadmapStorage.load();
 }
 
 export function saveRoadmapBudgetToStorage(budget) {
-    localStorage.setItem('userRoadmapBudget', JSON.stringify(budget));
+    return budgetStorage.save(budget);
 }
 
 export function loadRoadmapBudgetFromStorage() {
-    const data = localStorage.getItem('userRoadmapBudget');
-    return data ? JSON.parse(data) : null;
+    return budgetStorage.load();
 }
 
 export function saveRoadmapSavedPlacesToStorage(savedPlaces) {
-    localStorage.setItem('userRoadmapSavedPlaces', JSON.stringify(savedPlaces));
+    return unassignedPlacesStorage.save(savedPlaces);
 }
 
 export function loadRoadmapSavedPlacesFromStorage() {
-    const data = localStorage.getItem('userRoadmapSavedPlaces');
-    return data ? JSON.parse(data) : [];
+    return unassignedPlacesStorage.load();
 }
 
 export function getSelectedTripId() {
