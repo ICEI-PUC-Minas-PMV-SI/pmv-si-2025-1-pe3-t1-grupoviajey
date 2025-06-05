@@ -1742,15 +1742,5 @@
 
 /* Breakpoints específicos */
 @media (min-width: 1800px) {
-  .user-roadmap-main {
-    width: 1400px;
-  }
-}
-
-@media (max-width: 1400px) {
-  .user-roadmap-main {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
-  }
+  width: 1400px;
 }

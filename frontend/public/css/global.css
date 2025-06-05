@@ -10,6 +10,7 @@
 :root {
   /* Cores principais */
   --primary-color: #004954;
+  --primary-color-light: #016170;
   --secondary-color: #e0f2f1;
   --background-color: #ffffff;
   --text-color: #222;
@@ -23,9 +24,10 @@
   --spacing-xl: 48px;
 
   /* Border radius */
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  --border-radius-xl: 28px;
 }
 
 html {
@@ -42,14 +44,16 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0;
-  min-width: 1200px;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 #footer {
@@ -81,13 +85,13 @@ h2 {
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: #222;
 }
 
 h4 {
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #222;
 }
@@ -140,6 +144,16 @@ button:hover {
 img {
   max-width: 100%;
   height: auto;
+}
+
+button.closeBtn {
+  display: flex;
+  justify-content: flex-end;
+  background: none !important;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #222;
 }
 
 /* Container */
@@ -204,13 +218,100 @@ img {
 }
 
 /* Responsividade */
+/* Desktop (default) */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0 var(--spacing-md);
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
   }
 
   .container {
+    padding: 0 var(--spacing-sm);
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  .mt-5,
+  .mb-5 {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+
+  .container {
     padding: 0 var(--spacing-xs);
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+  }
+
+  button {
+    width: 100%;
+    padding: var(--spacing-sm);
   }
 }
 
