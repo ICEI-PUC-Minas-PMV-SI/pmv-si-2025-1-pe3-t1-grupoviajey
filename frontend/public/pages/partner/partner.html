@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Parceiro - Viajey</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="partner.css">
+</head>
+<body>
+  <div id="header"></div>
+  
+  <main class="main-content">
+    <div class="partner-container">
+      <div class="page-header">
+        <h1>Meus Anúncios</h1>
+        <button class="btn-primary" id="createAdBtn">+ Criar Anúncio</button>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-status="all">Todos</button>
+        <button class="tab-btn" data-status="pending">Pendentes</button>
+        <button class="tab-btn" data-status="approved">Aprovados</button>
+        <button class="tab-btn" data-status="rejected">Rejeitados</button>
+      </div>
+
+      <div class="ads-grid" id="adsGrid">
+        <!-- Ads will be loaded here -->
+      </div>
+
+      <div class="pagination" id="pagination">
+        <!-- Pagination will be loaded here -->
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="../../js/utils/include.js"></script>
+  <script src="partner.js"></script>
+</body>
+</html>

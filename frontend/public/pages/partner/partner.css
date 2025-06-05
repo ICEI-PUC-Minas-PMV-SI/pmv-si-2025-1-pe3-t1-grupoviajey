@@ -4,14 +4,74 @@
   padding: 32px 16px;
 }
 
-.approve-ads-container h1 {
-  text-align: center;
-  color: #004954;
-  margin-bottom: 32px;
-  font-size: 2rem;
+.partner-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
 }
 
-.ads-pending-grid {
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.page-header h1 {
+  color: #004954;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.btn-primary {
+  background: #004954;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #007c91;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  color: #666;
+}
+
+.tab-btn.active {
+  color: #004954;
+  border-bottom-color: #004954;
+  font-weight: 600;
+}
+
+.tab-btn:hover {
+  color: #004954;
+  background: #f5f5f5;
+}
+
+.ads-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 24px;
@@ -20,8 +80,8 @@
 
 .ad-card {
   background: #fff;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -48,8 +108,6 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #fff3cd;
-  color: #856404;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.8rem;
@@ -57,24 +115,19 @@
   text-transform: uppercase;
 }
 
-.ad-type-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+.ad-status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
 }
 
-.ad-type-badge.partner {
-  background: #e3f2fd;
-  color: #1976d2;
+.ad-status-badge.approved {
+  background: #d4edda;
+  color: #155724;
 }
 
-.ad-type-badge.user {
-  background: #f3e5f5;
-  color: #7b1fa2;
+.ad-status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
 }
 
 .ad-content {
@@ -135,69 +188,37 @@
   font-size: 0.8rem;
 }
 
-.ad-contact,
-.ad-website {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ad-website a {
-  color: #004954;
-  text-decoration: none;
-}
-
-.ad-website a:hover {
-  text-decoration: underline;
-}
-
 .ad-actions {
   display: flex;
-  gap: 12px;
-}
-
-.btn-approve {
-  flex: 1;
-  background: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 8px;
 }
 
-.btn-approve:hover {
-  background: #218838;
+.btn-action {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
 }
 
-.btn-reject {
-  flex: 1;
+.btn-edit {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+}
+
+.btn-delete {
   background: #dc3545;
   color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
-.btn-reject:hover {
+.btn-delete:hover {
   background: #c82333;
 }
 
@@ -245,7 +266,26 @@
 }
 
 @media (max-width: 768px) {
-  .ads-pending-grid {
+  .main-content {
+    padding: 16px 8px;
+  }
+  
+  .partner-container {
+    padding: 24px 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .filter-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .ads-grid {
     grid-template-columns: 1fr;
   }
   

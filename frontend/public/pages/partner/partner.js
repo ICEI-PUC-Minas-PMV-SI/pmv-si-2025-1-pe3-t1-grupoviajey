@@ -1,71 +1,91 @@
+let currentFilter = 'all';
 let currentPage = 1;
 const adsPerPage = 6;
+const partnerId = 'partner_001'; // Simulated partner ID
 
 document.addEventListener('DOMContentLoaded', function() {
   // Load header and footer
   loadComponent('header', '../../components/header/header.html');
   loadComponent('footer', '../../components/footer/footer.html');
 
-  // Load pending ads
-  loadPendingAds();
+  // Initialize page
+  initializeEventListeners();
+  loadPartnerAds();
 });
 
-function loadPendingAds() {
-  const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  // Filter for partner ads and posts that are pending
-  const pendingAds = posts.filter(post => 
-    post.status === 'pending' && 
-    (post.type === 'partner_ad' || post.type === 'user_post' || !post.type)
-  );
+function initializeEventListeners() {
+  // Create ad button
+  document.getElementById('createAdBtn').addEventListener('click', function() {
+    window.location.href = 'createAd.html';
+  });
+
+  // Filter tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentFilter = this.dataset.status;
+      currentPage = 1;
+      loadPartnerAds();
+    });
+  });
+}
+
+function loadPartnerAds() {
+  const allAds = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
+  let partnerAds = allAds.filter(ad => ad.partnerId === partnerId);
+
+  // Apply filter
+  if (currentFilter !== 'all') {
+    partnerAds = partnerAds.filter(ad => ad.status === currentFilter);
+  }
 
   // Sort by creation date (newest first)
-  pendingAds.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  partnerAds.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   // Pagination
-  const totalPages = Math.ceil(pendingAds.length / adsPerPage);
+  const totalPages = Math.ceil(partnerAds.length / adsPerPage);
   const startIndex = (currentPage - 1) * adsPerPage;
   const endIndex = startIndex + adsPerPage;
-  const paginatedAds = pendingAds.slice(startIndex, endIndex);
+  const paginatedAds = partnerAds.slice(startIndex, endIndex);
 
   // Render ads
-  renderPendingAds(paginatedAds);
+  renderPartnerAds(paginatedAds);
   renderPagination(totalPages);
 }
 
-function renderPendingAds(ads) {
-  const adsGrid = document.getElementById('adsPendingGrid');
+function renderPartnerAds(ads) {
+  const adsGrid = document.getElementById('adsGrid');
   
   if (ads.length === 0) {
     adsGrid.innerHTML = `
       <div class="empty-state">
-        <h3>Nenhum anúncio pendente</h3>
-        <p>Todos os anúncios foram processados ou não há anúncios para aprovar no momento.</p>
+        <h3>Nenhum anúncio encontrado</h3>
+        <p>Você ainda não criou anúncios ${currentFilter === 'all' ? '' : `com status "${getStatusLabel(currentFilter)}"`}.</p>
+        <button class="btn-primary" onclick="window.location.href='createAd.html'">Criar meu primeiro anúncio</button>
       </div>
     `;
     return;
   }
 
-  adsGrid.innerHTML = ads.map(ad => createAdCard(ad)).join('');
+  adsGrid.innerHTML = ads.map(ad => createPartnerAdCard(ad)).join('');
   
   // Add event listeners to action buttons
   addAdActionListeners();
 }
 
-function createAdCard(ad) {
+function createPartnerAdCard(ad) {
   const imageHtml = ad.image 
     ? `<div class="ad-image" style="background-image: url('${ad.image}')"></div>`
     : `<div class="ad-image">Sem imagem</div>`;
 
   const rating = '★'.repeat(ad.rating) + '☆'.repeat(5 - ad.rating);
-  const isPartnerAd = ad.type === 'partner_ad';
-  const typeLabel = isPartnerAd ? 'Anúncio de Parceiro' : 'Postagem de Usuário';
   
   return `
     <div class="ad-card" data-id="${ad.id}">
       ${imageHtml}
-      <div class="ad-status-badge">Pendente</div>
+      <div class="ad-status-badge ${ad.status}">${getStatusLabel(ad.status)}</div>
       <div class="ad-content">
-        <div class="ad-type-badge ${isPartnerAd ? 'partner' : 'user'}">${typeLabel}</div>
         <h3 class="ad-title">${ad.title}</h3>
         <p class="ad-description">${ad.description}</p>
         <div class="ad-meta">
@@ -73,15 +93,9 @@ function createAdCard(ad) {
           <span class="ad-rating">${rating}</span>
         </div>
         ${ad.address ? `<div class="ad-address">${ad.address}</div>` : ''}
-        ${isPartnerAd && ad.phone ? `<div class="ad-contact">📞 ${ad.phone}</div>` : ''}
-        ${isPartnerAd && ad.website ? `<div class="ad-website">🌐 <a href="${ad.website}" target="_blank">${ad.website}</a></div>` : ''}
         <div class="ad-actions">
-          <button class="btn-approve" data-action="approve">
-            ✓ Aprovar
-          </button>
-          <button class="btn-reject" data-action="reject">
-            ✗ Rejeitar
-          </button>
+          <button class="btn-action btn-edit" data-action="edit">Editar</button>
+          <button class="btn-action btn-delete" data-action="delete">Excluir</button>
         </div>
       </div>
     </div>
@@ -89,7 +103,7 @@ function createAdCard(ad) {
 }
 
 function addAdActionListeners() {
-  document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
+  document.querySelectorAll('.btn-action').forEach(btn => {
     btn.addEventListener('click', function() {
       const adCard = this.closest('.ad-card');
       const adId = adCard.dataset.id;
@@ -101,23 +115,25 @@ function addAdActionListeners() {
 }
 
 function handleAdAction(adId, action) {
-  const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  const postIndex = posts.findIndex(p => p.id === adId);
-  
-  if (postIndex !== -1) {
-    const newStatus = action === 'approve' ? 'approved' : 'rejected';
-    posts[postIndex].status = newStatus;
-    posts[postIndex].updatedAt = new Date().toISOString();
-    
-    localStorage.setItem('viajey_posts', JSON.stringify(posts));
-    
-    // Show success message
-    const message = action === 'approve' ? 'Anúncio aprovado com sucesso!' : 'Anúncio rejeitado com sucesso!';
-    showToast(message);
-    
-    // Reload ads
-    loadPendingAds();
+  switch (action) {
+    case 'edit':
+      window.location.href = `editAd.html?edit=${adId}`;
+      break;
+    case 'delete':
+      if (confirm('Tem certeza que deseja excluir este anúncio?')) {
+        deleteAd(adId);
+      }
+      break;
   }
+}
+
+function deleteAd(adId) {
+  const ads = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
+  const filteredAds = ads.filter(ad => ad.id !== adId);
+  localStorage.setItem('viajey_posts', JSON.stringify(filteredAds));
+  
+  showToast('Anúncio excluído com sucesso!');
+  loadPartnerAds();
 }
 
 function renderPagination(totalPages) {
@@ -158,7 +174,16 @@ function renderPagination(totalPages) {
 
 function changePage(page) {
   currentPage = page;
-  loadPendingAds();
+  loadPartnerAds();
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    pending: 'Pendente',
+    approved: 'Aprovado',
+    rejected: 'Rejeitado'
+  };
+  return labels[status] || status;
 }
 
 function loadComponent(elementId, htmlPath) {
