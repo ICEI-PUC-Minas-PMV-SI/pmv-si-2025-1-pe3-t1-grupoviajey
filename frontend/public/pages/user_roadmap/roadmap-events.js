@@ -2,6 +2,7 @@ import { renderSavedPlacesTab } from './roadmap-storage.js';
 import { formatCurrencyInput, formatCurrency } from './roadmap-utils.js';
 import { budgetStorage } from './roadmap-storage.js';
 import { updateFinanceSummary, saveBudget } from './roadmap-finance.js';
+import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
 
 // =============================================
 // EVENTOS DE DRAG AND DROP
@@ -166,7 +167,45 @@ function handleSaveBudget() {
 // =============================================
 
 function handleTabClick(e) {
-    // ... existing code ...
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+
+    console.log('[Checklist] Tab clicada:', tab.textContent.trim());
+
+    // Remove active de todas as tabs
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+    // Adiciona active na tab clicada
+    tab.classList.add('active');
+
+    // Esconde todos os conteúdos
+    document.getElementById('tab-itinerary').style.display = 'none';
+    document.getElementById('tab-checklist').style.display = 'none';
+    document.getElementById('tab-saved-places').style.display = 'none';
+
+    // Mostra o conteúdo correspondente
+    if (tab.textContent.trim() === 'Roteiro') {
+        document.getElementById('tab-itinerary').style.display = 'block';
+    } else if (tab.textContent.trim() === 'Check-list') {
+        console.log('[Checklist] Mostrando tab de checklist');
+        document.getElementById('tab-checklist').style.display = 'block';
+        // Garante que o checklist está inicializado
+        const container = document.getElementById('checklistsContainer');
+        if (container) {
+            console.log('[Checklist] Container encontrado, inicializando...');
+            if (container.children.length === 0) {
+                initMultiChecklists();
+                setupAddChecklistBlockBtn();
+            } else {
+                console.log('[Checklist] Container já tem conteúdo');
+            }
+        } else {
+            console.error('[Checklist] Container não encontrado');
+        }
+    } else if (tab.textContent.trim() === 'Locais salvos') {
+        document.getElementById('tab-saved-places').style.display = 'block';
+        renderSavedPlacesTab();
+    }
 }
 
 // =============================================
@@ -174,11 +213,118 @@ function handleTabClick(e) {
 // =============================================
 
 export function initEventListeners() {
-    // ... existing code ...
+    // Inicializa eventos de tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', handleTabClick);
+    });
+
+    // Inicializa eventos de checklist
+    const checklistTab = document.querySelector('.tab:nth-child(3)');
+    if (checklistTab) {
+        checklistTab.addEventListener('click', () => {
+            console.log('[Checklist] Tab de checklist clicada');
+            const container = document.getElementById('checklistsContainer');
+            if (container) {
+                console.log('[Checklist] Container encontrado, inicializando...');
+                initMultiChecklists();
+                setupAddChecklistBlockBtn();
+            } else {
+                console.error('[Checklist] Container não encontrado');
+            }
+        });
+    }
+
+    // Inicializa eventos de orçamento
+    setupBudgetEventListeners();
+
+    // Inicializa eventos de despesas
+    setupExpenseEventListeners();
+
+    // Inicializa eventos de notas
+    setupNoteEventListeners();
 }
 
+// Função para inicializar o accordion
+function initRoadmapAccordion() {
+    const dayHeaders = document.querySelectorAll('.day-header');
+
+    dayHeaders.forEach(header => {
+        // Remove listeners antigos para evitar duplicação
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+
+        newHeader.addEventListener('click', function () {
+            const content = this.nextElementSibling;
+            const arrow = this.querySelector('.day-arrow');
+
+            // Toggle da classe active
+            this.classList.toggle('active');
+
+            // Toggle da visibilidade do conteúdo
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                content.classList.remove('active');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            } else {
+                // Calcula a altura total do conteúdo
+                content.style.maxHeight = 'none';
+                const fullHeight = content.scrollHeight;
+                content.style.maxHeight = '0';
+
+                // Força reflow
+                content.offsetHeight;
+
+                // Anima para a altura total
+                content.style.maxHeight = `${fullHeight}px`;
+                content.classList.add('active');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            }
+        });
+
+        // Configura estado inicial
+        const content = newHeader.nextElementSibling;
+        if (content) {
+            content.style.transition = 'max-height 300ms ease-in-out';
+            content.style.overflow = 'hidden';
+            content.style.maxHeight = '0';
+        }
+    });
+
+    // Observer para atualizar altura quando conteúdo mudar
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                const content = mutation.target.closest('.day-content');
+                if (content && content.classList.contains('active')) {
+                    // Recalcula altura se estiver aberto
+                    const fullHeight = content.scrollHeight;
+                    content.style.maxHeight = `${fullHeight}px`;
+                }
+            }
+        });
+    });
+
+    // Observar mudanças em todos os conteúdos do accordion
+    document.querySelectorAll('.day-content').forEach(content => {
+        observer.observe(content, {
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+    });
+}
+
+// Adiciona ao attachRoadmapEventListeners
 export function attachRoadmapEventListeners() {
-    // ... existing code ...
+    // Event listeners para tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', handleTabClick);
+    });
+
+    // Inicializa o accordion
+    initRoadmapAccordion();
+
+    // ... resto do código existente ...
 }
 
 // =============================================

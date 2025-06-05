@@ -37,7 +37,17 @@ const storage = {
 
 // Roadmap specific operations
 export const roadmapStorage = {
-    save: (data) => storage.save(STORAGE_KEYS.ROADMAP, data),
+    save: (data) => {
+        // Salva o estado do checklist junto com os dados do roadmap
+        const checklistItems = document.querySelectorAll('.checklist-item');
+        const checklistState = Array.from(checklistItems).map(item => {
+            const text = item.querySelector('.checklist-text').textContent;
+            const isChecked = item.querySelector('.checklist-checkbox').checked;
+            return { text, isChecked };
+        });
+        data.checklist = checklistState;
+        return storage.save(STORAGE_KEYS.ROADMAP, data);
+    },
     load: () => storage.load(STORAGE_KEYS.ROADMAP, {
         tripName: '',
         tripDestination: '',
@@ -45,7 +55,8 @@ export const roadmapStorage = {
         tripStart: '',
         tripEnd: '',
         tripDescription: '',
-        days: []
+        days: [],
+        checklist: []
     })
 };
 

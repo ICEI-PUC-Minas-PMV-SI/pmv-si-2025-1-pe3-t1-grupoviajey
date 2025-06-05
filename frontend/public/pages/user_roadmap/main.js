@@ -4,9 +4,9 @@ import { createLocalCard, getTrashSVG, getDragHandleSVG, createNoteDiv, createEx
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
 import { searchDestinationImage } from '../../services/api/unsplash.js';
-import { initRoadmapMap, initializeGoogleMapsAutocomplete, getLastSelectedPlace, clearLastSelectedPlace } from './roadmap-map.js';
 import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
 import { init as initFinance } from './roadmap-finance.js';
+import { initRoadmapMap, updateMap, initializeGoogleMapsAutocomplete } from './roadmap-map.js';
 import { roadmapStorage, handleAddToSavedPlaces, saveSavedPlacesToStorage, loadSavedPlacesFromStorage, renderSavedPlacesTab, initSavedPlaces } from './roadmap-storage.js';
 import { createDaysFromStorage, loadRoadmapFromStorage, saveRoadmapToStorage, handleAddToTimeline, createTimeline, getPlaceData } from './roadmap-core.js';
 import { attachRoadmapEventListeners, handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd, addDnDHandlers, handleLocalCardDragStart, handleLocalCardDragOver, handleLocalCardDragLeave, handleLocalCardDrop, handleLocalCardDragEnd, handleDayContentDragOver, handleDayContentDrop, handleDayContentDragLeave, addLocalCardDnDHandlers, addDayContentDnDHandlers, handleDayHeaderDragOver, addDayHeaderDnDHandlers, initLocalCardDnD, initEventListeners } from './roadmap-events.js';
@@ -53,9 +53,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. Inicializa estrutura do roteiro
     initRoadmapStructure(trip);
 
-    // 5. Inicializa módulos específicos
+    // 5. Inicializa módulos específicos (inclui o mapa)
     await initModules(trip);
 
+    // 6. Só aqui, depois do mapa e dos dados prontos, chame updateMap:
+    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
+    if (roadmap && Array.isArray(roadmap.days)) {
+      const allPlaces = roadmap.days
+        .flatMap(day => day.places)
+        .filter(p => p.lat && p.lng)
+        .map(p => ({
+          ...p,
+          latitude: Number(p.lat),
+          longitude: Number(p.lng),
+          types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
+        }));
+      if (typeof updateMap === 'function') {
+        updateMap(allPlaces);
+      }
+    }
   } catch (error) {
     console.error('Erro ao inicializar a página:', error);
     // TODO: Adicionar feedback visual para o usuário
@@ -100,15 +116,31 @@ function initRoadmapStructure(trip) {
 async function initModules(trip) {
   try {
     // 1. Inicializa o mapa com o destino correto
-    await initRoadmapMap(trip.destination);
+    console.log('[DEBUG] Inicializando mapa com destino:', trip.destination);
+    const map = await initRoadmapMap(trip.destination);
+    if (!map) {
+      console.error('[DEBUG] Falha ao inicializar mapa');
+    } else {
+      console.log('[DEBUG] Mapa inicializado com sucesso');
+      // Atualiza o mapa com os lugares salvos
+      const savedPlaces = loadSavedPlacesFromStorage();
+      if (savedPlaces && savedPlaces.length > 0) {
+        updateMap(savedPlaces);
+      }
+    }
 
     // 2. Inicializa storage e locais salvos
     initSavedPlaces();
 
     // 3. Inicializa checklists
-    if (document.getElementById('checklistsContainer')) {
+    console.log('[Checklist] Verificando container de checklists');
+    const checklistContainer = document.getElementById('checklistsContainer');
+    if (checklistContainer) {
+      console.log('[Checklist] Container encontrado, inicializando...');
       initMultiChecklists();
       setupAddChecklistBlockBtn();
+    } else {
+      console.error('[Checklist] Container não encontrado');
     }
 
     // 4. Inicializa finanças
@@ -117,12 +149,15 @@ async function initModules(trip) {
     // 5. Inicializa modais
     initModals();
 
-    // 6. Inicializa eventos
+    // 6. Configura eventos específicos (incluindo o botão de adicionar local)
+    setupSpecificEventListeners();
+
+    // 7. Inicializa eventos gerais
     attachRoadmapEventListeners();
     initEventListeners();
 
-    // 7. Configura eventos específicos
-    setupSpecificEventListeners();
+    // 8. Inicializa Google Maps Autocomplete
+    await initializeGoogleMapsAutocomplete('autocomplete');
 
   } catch (error) {
     console.error('Erro ao inicializar módulos:', error);
@@ -134,9 +169,14 @@ function setupSpecificEventListeners() {
   // Listener para o botão '+ Adicionar local' na tab de locais salvos
   const addSavedPlaceBtn = document.getElementById('addSavedPlaceBtn');
   if (addSavedPlaceBtn) {
-    addSavedPlaceBtn.addEventListener('click', () => {
+    console.log('[DEBUG] Configurando botão de adicionar local salvo');
+    addSavedPlaceBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('[DEBUG] Botão de adicionar local salvo clicado');
       openAddPlaceModal(null, true);
     });
+  } else {
+    console.error('[DEBUG] Botão de adicionar local salvo não encontrado');
   }
 
   // Garante que o checklist aparece ao trocar de aba
@@ -150,24 +190,64 @@ function setupSpecificEventListeners() {
       }
     });
   }
+}
 
-  // Event listeners para o botão de orçamento
-  const budgetBtn = document.getElementById('budgetBtn');
-  const budgetDropdown = document.getElementById('budgetDropdown');
+function adjustMapHeight() {
+  const mapContainer = document.querySelector('.results-map');
+  const mapElement = document.getElementById('map');
+  const itinerary = document.querySelector('.roadmap-itinerary');
 
-  if (budgetBtn && budgetDropdown) {
-    budgetBtn.addEventListener('click', () => {
-      budgetDropdown.classList.toggle('show');
+  if (!mapContainer || !mapElement || !itinerary) return;
+
+  // Obtém a altura do itinerário
+  const itineraryHeight = itinerary.scrollHeight;
+
+  // Aplica a altura do itinerário ao mapa
+  mapContainer.style.height = `${itineraryHeight}px`;
+  mapElement.style.height = '100%';
+  mapElement.style.width = '100%';
+}
+
+// Event listeners
+window.addEventListener('DOMContentLoaded', () => {
+  // Ajusta altura inicial
+  adjustMapHeight();
+
+  // Adiciona listeners para os headers do accordion
+  const dayHeaders = document.querySelectorAll('.day-header');
+  dayHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+      // Espera a animação do accordion terminar (300ms é o padrão do CSS)
+      setTimeout(adjustMapHeight, 300);
     });
+  });
 
-    // Fecha o dropdown ao clicar fora
-    document.addEventListener('click', (e) => {
-      if (!budgetBtn.contains(e.target) && !budgetDropdown.contains(e.target)) {
-        budgetDropdown.classList.remove('show');
-      }
+  // Observa mudanças no itinerário
+  const itinerary = document.querySelector('.roadmap-itinerary');
+  if (itinerary) {
+    const itineraryObserver = new MutationObserver(() => {
+      // Espera a animação do accordion terminar
+      setTimeout(adjustMapHeight, 300);
+    });
+    itineraryObserver.observe(itinerary, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
     });
   }
+});
+
+window.addEventListener('resize', adjustMapHeight);
+
+function updateFooterHeightVar() {
+  const footer = document.getElementById('footer');
+  const footerHeight = footer ? footer.offsetHeight : 0;
+  document.documentElement.style.setProperty('--footer-height', `${footerHeight}px`);
 }
+
+window.addEventListener('DOMContentLoaded', updateFooterHeightVar);
+window.addEventListener('resize', updateFooterHeightVar);
 
 
 

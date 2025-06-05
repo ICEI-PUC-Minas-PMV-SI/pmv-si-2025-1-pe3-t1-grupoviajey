@@ -1,10 +1,12 @@
 import { formatShortDateRange } from '../../js/utils/date.js';
+import { updateFinanceSummary, parseCurrencyToNumber } from './roadmap-finance.js';
+import { saveRoadmapToStorage } from './roadmap-core.js';
 
 // =============================================
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
 
-export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating }) {
+export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
   // rating pode ser string ("★★★☆☆") ou número
   let ratingHtml = '';
   // Prioriza rating numérico
@@ -32,6 +34,7 @@ export function createLocalCard({ name, address, rating, img, key, placeName, pl
       </div>
     </div>
   `;
+  card.dataset.key = key || name || address || (lat + ',' + lng);
   return card;
 }
 
@@ -39,11 +42,49 @@ export function createChecklistItem(text) {
   const li = document.createElement('li');
   li.className = 'checklist-item';
   li.setAttribute('draggable', 'true');
-  li.innerHTML = `
-    ${getDragHandleSVG()}
-    <label><input type="checkbox"> ${text}</label>
-    <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
-  `;
+
+  // Criar o drag handle
+  const dragHandle = document.createElement('span');
+  dragHandle.className = 'drag-handle';
+  dragHandle.textContent = '☰';
+
+  // Criar o checkbox
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'checklist-checkbox';
+
+  // Criar o texto
+  const textSpan = document.createElement('span');
+  textSpan.className = 'checklist-text';
+  textSpan.textContent = text;
+
+  // Criar o label
+  const label = document.createElement('label');
+  label.className = 'checklist-label';
+  label.appendChild(checkbox);
+  label.appendChild(textSpan);
+
+  // Criar o botão de remover
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-checklist-btn';
+  removeBtn.innerHTML = getTrashSVG();
+
+  // Adicionar o event listener para o checkbox
+  checkbox.addEventListener('change', function () {
+    if (this.checked) {
+      textSpan.style.textDecoration = 'line-through';
+      textSpan.style.color = '#888';
+    } else {
+      textSpan.style.textDecoration = 'none';
+      textSpan.style.color = '#1a3c4e';
+    }
+  });
+
+  // Montar a estrutura
+  li.appendChild(dragHandle);
+  li.appendChild(label);
+  li.appendChild(removeBtn);
+
   return li;
 }
 
@@ -83,39 +124,20 @@ export function createExpenseDiv(expenseName, value, currency) {
 // FORMATAÇÃO
 // =============================================
 
-export function parseCurrencyToNumber(str) {
-  if (!str) return 0;
-  str = str.replace(/(BRL|USD|EUR)/g, '').trim();
-  str = str.replace(/[^\d,\.]/g, '');
-  if (str.indexOf(',') > -1 && str.indexOf('.') === -1) {
-    str = str.replace(',', '.');
-  } else if (str.indexOf('.') > -1 && str.indexOf(',') > -1) {
-    str = str.replace(/\./g, '').replace(',', '.');
-  }
-  return parseFloat(str) || 0;
-}
+export function formatCurrencyInput(value, currency) {
+  if (!value) return '';
 
-// Utilitário para gerar estrelas exatas com meia estrela
-function getStarsHtml(rating) {
-  rating = Number(rating);
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.25 && rating % 1 < 0.75;
-  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-  let stars = '★'.repeat(fullStars);
-  if (halfStar) stars += '½';
-  stars += '☆'.repeat(emptyStars);
-  return `<span class="stars">${stars}</span> <span class="rating-value">${rating.toFixed(1)}</span>`;
-}
+  // Remove todos os caracteres não numéricos
+  let numericValue = value.replace(/\D/g, '');
 
-export function formatCurrencyInput(input, currency) {
-  let value = input.value.replace(/\D/g, '');
-  if (!value) {
-    input.value = '';
-    return;
-  }
-  let number = Number(value) / 100;
+  // Converte para número e divide por 100 para considerar os centavos
+  let number = Number(numericValue) / 100;
+
+  // Obtém o locale apropriado para a moeda
   let locale = getCurrencyLocale(currency);
-  input.value = number.toLocaleString(locale, {
+
+  // Formata o número como moeda
+  return number.toLocaleString(locale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 2
@@ -168,30 +190,223 @@ export function parseDate(str) {
 // MANIPULAÇÃO DE ELEMENTOS
 // =============================================
 
+function adjustTimelineHeight(timeline) {
+  if (!timeline) return;
+
+  const cards = timeline.querySelectorAll('.local-card, .timeline-note, .timeline-expense');
+  let totalHeight = 0;
+
+  cards.forEach(card => {
+    const cardHeight = card.offsetHeight;
+    const cardMargin = parseInt(window.getComputedStyle(card).marginBottom);
+    totalHeight += cardHeight + cardMargin;
+  });
+
+  // Adiciona um pequeno padding extra para espaçamento
+  totalHeight += 20;
+
+  // Define a altura mínima da timeline
+  timeline.style.minHeight = Math.max(totalHeight, 100) + 'px';
+}
+
 export function attachLocalCardActions(card) {
-  // implementação...
+  // Botão de remover
+  const removeBtn = card.querySelector('.remove-place-btn');
+  if (removeBtn) {
+    removeBtn.onclick = function () {
+      // Remove o card do DOM
+      card.remove();
+
+      // Remove o local do storage explicitamente
+      const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
+      if (roadmap && Array.isArray(roadmap.days)) {
+        for (const day of roadmap.days) {
+          const idx = day.places.findIndex(
+            p => (p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || ''))) === card.dataset.key
+          );
+          if (idx !== -1) {
+            day.places.splice(idx, 1);
+            break;
+          }
+        }
+        localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
+        // LOG para depuração
+        console.log('Storage após remoção:', JSON.parse(localStorage.getItem('userRoadmapData')));
+      }
+
+      // Atualiza o mapa com os dados atualizados do storage
+      if (roadmap && Array.isArray(roadmap.days)) {
+        const allPlaces = roadmap.days
+          .flatMap(day => day.places)
+          .filter(p => p.lat && p.lng)
+          .map(p => ({
+            ...p,
+            latitude: Number(p.lat),
+            longitude: Number(p.lng),
+            key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
+            types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
+          }));
+        // LOG para depuração
+        console.log('Array passado para updateMap:', allPlaces);
+        if (typeof window.updateMap === 'function') {
+          window.updateMap(allPlaces);
+        }
+      }
+
+      // Ajusta a altura da timeline
+      const timeline = card.closest('.day-timeline');
+      if (timeline) {
+        adjustTimelineHeight(timeline);
+      }
+    };
+  }
+
+  // Botão de anotação
+  const noteBtn = card.querySelector('.local-note-btn');
+  if (noteBtn) {
+    noteBtn.onclick = function (e) {
+      e.preventDefault();
+      if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
+      const form = document.createElement('div');
+      form.className = 'timeline-note note-inline-form';
+      form.innerHTML = `
+      <div class="note-form-container">
+         <svg width="18" height="18" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="2" fill="none" stroke="#222" stroke-width="1.3"/><path d="M6 8h8M6 12h5" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+         <textarea class="note-input" rows="2" placeholder="Digite sua anotação..."></textarea>
+      </div>
+
+      <div class="note-actions">
+         <button class="cancel-note-btn">Cancelar</button>
+         <button class="save-note-btn">Salvar</button>
+      </div>
+      `;
+      card.parentNode.insertBefore(form, card.nextElementSibling);
+      form.querySelector('.note-input').focus();
+      form.querySelector('.cancel-note-btn').onclick = function (e) {
+        if (e) e.stopPropagation();
+        form.remove();
+      };
+      form.querySelector('.save-note-btn').onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const value = form.querySelector('.note-input').value.trim();
+        if (value) {
+          const noteDiv = createNoteDiv(value);
+          card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
+          attachNoteActions(noteDiv, card);
+        }
+        form.remove();
+      };
+    };
+  }
+
+  // Botão de gastos
+  const expenseBtn = card.querySelector('.local-expense-btn');
+  if (expenseBtn) {
+    expenseBtn.onclick = function (e) {
+      e.preventDefault();
+      if (card.nextElementSibling && card.nextElementSibling.classList.contains('expense-inline-form')) return;
+      const form = document.createElement('div');
+      form.className = 'timeline-expense expense-inline-form';
+      form.innerHTML = `
+        <div class="expense-form-container">
+          <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)">
+          <input type="text" class="expense-input" placeholder="Valor" inputmode="decimal">
+          <select class="expense-currency-select">
+            <option value="BRL">BRL</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+
+          <div class="note-actions">
+          <button class="cancel-expense-btn">Cancelar</button>
+          <button class="save-expense-btn">Salvar</button>
+          </div>
+        </div>
+      `;
+      card.parentNode.insertBefore(form, card.nextElementSibling);
+
+      const valueInput = form.querySelector('.expense-input');
+      const currencySelect = form.querySelector('.expense-currency-select');
+
+      // Configura a formatação do input de valor
+      valueInput.addEventListener('input', function () {
+        const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
+        if (formattedValue !== valueInput.value) {
+          valueInput.value = formattedValue;
+        }
+      });
+
+      currencySelect.addEventListener('change', function () {
+        const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
+        if (formattedValue !== valueInput.value) {
+          valueInput.value = formattedValue;
+        }
+      });
+
+      form.querySelector('.expense-input').focus();
+
+      form.querySelector('.cancel-expense-btn').onclick = function (e) {
+        if (e) e.stopPropagation();
+        form.remove();
+      };
+
+      form.querySelector('.save-expense-btn').onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const expenseName = form.querySelector('.expense-name-input').value.trim();
+        const value = valueInput.value.trim();
+        const currency = currencySelect.value;
+        if (value) {
+          const expenseDiv = createExpenseDiv(expenseName, value, currency);
+          card.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
+          attachExpenseActions(expenseDiv, card);
+          if (typeof updateFinanceSummary === 'function') {
+            updateFinanceSummary();
+          }
+        }
+        form.remove();
+      };
+    };
+  }
+
+  card.addEventListener('mouseenter', () => {
+    if (window.roadmapMarkers && window.updateMarkerAnimation) {
+      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+      if (marker) window.updateMarkerAnimation(marker, true);
+    }
+  });
+  card.addEventListener('mouseleave', () => {
+    if (window.roadmapMarkers && window.updateMarkerAnimation) {
+      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+      if (marker) window.updateMarkerAnimation(marker, false);
+    }
+  });
 }
 
 export function attachNoteActions(noteDiv, card) {
   noteDiv.querySelector('.edit-note-btn').onclick = function () {
     if (card.nextElementSibling && card.nextElementSibling.classList.contains('note-inline-form')) return;
     const value = noteDiv.querySelector('.note-text').textContent;
-    const form = document.createElement('div');
-    form.className = 'note-inline-form';
-    form.innerHTML = `
-      <textarea class="note-input" rows="2">${value}</textarea>
-      <div class="note-actions">
-        <button class="cancel-note-btn">Cancelar</button>
-        <button class="save-note-btn">Salvar</button>
-      </div>
-    `;
-    card.parentNode.insertBefore(form, card.nextElementSibling);
-    form.querySelector('.note-input').focus();
 
-    // Adiciona event listeners
+    // Esconde a nota atual
+    noteDiv.style.display = 'none';
+
+    // Reutiliza o formulário de criação
+    const noteBtn = card.querySelector('.local-note-btn');
+    noteBtn.click();
+
+    // Preenche o valor e configura os botões
+    const form = card.nextElementSibling;
+    const textarea = form.querySelector('.note-input');
+    textarea.value = value;
+
+    // Atualiza os handlers dos botões
     form.querySelector('.cancel-note-btn').onclick = function (e) {
       if (e) e.stopPropagation();
       form.remove();
+      noteDiv.style.display = 'flex'; // Mostra a nota novamente
     };
 
     form.querySelector('.save-note-btn').onclick = function (e) {
@@ -199,13 +414,10 @@ export function attachNoteActions(noteDiv, card) {
       e.stopPropagation();
       const newValue = form.querySelector('.note-input').value.trim();
       if (newValue) {
-        const newNoteDiv = createNoteDiv(newValue);
-        card.parentNode.insertBefore(newNoteDiv, form.nextElementSibling);
-        attachNoteActions(newNoteDiv, card);
+        noteDiv.querySelector('.note-text').textContent = newValue;
       }
-      noteDiv.remove();
       form.remove();
-      if (typeof closeAddPlaceModal === 'function') closeAddPlaceModal();
+      noteDiv.style.display = 'flex'; // Mostra a nota novamente
     };
   };
 
@@ -216,9 +428,7 @@ export function attachNoteActions(noteDiv, card) {
 
 export function attachExpenseActions(expenseDiv, card) {
   expenseDiv.querySelector('.edit-expense-btn').onclick = function () {
-    let next = card.nextElementSibling;
-    if (next && next.classList.contains('note-inline-form')) next = next.nextElementSibling;
-    if (next && next.classList.contains('expense-inline-form')) return;
+    if (card.nextElementSibling && card.nextElementSibling.classList.contains('expense-inline-form')) return;
 
     const expenseText = expenseDiv.querySelector('.expense-text').textContent;
     let expenseName = '';
@@ -239,77 +449,80 @@ export function attachExpenseActions(expenseDiv, card) {
       currency = valueParts[1];
     }
 
-    const form = document.createElement('div');
-    form.className = 'expense-inline-form';
-    form.innerHTML = `
-      <div class="expense-input-row">
-        <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)" value="${expenseName}">
-        <input type="text" class="expense-input" value="${value}" inputmode="numeric">
-        <select class="expense-currency-select">
-          <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>BRL</option>
-          <option value="USD" ${currency === 'USD' ? 'selected' : ''}>USD</option>
-          <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>EUR</option>
-        </select>
-      </div>
-      <div class="note-actions">
-        <button class="cancel-expense-btn">Cancelar</button>
-        <button class="save-expense-btn">Salvar</button>
-      </div>
-    `;
+    // Esconde o gasto atual
+    expenseDiv.style.display = 'none';
 
-    let insertAfter = card;
-    if (card.nextElementSibling && card.nextElementSibling.classList.contains('timeline-note')) {
-      insertAfter = card.nextElementSibling;
+    // Reutiliza o formulário de criação
+    const expenseBtn = card.querySelector('.local-expense-btn');
+    expenseBtn.click();
+
+    // Preenche os valores e configura os botões
+    const form = card.nextElementSibling;
+    const nameInput = form.querySelector('.expense-name-input');
+    const valueInput = form.querySelector('.expense-input');
+    const currencySelect = form.querySelector('.expense-currency-select');
+
+    nameInput.value = expenseName;
+    valueInput.value = value;
+    currencySelect.value = currency;
+
+    // Configura a formatação do input de valor
+    valueInput.addEventListener('input', function () {
+      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
+      if (formattedValue !== valueInput.value) {
+        valueInput.value = formattedValue;
+      }
+    });
+
+    currencySelect.addEventListener('change', function () {
+      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
+      if (formattedValue !== valueInput.value) {
+        valueInput.value = formattedValue;
+      }
+    });
+
+    // Formata o valor inicial
+    const formattedValue = formatCurrencyInput(value, currency);
+    if (formattedValue !== value) {
+      valueInput.value = formattedValue;
     }
-    insertAfter.parentNode.insertBefore(form, insertAfter.nextElementSibling);
 
-    const input = form.querySelector('.expense-input');
-    const select = form.querySelector('.expense-currency-select');
-
-    // Formata o input de gasto
-    input.addEventListener('input', function () {
-      formatCurrencyInput(input, select.value);
-    });
-
-    select.addEventListener('change', function () {
-      formatCurrencyInput(input, select.value);
-    });
-
-    // Adiciona event listeners
+    // Atualiza os handlers dos botões
     form.querySelector('.cancel-expense-btn').onclick = function (e) {
       if (e) e.stopPropagation();
       form.remove();
+      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
     };
 
     form.querySelector('.save-expense-btn').onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
-      const expenseName = form.querySelector('.expense-name-input').value.trim();
-      const value = input.value.trim();
-      const currency = select.value;
+      const newExpenseName = nameInput.value.trim();
+      const newValue = valueInput.value.trim();
+      const newCurrency = currencySelect.value;
 
-      if (value) {
-        const newExpenseDiv = createExpenseDiv(expenseName, value, currency);
-        form.parentNode.insertBefore(newExpenseDiv, form.nextElementSibling);
-        attachExpenseActions(newExpenseDiv, card);
-        if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
+      if (newValue) {
+        let label = newValue + ' ' + newCurrency;
+        if (newExpenseName) {
+          label = `<b>${newExpenseName}:</b> ` + label;
+        }
+        expenseDiv.querySelector('.expense-text').innerHTML = label;
+
+        if (typeof updateFinanceSummary === 'function') {
+          updateFinanceSummary();
+        }
       }
 
-      expenseDiv.remove();
       form.remove();
-
-      if (typeof closeAddPlaceModal === 'function') {
-        closeAddPlaceModal();
-      } else {
-        const modal = document.getElementById('addPlaceModal');
-        if (modal) modal.style.display = 'none';
-      }
+      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
     };
   };
 
   expenseDiv.querySelector('.delete-expense-btn').onclick = function () {
     expenseDiv.remove();
-    if (typeof updateFinanceSummary === 'function') updateFinanceSummary();
+    if (typeof updateFinanceSummary === 'function') {
+      updateFinanceSummary();
+    }
   };
 }
 

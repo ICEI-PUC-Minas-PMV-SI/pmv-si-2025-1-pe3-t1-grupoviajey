@@ -1,10 +1,13 @@
-import { createLocalCard, attachLocalCardActions } from './roadmap-utils.js';
+import { createLocalCard, attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
 import { initNearbyAutocomplete } from '../../js/utils/nearby-autocomplete.js';
 import { roadmapStorage } from './roadmap-storage.js';
-import { saveRoadmapToStorage } from './roadmap-core.js';
-import { initializeGoogleMapsAutocomplete, getLastSelectedPlace, clearLastSelectedPlace } from './roadmap-map.js';
+import { saveRoadmapToStorage, createDaysFromStorage, createTimeline } from './roadmap-core.js';
+import { initializeGoogleMapsAutocomplete, getLastSelectedPlace, clearLastSelectedPlace, updateMap } from './roadmap-map.js';
 import { handleAddToTimeline, getPlaceData } from './roadmap-core.js';
-import { handleAddToSavedPlaces } from './roadmap-storage.js';
+import { handleAddToSavedPlaces, loadSavedPlacesFromStorage, renderSavedPlacesTab } from './roadmap-storage.js';
+import { searchDestinationImage } from '../../services/api/unsplash.js';
+import { updateFinanceSummary } from './roadmap-finance.js';
+import { initEventListeners } from './roadmap-events.js';
 
 
 // Estado dos modais
@@ -94,29 +97,97 @@ export function openEditTripModal() {
     }
 
     // Configura autocomplete do destino
+    let selectedPlace = null;
     if (window.google?.maps?.places) {
         if (!tripDestinationInput._autocompleteInitialized) {
             const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
                 types: ['(cities)'],
             });
+            autocomplete.addListener('place_changed', () => {
+                selectedPlace = autocomplete.getPlace();
+            });
             tripDestinationInput._autocompleteInitialized = true;
         }
     } else {
         let tries = 0;
+        const maxTries = 20;
         const tryInit = () => {
             if (window.google?.maps?.places) {
                 if (!tripDestinationInput._autocompleteInitialized) {
                     const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
                         types: ['(cities)'],
                     });
+                    autocomplete.addListener('place_changed', () => {
+                        selectedPlace = autocomplete.getPlace();
+                    });
                     tripDestinationInput._autocompleteInitialized = true;
                 }
-            } else if (tries < 10) {
+            } else if (tries < maxTries) {
                 tries++;
                 setTimeout(tryInit, 300);
             }
         };
         tryInit();
+    }
+
+    // Configura o botão de busca de foto
+    const searchPhotoBtn = document.getElementById('edit-search-destination-photo');
+    if (searchPhotoBtn) {
+        searchPhotoBtn.onclick = async function () {
+            const destination = document.getElementById('tripDestination').value;
+            if (!destination) {
+                alert('Por favor, selecione um destino primeiro.');
+                return;
+            }
+
+            const searchButton = this;
+            const originalText = searchButton.innerHTML;
+            searchButton.disabled = true;
+            searchButton.innerHTML = '<span>Buscando...</span>';
+
+            try {
+                const imageData = await searchDestinationImage(destination);
+                if (imageData && imageData.length > 0) {
+                    const photoPreview = document.getElementById('edit-photo-preview');
+                    photoPreview.innerHTML = `
+                        <div class="unsplash-gallery">
+                            ${imageData.map((img, idx) => `
+                                <img src="${img.thumb}" 
+                                     data-url="${img.url}" 
+                                     data-photographer="${img.photographer}" 
+                                     data-photographer-link="${img.photographerLink}"
+                                     class="unsplash-thumb" 
+                                     style="cursor:pointer; border-radius:8px; margin:4px; border:2px solid transparent;"
+                                     ${idx === 0 ? 'data-selected="true" style="border:2px solid #004954;"' : ''}
+                                />
+                            `).join('')}
+                        </div>
+                    `;
+                    photoPreview.classList.add('active');
+
+                    // Seleciona a primeira por padrão
+                    document.getElementById('edit-photo-url-hidden').value = imageData[0].url;
+
+                    // Adiciona evento de clique para cada thumb
+                    document.querySelectorAll('.unsplash-thumb').forEach(img => {
+                        img.addEventListener('click', function () {
+                            // Remove seleção anterior
+                            document.querySelectorAll('.unsplash-thumb').forEach(i => i.style.border = '2px solid transparent');
+                            this.style.border = '2px solid #004954';
+                            document.getElementById('edit-photo-url-hidden').value = this.dataset.url;
+                        });
+                    });
+                } else {
+                    alert('Não foi possível encontrar uma imagem para este destino.');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar imagem:', error);
+                alert('Erro ao buscar imagem do destino. Tente novamente.');
+            } finally {
+                searchButton.disabled = false;
+                searchButton.innerHTML = originalText;
+            }
+        };
     }
 
     modal.style.display = 'flex';
@@ -129,7 +200,115 @@ export function closeEditTripModal() {
 
 // Manipulação do formulário
 function handleEditTripFormSubmit(event) {
-    // ... existing code ...
+    event.preventDefault();
+    const name = document.getElementById('tripName').value;
+    const dest = document.getElementById('tripDestination').value;
+    const dateInput = document.getElementById('editTripDateRange');
+    const tripNameBanner = document.getElementById('tripNameBanner');
+    const tripDestinationBanner = document.getElementById('tripDestinationBanner');
+    const tripDateBanner = document.getElementById('tripDateBanner');
+    const tripDescriptionInput = document.getElementById('edit-trip-description');
+    const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
+    const photoUrl = document.getElementById('edit-photo-url-hidden').value;
+
+    // Atualiza na tela
+    if (tripNameBanner) tripNameBanner.textContent = name;
+    if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
+    if (tripDescriptionBanner && tripDescriptionInput) tripDescriptionBanner.textContent = tripDescriptionInput.value;
+
+    // Atualiza os dados no localStorage
+    const tripId = localStorage.getItem('selectedTripId');
+    if (tripId) {
+        const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+        const tripIndex = trips.findIndex(t => String(t.id) === String(tripId));
+
+        if (tripIndex !== -1) {
+            // Atualiza os dados básicos
+            trips[tripIndex].title = name;
+            trips[tripIndex].destination = dest;
+            trips[tripIndex].description = tripDescriptionInput.value;
+
+            // Atualiza a foto se houver uma nova
+            if (photoUrl) {
+                trips[tripIndex].photo = photoUrl;
+                // Atualiza a imagem de capa
+                const coverImg = document.getElementById('cover-img');
+                if (coverImg) coverImg.src = photoUrl;
+            }
+
+            // Atualiza as datas se houver seleção
+            if (dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
+                const startDate = dateInput._flatpickr.selectedDates[0];
+                const endDate = dateInput._flatpickr.selectedDates[1];
+                const oldStartDate = new Date(trips[tripIndex].startDate);
+                const oldEndDate = new Date(trips[tripIndex].endDate);
+
+                // Salva os locais dos dias que serão removidos
+                const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
+                const savedPlaces = JSON.parse(localStorage.getItem('saved_places') || '[]');
+
+                if (roadmap.days) {
+                    // Primeiro, move todos os locais sem data definida para saved_places
+                    const unassignedPlaces = JSON.parse(localStorage.getItem('unassigned_places') || '[]');
+                    unassignedPlaces.forEach(place => {
+                        if (!savedPlaces.some(p => p.place_id === place.place_id)) {
+                            savedPlaces.push(place);
+                        }
+                    });
+                    // Limpa os locais não atribuídos
+                    localStorage.setItem('unassigned_places', '[]');
+
+                    // Depois, move os locais dos dias que serão removidos
+                    roadmap.days.forEach(day => {
+                        const dayDate = new Date(day.date);
+                        // Se o dia está fora do novo período, move seus locais para saved_places
+                        if (dayDate < startDate || dayDate > endDate) {
+                            day.places.forEach(place => {
+                                // Verifica se o local já não está em saved_places
+                                if (!savedPlaces.some(p => p.place_id === place.place_id)) {
+                                    savedPlaces.push(place);
+                                }
+                            });
+                        }
+                    });
+
+                    // Salva os locais atualizados
+                    localStorage.setItem('saved_places', JSON.stringify(savedPlaces));
+                }
+
+                // Atualiza as datas da viagem
+                trips[tripIndex].startDate = startDate.toISOString().split('T')[0];
+                trips[tripIndex].endDate = endDate.toISOString().split('T')[0];
+                if (tripDateBanner) tripDateBanner.textContent = formatTripPeriod(startDate, endDate);
+
+                // Recria a timeline com os novos dias
+                const itinerary = document.querySelector('.roadmap-itinerary');
+                if (itinerary) {
+                    itinerary.innerHTML = '';
+                    createTimeline(startDate, endDate);
+                }
+            }
+
+            // Salva as alterações
+            localStorage.setItem('userTrips', JSON.stringify(trips));
+        }
+    }
+
+    // Fecha o modal
+    closeEditTripModal();
+
+    // Reatribui listeners e atualiza o roteiro
+    attachRoadmapEventListeners();
+    saveRoadmapToStorage();
+    setTimeout(updateFinanceSummary, 100);
+
+    // Atualiza a aba de locais salvos
+    renderSavedPlacesTab();
+
+    // Reinicializa todos os event listeners
+    setTimeout(() => {
+        initEventListeners();
+    }, 100);
 }
 
 // Upload e preview de foto
@@ -219,9 +398,23 @@ export function openAddPlaceModal(targetDayContent = null, isAddingToSavedPlaces
             if (calendarBtn) calendarBtn.style.display = 'none';
             if (searchBtn) searchBtn.style.display = 'none';
 
-            // Inicializa autocomplete restrito à cidade de destino
+            // Inicializa autocomplete restrito à cidade de destino, aguardando input existir
             const city = document.querySelector('#tripDestinationBanner')?.textContent?.trim() || '';
-            initializeGoogleMapsAutocomplete(city);
+            let tries = 0;
+            const maxTries = 20;
+            const tryInitAutocomplete = () => {
+                const input = container.querySelector('input');
+                if (input && window.google && window.google.maps && window.google.maps.places) {
+                    initializeGoogleMapsAutocomplete(city, '#modalSearchBarContainer input');
+                } else if (tries < maxTries) {
+                    tries++;
+                    setTimeout(tryInitAutocomplete, 50);
+                } else {
+                    // Só loga erro se realmente não conseguiu após todas as tentativas
+                    console.error('Erro ao inicializar autocomplete: Input não encontrado para autocomplete após várias tentativas');
+                }
+            };
+            tryInitAutocomplete();
         })
         .catch(error => {
             console.error('Error loading search bar:', error);
@@ -274,8 +467,8 @@ export function closeAddPlaceModal() {
 }
 
 function handleAddPlaceConfirm() {
-    // Obter o local selecionado do autocomplete
     const place = getLastSelectedPlace();
+    console.log('[DEBUG] getLastSelectedPlace', place);
     let placeData;
 
     if (place) {
@@ -295,6 +488,9 @@ function handleAddPlaceConfirm() {
     // Adiciona ao roteiro ou aos salvos
     if (modalState.isAddingToSavedPlaces) {
         handleAddToSavedPlaces(placeData);
+        // Atualiza o mapa com os locais salvos (incluindo o novo)
+        const savedPlaces = loadSavedPlacesFromStorage() || [];
+        updateMap(savedPlaces);
     } else if (modalState.targetDayContent) {
         handleAddToTimeline(placeData, modalState.targetDayContent);
     }
@@ -446,71 +642,7 @@ export function initModals() {
     // Configura o formulário de edição da viagem
     const editTripForm = document.getElementById('editTripForm');
     if (editTripForm) {
-        editTripForm.onsubmit = function (e) {
-            e.preventDefault();
-            const name = document.getElementById('tripName').value;
-            const dest = document.getElementById('tripDestination').value;
-            const dateInput = document.getElementById('editTripDateRange');
-            const tripNameBanner = document.getElementById('tripNameBanner');
-            const tripDestinationBanner = document.getElementById('tripDestinationBanner');
-            const tripDateBanner = document.getElementById('tripDateBanner');
-            const tripDescriptionInput = document.getElementById('edit-trip-description');
-            const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
-            const photoUrl = document.getElementById('edit-photo-url-hidden').value;
-
-            // Atualiza na tela
-            if (tripNameBanner) tripNameBanner.textContent = name;
-            if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
-            if (tripDescriptionBanner && tripDescriptionInput) tripDescriptionBanner.textContent = tripDescriptionInput.value;
-
-            // Atualiza os dados no localStorage
-            const tripId = localStorage.getItem('selectedTripId');
-            if (tripId) {
-                const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-                const tripIndex = trips.findIndex(t => String(t.id) === String(tripId));
-
-                if (tripIndex !== -1) {
-                    // Atualiza os dados básicos
-                    trips[tripIndex].title = name;
-                    trips[tripIndex].destination = dest;
-                    trips[tripIndex].description = tripDescriptionInput.value;
-
-                    // Atualiza a foto se houver uma nova
-                    if (photoUrl) {
-                        trips[tripIndex].photo = photoUrl;
-                        // Atualiza a imagem de capa
-                        const coverImg = document.getElementById('cover-img');
-                        if (coverImg) coverImg.src = photoUrl;
-                    }
-
-                    // Atualiza as datas se houver seleção
-                    if (dateInput && dateInput._flatpickr && dateInput._flatpickr.selectedDates.length === 2) {
-                        const startDate = dateInput._flatpickr.selectedDates[0];
-                        const endDate = dateInput._flatpickr.selectedDates[1];
-                        trips[tripIndex].startDate = startDate.toISOString().split('T')[0];
-                        trips[tripIndex].endDate = endDate.toISOString().split('T')[0];
-                        if (tripDateBanner) tripDateBanner.textContent = formatTripPeriod(startDate, endDate);
-                        createDaysFromStorage(trips[tripIndex].startDate, trips[tripIndex].endDate);
-                    }
-
-                    // Salva as alterações
-                    localStorage.setItem('userTrips', JSON.stringify(trips));
-                }
-            }
-
-            // Fecha o modal
-            closeEditTripModal();
-
-            // Reatribui listeners e atualiza o roteiro
-            attachRoadmapEventListeners();
-            saveRoadmapToStorage();
-            setTimeout(updateFinanceSummary, 100);
-
-            // Atualiza o mapa de forma robusta após DOM atualizado
-            setTimeout(() => {
-                resetAndInitMap(dest);
-            }, 50);
-        };
+        editTripForm.onsubmit = handleEditTripFormSubmit;
     }
 
     // Configura o popup de requisitos da foto
