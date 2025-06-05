@@ -15,12 +15,12 @@ async function initializePage() {
   includeFooter();
   includePlaceDetailsModal();
   includeReviewsModal();
-  
+
   try {
     // Inicializa os filtros
     console.log('Inicializando filtros...');
     initializeFilters();
-    
+
     // Carrega o script do Google Maps
     console.log('Carregando Google Maps...');
     await loadGoogleMapsScript();
@@ -41,6 +41,21 @@ async function initializePage() {
       await initializeMapWithCity(cidade);
     } else {
       console.log('Nenhuma cidade definida na busca');
+    }
+
+    // Após ambos estarem prontos:
+    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
+    if (roadmap && Array.isArray(roadmap.days)) {
+      const allPlaces = roadmap.days
+        .flatMap(day => day.places)
+        .filter(p => p.lat && p.lng)
+        .map(p => ({
+          ...p,
+          latitude: Number(p.lat),
+          longitude: Number(p.lng),
+          types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
+        }));
+      updateMap(allPlaces);
     }
   } catch (error) {
     console.error('Erro ao inicializar página:', error);
