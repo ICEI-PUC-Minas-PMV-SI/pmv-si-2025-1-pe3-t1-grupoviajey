@@ -5,15 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Viajey</title>
   <link rel="stylesheet" href="/css/main.css">
-  <!-- <link rel="stylesheet" href="/css/global.css"> -->
   <link rel="stylesheet" href="/pages/home/index.css">
   <link rel="stylesheet" href="../../components/header/header.css">
   <link rel="stylesheet" href="../../components/footer/footer.css">
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/carousel/carousel.css">
+  <link rel="stylesheet" href="../../components/modal/detail-modal/detail-modal.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="../../js/config/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
   <div id="header"></div>
@@ -24,21 +28,410 @@
       <div class="subheading-cta">ou você também pode</div>
     </section>
     <section class="ia-banner-cta">
-      <div class="ia-banner-bg"></div>
-      <div class="ia-banner-content">
-        <h2>Deixar com a nossa IA!<br>Ela te ajuda a descobrir onde ir,<br>o que fazer e quanto gastar.</h2>
+              <div class="ia-banner-bg"></div>
+              <div class="ia-banner-content">
+                <h2>Deixar com a nossa IA!<br>Ela te ajuda a descobrir onde ir,<br>o que fazer e quanto gastar.</h2>
         <button id="open-ai-modal" class="cta-btn">Gerar meu roteiro agora!</button>
       </div>
     </section>
-    <section class="cards-section">
-      <div class="cta-card">Clima do local que a pessoa está</div>
-      <div class="cta-card">Propaganda</div>
-      <div class="cta-card">Propaganda de algo</div>
+
+    <!-- Interactive Cards Section -->
+    <section class="interactive-cards-section w-100">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 text-center mb-5">
+            <p class="section-subtitle mx-auto">Explore diferentes categorias</p>
+          </div>
+        </div>
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-4 col-md-6 d-flex justify-content-center">
+            <div class="interactive-card" data-category="clima">
+              <div class="card-icon">
+                <i class="fas fa-sun"></i>
+              </div>
+              <h3 class="card-title">Clima do local que a pessoa está</h3>
+              <div class="card-hover-content">
+                <p>Descubra as condições climáticas atuais e previsão do tempo</p>
+                <button class="card-action-btn">Ver Clima</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex justify-content-center">
+            <div class="interactive-card" data-category="atracoes">
+              <div class="card-icon">
+                <i class="fas fa-map-marked-alt"></i>
+              </div>
+              <h3 class="card-title">Chegando para ver as atrações</h3>
+              <div class="card-hover-content">
+                <p>Explore as principais atrações turísticas da região</p>
+                <button class="card-action-btn">Ver Atrações</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 d-flex justify-content-center">
+            <div class="interactive-card" data-category="propaganda">
+              <div class="card-icon">
+                <i class="fas fa-bullhorn"></i>
+              </div>
+              <h3 class="card-title">Propaganda de algo</h3>
+              <div class="card-hover-content">
+                <p>Descubra ofertas especiais e promoções exclusivas</p>
+                <button class="card-action-btn">Ver Ofertas</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
+    
+    <!-- Content Sections -->
+    <div class="content-wrapper w-100">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 text-center">
+            <!-- Posts Carousel -->
+            <div id="posts-carousel-container" class="content-section mx-auto"></div>
+
+            <!-- Ads Carousel -->
+            <div id="ads-carousel-container" class="content-section mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
+
   <div id="footer"></div>
   <div id="ai-modal-root"></div>
+  <div id="detail-modal-container"></div>
+
   <script src="../../js/utils/include.js"></script>
+  <script>
+    // Define ViajeyCarousel class
+    class ViajeyCarousel {
+      constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+          title: options.title || '',
+          dataSource: options.dataSource || 'localStorage',
+          storageKey: options.storageKey || 'viajey_posts',
+          dataType: options.dataType || 'post',
+          maxItems: options.maxItems || 5,
+          filter: options.filter || null,
+          onCardClick: options.onCardClick || null,
+          ...options
+        };
+        
+        this.init();
+      }
+
+      async init() {
+        console.log('Initializing carousel:', this.options.title);
+        this.createHTML();
+        await this.loadData();
+      }
+
+      createHTML() {
+        const carouselHTML = `
+          <section class="carousel-section">
+            <h2 class="section-title">${this.options.title}</h2>
+            <div class="carousel-content row g-4" id="carousel-${Date.now()}">
+              <!-- Content will be loaded here -->
+            </div>
+          </section>
+        `;
+        
+        this.container.innerHTML = carouselHTML;
+        this.contentContainer = this.container.querySelector('.carousel-content');
+      }
+
+      async loadData() {
+        try {
+          let data = [];
+          
+          if (this.options.dataSource === 'localStorage') {
+            const storedData = localStorage.getItem(this.options.storageKey);
+            data = storedData ? JSON.parse(storedData) : [];
+            console.log('Data loaded from localStorage:', data.length, 'items');
+          }
+          
+          if (this.options.filter) {
+            data = data.filter(this.options.filter);
+            console.log('Data after filter:', data.length, 'items');
+          }
+          
+          if (data && data.length > 0) {
+            const limitedData = data.slice(0, this.options.maxItems);
+            this.createCards(limitedData);
+            console.log('Cards created for:', this.options.title);
+          } else {
+            this.showEmptyState('Nenhum item encontrado');
+            console.log('No items found for:', this.options.title);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+          this.showEmptyState('Erro ao carregar dados');
+        }
+      }
+
+      createCards(items) {
+        this.contentContainer.innerHTML = '';
+        
+        items.forEach((item, index) => {
+          const col = document.createElement('div');
+          col.className = 'col-12 col-sm-6 col-lg-4 col-xl-3';
+          col.style.animationDelay = `${index * 0.1}s`;
+          
+          const card = this.createCard(item);
+          col.appendChild(card);
+          this.contentContainer.appendChild(col);
+        });
+      }
+
+      createCard(item) {
+        const card = document.createElement('div');
+        card.className = 'card h-100';
+        card.style.cursor = 'pointer';
+        
+        const defaultImage = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
+        const imageUrl = item.image || defaultImage;
+        const stars = this.generateStars(item.rating || 5);
+        
+        const truncatedDescription = item.description && item.description.length > 80 
+          ? item.description.substring(0, 80) + '...' 
+          : (item.description || '');
+        
+        card.innerHTML = `
+          <div class="position-relative overflow-hidden">
+            <img src="${imageUrl}" class="card-img-top" alt="${item.title}" 
+                 onerror="this.src='${defaultImage}'">
+            <div class="position-absolute top-0 end-0 m-3">
+              <span class="badge ${item.type === 'partner_ad' ? 'bg-success' : 'bg-info'}">
+                ${item.type === 'partner_ad' ? 'Parceiro' : 'Post'}
+              </span>
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">${item.title}</h5>
+            <p class="card-text flex-grow-1 text-muted">${truncatedDescription}</p>
+            <div class="mt-auto">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-warning fs-6">${stars}</span>
+                <small class="text-muted fw-bold">${item.rating || 5}/5</small>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-primary">${this.getCategoryName(item.category)}</span>
+                <small class="text-muted">
+                  <i class="fas fa-eye me-1"></i>Ver mais
+                </small>
+              </div>
+              ${item.address ? `<div class="text-muted mt-2"><small><i class="fas fa-map-marker-alt me-1"></i>${item.address.substring(0, 40)}...</small></div>` : ''}
+            </div>
+          </div>
+        `;
+        
+        card.addEventListener('click', () => {
+          if (this.options.onCardClick) {
+            this.options.onCardClick(item, this.options.dataType);
+          } else {
+            this.showDetailModal(item);
+          }
+        });
+        
+        return card;
+      }
+
+      showDetailModal(item) {
+        const existingModal = document.getElementById('detailModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        const stars = this.generateStars(item.rating || 5);
+        const isPartnerAd = item.type === 'partner_ad';
+        const defaultImage = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80';
+        
+        const modalHTML = `
+          <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                  <div class="d-flex align-items-center">
+                    <span class="badge ${isPartnerAd ? 'bg-success' : 'bg-info'} me-2">
+                      ${isPartnerAd ? 'Anúncio Parceiro' : 'Postagem'}
+                    </span>
+                    <span class="badge bg-primary">${this.getCategoryName(item.category)}</span>
+                  </div>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="row g-0">
+                    <div class="col-md-6">
+                      <img src="${item.image || defaultImage}" 
+                           class="img-fluid rounded-start h-100 w-100" 
+                           style="object-fit: cover; min-height: 300px;"
+                           alt="${item.title}"
+                           onerror="this.src='${defaultImage}'">
+                    </div>
+                    <div class="col-md-6">
+                      <div class="p-4">
+                        <h4 class="card-title mb-3 text-primary">${item.title}</h4>
+                        
+                        <div class="mb-3">
+                          <div class="d-flex align-items-center mb-2">
+                            <span class="text-warning fs-5 me-2">${stars}</span>
+                            <span class="text-muted">(${item.rating || 5} de 5)</span>
+                          </div>
+                        </div>
+
+                        <p class="card-text text-muted mb-3">${item.description}</p>
+
+                        ${item.address ? `
+                          <div class="mb-3">
+                            <h6 class="text-secondary mb-2">
+                              <i class="fas fa-map-marker-alt me-2"></i>Localização
+                            </h6>
+                            <p class="mb-0">${item.address}</p>
+                          </div>
+                        ` : ''}
+
+                        ${item.phone ? `
+                          <div class="mb-3">
+                            <h6 class="text-secondary mb-2">
+                              <i class="fas fa-phone me-2"></i>Contato
+                            </h6>
+                            <p class="mb-0">
+                              <a href="tel:${item.phone}" class="text-decoration-none">${item.phone}</a>
+                            </p>
+                          </div>
+                        ` : ''}
+
+                        ${item.website ? `
+                          <div class="mb-3">
+                            <h6 class="text-secondary mb-2">
+                              <i class="fas fa-globe me-2"></i>Website
+                            </h6>
+                            <p class="mb-0">
+                              <a href="${item.website}" target="_blank" class="text-decoration-none">
+                                Visitar Site <i class="fas fa-external-link-alt ms-1"></i>
+                              </a>
+                            </p>
+                          </div>
+                        ` : ''}
+
+                        <div class="mt-4 pt-3 border-top">
+                          <small class="text-muted">
+                            <i class="fas fa-calendar me-2"></i>
+                            Criado em ${new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                  <div class="d-flex gap-2 w-100">
+                    ${item.phone ? `
+                      <a href="tel:${item.phone}" class="btn btn-outline-primary flex-fill">
+                        <i class="fas fa-phone me-2"></i>Ligar
+                      </a>
+                    ` : ''}
+                    ${item.website ? `
+                      <a href="${item.website}" target="_blank" class="btn btn-primary flex-fill">
+                        <i class="fas fa-globe me-2"></i>Visitar Site
+                      </a>
+                    ` : ''}
+                    ${!item.phone && !item.website ? `
+                      <button type="button" class="btn btn-primary flex-fill" data-bs-dismiss="modal">
+                        <i class="fas fa-heart me-2"></i>Favoritar
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
+
+        document.getElementById('detailModal').addEventListener('hidden.bs.modal', function () {
+          this.remove();
+        });
+      }
+
+      generateStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 !== 0;
+        let stars = '';
+        
+        for (let i = 0; i < fullStars; i++) {
+          stars += '★';
+        }
+        
+        if (hasHalfStar) {
+          stars += '☆';
+        }
+        
+        const emptyStars = 5 - Math.ceil(rating);
+        for (let i = 0; i < emptyStars; i++) {
+          stars += '☆';
+        }
+        
+        return stars;
+      }
+
+      getCategoryName(category) {
+        const categories = {
+          'hotel': 'Hotel',
+          'restaurante': 'Restaurante',
+          'atividade': 'Atividade',
+          'transporte': 'Transporte',
+          'outros': 'Outros'
+        };
+        return categories[category] || category || 'Sem categoria';
+      }
+
+      showEmptyState(message) {
+        this.contentContainer.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state">
+              <h5 class="text-muted">${message}</h5>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    window.ViajeyCarousel = ViajeyCarousel;
+
+    // Interactive cards functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const interactiveCards = document.querySelectorAll('.interactive-card');
+      
+      interactiveCards.forEach(card => {
+        card.addEventListener('click', function() {
+          const category = this.getAttribute('data-category');
+          console.log('Clicked on category:', category);
+          
+          // Add your specific functionality for each category here
+          switch(category) {
+            case 'clima':
+              // Implementar funcionalidade de clima
+              break;
+            case 'atracoes':
+              // Implementar funcionalidade de atrações
+              break;
+            case 'propaganda':
+              // Implementar funcionalidade de propaganda
+              break;
+          }
+        });
+      });
+    });
+  </script>
+  <script src="../../components/modal/detail-modal/detail-modal.js"></script>
   <script>
     // Inclui o componente search-bar
     fetch('../../components/search-bar/search-bar.html')
@@ -115,6 +508,222 @@
       }
     }
     loadGoogleMapsScript();
+
+    // Initialize carousels
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Initialize sample data if none exists
+      const existingPosts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
+      if (existingPosts.length === 0) {
+        const sampleData = [
+          {
+            id: 'sample_post_1',
+            title: 'Hotel Vista Mar - Copacabana',
+            description: 'Hotel luxuoso com vista para o mar, localizado em Copacabana. Quartos espaçosos e serviço de primeira classe.',
+            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+            category: 'hotel',
+            rating: 5,
+            address: 'Av. Atlântica, 1020 - Copacabana, Rio de Janeiro - RJ',
+            status: 'approved',
+            type: 'user_post',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'sample_post_2',
+            title: 'Trilha da Pedra Bonita',
+            description: 'Uma das trilhas mais bonitas do Rio de Janeiro com vista incrível da cidade.',
+            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80',
+            category: 'atividade',
+            rating: 4,
+            address: 'São Conrado, Rio de Janeiro - RJ',
+            status: 'approved',
+            type: 'user_post',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'sample_post_3',
+            title: 'Praia de Ipanema',
+            description: 'Uma das praias mais famosas do mundo, perfeita para relaxar e praticar esportes.',
+            image: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=800&q=80',
+            category: 'atividade',
+            rating: 5,
+            address: 'Ipanema, Rio de Janeiro - RJ',
+            status: 'approved',
+            type: 'user_post',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'sample_ad_1',
+            partnerId: 'partner_001',
+            title: 'Restaurante Bela Vista',
+            description: 'Culinária italiana autêntica com ingredientes frescos e ambiente aconchegante.',
+            image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+            category: 'restaurante',
+            rating: 4,
+            address: 'Rua das Flores, 123 - Ipanema, Rio de Janeiro - RJ',
+            phone: '(21) 99999-9999',
+            website: 'https://restaurantebelavista.com',
+            status: 'approved',
+            type: 'partner_ad',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'sample_ad_2',
+            partnerId: 'partner_002',
+            title: 'Transfers Premium Rio',
+            description: 'Serviço de transfer executivo do aeroporto para hotéis com veículos de luxo.',
+            image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=800&q=80',
+            category: 'transporte',
+            rating: 5,
+            address: 'Aeroporto Internacional do Rio de Janeiro',
+            phone: '(21) 88888-8888',
+            website: 'https://transferspremium.com',
+            status: 'approved',
+            type: 'partner_ad',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'sample_ad_3',
+            partnerId: 'partner_003',
+            title: 'Pousada do Sol',
+            description: 'Pousada aconchegante com café da manhã incluído e localização privilegiada.',
+            image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80',
+            category: 'hotel',
+            rating: 4,
+            address: 'Rua das Palmeiras, 456 - Santa Teresa, Rio de Janeiro - RJ',
+            phone: '(21) 77777-7777',
+            website: 'https://pousadadosol.com',
+            status: 'approved',
+            type: 'partner_ad',
+            createdAt: new Date().toISOString()
+          }
+        ];
+        localStorage.setItem('viajey_posts', JSON.stringify(sampleData));
+        console.log('Sample data created:', sampleData);
+      }
+
+      // Wait a bit for everything to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Initializing carousels...');
+      
+      // Initialize posts carousel
+      const postsContainer = document.getElementById('posts-carousel-container');
+      if (postsContainer) {
+        new ViajeyCarousel(postsContainer, {
+          title: 'Últimas Postagens',
+          dataSource: 'localStorage',
+          storageKey: 'viajey_posts',
+          dataType: 'post',
+          maxItems: 5,
+          filter: post => post.status === 'approved' && (!post.type || post.type === 'user_post'),
+          onCardClick: null
+        });
+        console.log('Posts carousel initialized');
+      }
+      
+      // Initialize ads carousel
+      const adsContainer = document.getElementById('ads-carousel-container');
+      if (adsContainer) {
+        new ViajeyCarousel(adsContainer, {
+          title: 'Anúncios em Destaque',
+          dataSource: 'localStorage',
+          storageKey: 'viajey_posts',
+          dataType: 'ad',
+          maxItems: 5,
+          filter: ad => ad.status === 'approved' && ad.type === 'partner_ad',
+          onCardClick: null
+        });
+        console.log('Ads carousel initialized');
+      }
+    });
+  </script>
+  <script>
+    // Clean, modern AI Banner interactions
+    document.addEventListener('DOMContentLoaded', function() {
+      const aiBanner = document.querySelector('.ia-banner-cta');
+      const ctaButton = document.querySelector('#open-ai-modal');
+      
+      if (aiBanner) {
+        // Simple, clean hover effects
+        aiBanner.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-4px)';
+          this.style.boxShadow = '0 16px 48px rgba(0,0,0,0.16)';
+        });
+        
+        aiBanner.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 8px 32px rgba(0,0,0,0.12)';
+        });
+        
+        // Simple click effect
+        aiBanner.addEventListener('click', function(e) {
+          if (e.target !== ctaButton && !ctaButton.contains(e.target)) {
+            if (window.openAiModal) {
+              window.openAiModal();
+            }
+          }
+        });
+      }
+      
+      if (ctaButton) {
+        // Clean button effects
+        ctaButton.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 8px 20px rgba(102,126,234,0.4)';
+        });
+        
+        ctaButton.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 4px 12px rgba(102,126,234,0.3)';
+        });
+        
+        ctaButton.addEventListener('mousedown', function() {
+          this.style.transform = 'translateY(-1px) scale(0.98)';
+        });
+        
+        ctaButton.addEventListener('mouseup', function() {
+          this.style.transform = 'translateY(-2px) scale(1)';
+        });
+      }
+      
+      // Clean scroll animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+      
+      // Observe elements for clean scroll animations
+      const animatedElements = document.querySelectorAll('.ia-banner-cta, .interactive-cards-section, .content-section');
+      animatedElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = `all 0.6s ease ${index * 0.1}s`;
+        observer.observe(el);
+      });
+      
+      // Clean interactive cards
+      const interactiveCards = document.querySelectorAll('.interactive-card');
+      interactiveCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-6px)';
+          this.style.boxShadow = '0 12px 32px rgba(0,0,0,0.12)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+        });
+      });
+    });
   </script>
 </body>
-</html> 
+</html>
