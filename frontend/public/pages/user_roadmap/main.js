@@ -265,17 +265,19 @@ function attachHoverEvents() {
   console.log('Markers disponíveis:', window.roadmapMarkers);
   console.log('Cards disponíveis:', document.querySelectorAll('.local-card').length);
 
-  // Remove eventos antigos para evitar duplicação
-  document.querySelectorAll('.local-card').forEach(card => {
-    const newCard = card.cloneNode(true);
-    card.parentNode.replaceChild(newCard, card);
-  });
-
-  // Adiciona novos eventos
+  // Adiciona eventos de hover sem clonar os cards
   document.querySelectorAll('.local-card').forEach(card => {
     if (card.dataset.key) {
       console.log('Anexando eventos para card:', card.dataset.key);
-      card.addEventListener('mouseenter', () => {
+
+      // Remove eventos antigos de hover se existirem
+      const oldEnter = card._mouseEnterHandler;
+      const oldLeave = card._mouseLeaveHandler;
+      if (oldEnter) card.removeEventListener('mouseenter', oldEnter);
+      if (oldLeave) card.removeEventListener('mouseleave', oldLeave);
+
+      // Cria novos handlers
+      const mouseEnterHandler = () => {
         console.log('Mouse enter em card:', card.dataset.key);
         if (window.roadmapMarkers) {
           const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
@@ -284,9 +286,9 @@ function attachHoverEvents() {
             window.updateMarkerAnimation(marker, true);
           }
         }
-      });
+      };
 
-      card.addEventListener('mouseleave', () => {
+      const mouseLeaveHandler = () => {
         console.log('Mouse leave em card:', card.dataset.key);
         if (window.roadmapMarkers) {
           const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
@@ -294,7 +296,15 @@ function attachHoverEvents() {
             window.updateMarkerAnimation(marker, false);
           }
         }
-      });
+      };
+
+      // Armazena referências aos handlers
+      card._mouseEnterHandler = mouseEnterHandler;
+      card._mouseLeaveHandler = mouseLeaveHandler;
+
+      // Adiciona os novos eventos
+      card.addEventListener('mouseenter', mouseEnterHandler);
+      card.addEventListener('mouseleave', mouseLeaveHandler);
     }
   });
 }
