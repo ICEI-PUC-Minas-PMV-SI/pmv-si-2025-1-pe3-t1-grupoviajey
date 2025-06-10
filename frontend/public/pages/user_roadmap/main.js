@@ -8,7 +8,7 @@ import { searchDestinationImage } from '../../services/api/unsplash.js';
 import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
 import { init as initFinance } from './roadmap-finance.js';
 import { initRoadmapMap, updateMap, initializeGoogleMapsAutocomplete } from './roadmap-map.js';
-import { roadmapStorage, handleAddToSavedPlaces, saveSavedPlacesToStorage, loadSavedPlacesFromStorage, renderSavedPlacesTab, initSavedPlaces } from './roadmap-storage.js';
+import { roadmapStorage, handleAddToSavedPlaces, saveSavedPlacesToStorage, loadSavedPlacesFromStorage, renderSavedPlacesTab, initSavedPlaces, loadCurrentTripData } from './roadmap-storage.js';
 import { createDaysFromStorage, loadRoadmapFromStorage, saveRoadmapToStorage, handleAddToTimeline, createTimeline, getPlaceData } from './roadmap-core.js';
 import { attachRoadmapEventListeners, handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd, addDnDHandlers, handleLocalCardDragStart, handleLocalCardDragOver, handleLocalCardDragLeave, handleLocalCardDrop, handleLocalCardDragEnd, handleDayContentDragOver, handleDayContentDrop, handleDayContentDragLeave, addLocalCardDnDHandlers, addDayContentDnDHandlers, handleDayHeaderDragOver, addDayHeaderDnDHandlers, initLocalCardDnD, initEventListeners } from './roadmap-events.js';
 // import { fetchUserTrips } from '../../services/api/roadmapService.js'; // [BACKEND FUTURO]
@@ -44,11 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(attachHoverEvents, 500);
     });
 
-    // 2. Carrega dados da viagem
-    const selectedTripId = localStorage.getItem('selectedTripId');
-    const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-    const trip = trips.find(t => String(t.id) === String(selectedTripId));
-
+    // 2. Carrega dados da viagem atual
+    const trip = loadCurrentTripData();
     if (!trip) {
       window.location.href = '/pages/user_dashboard/user-dashboard.html';
       return;

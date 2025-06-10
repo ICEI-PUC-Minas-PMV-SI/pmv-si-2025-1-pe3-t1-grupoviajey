@@ -1,6 +1,6 @@
 import { createLocalCard, attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
 import { initNearbyAutocomplete } from '../../js/utils/nearby-autocomplete.js';
-import { roadmapStorage } from './roadmap-storage.js';
+import { roadmapStorage, saveTripData } from './roadmap-storage.js';
 import { saveRoadmapToStorage, createDaysFromStorage, createTimeline, loadRoadmapFromStorage } from './roadmap-core.js';
 import { initializeGoogleMapsAutocomplete, getLastSelectedPlace, clearLastSelectedPlace, updateMap } from './roadmap-map.js';
 import { handleAddToTimeline, getPlaceData } from './roadmap-core.js';
@@ -223,74 +223,58 @@ function handleEditTripFormSubmit(event) {
     if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
     if (tripDescriptionBanner && tripDescriptionInput) tripDescriptionBanner.textContent = tripDescriptionInput.value;
 
-    // Atualiza os dados no localStorage
+    // Prepara os dados da viagem
     const tripId = localStorage.getItem('selectedTripId');
     if (tripId) {
-      const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-      const tripIndex = trips.findIndex(t => String(t.id) === String(tripId));
+      const tripData = {
+        id: tripId,
+        title: name,
+        destination: dest,
+        description: tripDescriptionInput?.value || ''
+      };
 
-      if (tripIndex !== -1) {
-        // Atualiza os dados básicos
-        trips[tripIndex].title = name;
-        trips[tripIndex].destination = dest;
-        trips[tripIndex].description = tripDescriptionInput?.value || '';
+      // Atualiza as datas se houver seleção
+      if (dateInput?._flatpickr?.selectedDates?.length === 2) {
+        const startDate = dateInput._flatpickr.selectedDates[0];
+        const endDate = dateInput._flatpickr.selectedDates[1];
+        tripData.startDate = startDate.toISOString();
+        tripData.endDate = endDate.toISOString();
 
-        // Atualiza a foto se houver uma nova
-        if (photoUrl) {
-          trips[tripIndex].photo = photoUrl;
-          const coverImg = document.getElementById('cover-img');
-          if (coverImg) coverImg.src = photoUrl;
+        // Atualiza o banner de datas
+        if (tripDateBanner) {
+          tripDateBanner.textContent = formatTripPeriod(startDate, endDate);
         }
 
-        // Atualiza as datas se houver seleção
-        if (dateInput?._flatpickr?.selectedDates?.length === 2) {
-          const startDate = dateInput._flatpickr.selectedDates[0];
-          const endDate = dateInput._flatpickr.selectedDates[1];
-          trips[tripIndex].startDate = startDate.toISOString();
-          trips[tripIndex].endDate = endDate.toISOString();
+        // Recria os dias com as novas datas
+        createDaysFromStorage(startDate.toISOString(), endDate.toISOString());
+      }
 
-          // Atualiza o banner de datas
-          if (tripDateBanner) {
-            tripDateBanner.textContent = formatTripPeriod(startDate, endDate);
+      // Atualiza a foto se houver uma nova
+      if (photoUrl) {
+        tripData.photo = photoUrl;
+        const coverImg = document.getElementById('cover-img');
+        if (coverImg) coverImg.src = photoUrl;
+      }
+
+      // Salva os dados
+      if (saveTripData(tripData)) {
+        // Fecha o modal
+        closeEditTripModal();
+
+        // Restaura o conteúdo da tab ativa
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) {
+          const tabText = activeTab.textContent.trim();
+          if (tabText === 'Roteiro') {
+            document.getElementById('tab-itinerary').style.display = 'block';
+          } else if (tabText === 'Check-list') {
+            document.getElementById('tab-checklist').style.display = 'block';
+          } else if (tabText === 'Locais salvos') {
+            document.getElementById('tab-saved-places').style.display = 'block';
           }
         }
-
-        localStorage.setItem('userTrips', JSON.stringify(trips));
-
-        // Salva os dados do roadmap
-        const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
-        roadmap.tripName = name;
-        roadmap.tripDestination = dest;
-        roadmap.tripDescription = tripDescriptionInput?.value || '';
-        if (dateInput?._flatpickr?.selectedDates?.length === 2) {
-          roadmap.tripStart = dateInput._flatpickr.selectedDates[0].toISOString();
-          roadmap.tripEnd = dateInput._flatpickr.selectedDates[1].toISOString();
-        }
-        localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
-
-        // Recria os dias
-        const startDate = new Date(trips[tripIndex].startDate);
-        const endDate = new Date(trips[tripIndex].endDate);
-        createDaysFromStorage(startDate, endDate);
-
-        // Recarrega os dados do roadmap
-        loadRoadmapFromStorage();
-      }
-    }
-
-    // Fecha o modal
-    closeEditTripModal();
-
-    // Restaura o conteúdo da tab ativa
-    const activeTab = document.querySelector('.tab.active');
-    if (activeTab) {
-      const tabText = activeTab.textContent.trim();
-      if (tabText === 'Roteiro') {
-        document.getElementById('tab-itinerary').style.display = 'block';
-      } else if (tabText === 'Check-list') {
-        document.getElementById('tab-checklist').style.display = 'block';
-      } else if (tabText === 'Locais salvos') {
-        document.getElementById('tab-saved-places').style.display = 'block';
+      } else {
+        throw new Error('Falha ao salvar dados da viagem');
       }
     }
 

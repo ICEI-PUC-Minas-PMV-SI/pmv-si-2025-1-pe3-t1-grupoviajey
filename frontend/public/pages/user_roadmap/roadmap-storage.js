@@ -149,3 +149,106 @@ export function initSavedPlaces() {
   loadSavedPlacesFromStorage();
   renderSavedPlacesTab();
 }
+
+export function removeLocalFromStorage(cardKey) {
+  const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
+  if (roadmap && Array.isArray(roadmap.days)) {
+    for (const day of roadmap.days) {
+      const idx = day.places.findIndex(
+        p => (p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || ''))) === cardKey
+      );
+      if (idx !== -1) {
+        day.places.splice(idx, 1);
+        break;
+      }
+    }
+    localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
+    return roadmap;
+  }
+  return null;
+}
+
+export function getAllPlacesFromStorage() {
+  const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
+  if (roadmap && Array.isArray(roadmap.days)) {
+    return roadmap.days
+      .flatMap(day => day.places)
+      .filter(p => p.lat && p.lng)
+      .map(p => ({
+        ...p,
+        latitude: Number(p.lat),
+        longitude: Number(p.lng),
+        key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
+        types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
+      }));
+  }
+  return [];
+}
+
+// Função para salvar os dados da viagem
+export function saveTripData(tripData) {
+  try {
+    // Salva os dados da viagem
+    const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+    const tripIndex = trips.findIndex(t => String(t.id) === String(tripData.id));
+
+    if (tripIndex !== -1) {
+      trips[tripIndex] = { ...trips[tripIndex], ...tripData };
+    }
+
+    localStorage.setItem('userTrips', JSON.stringify(trips));
+
+    // Atualiza os dados do roadmap
+    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
+
+    // Atualiza os dados básicos
+    roadmap.tripName = tripData.title;
+    roadmap.tripDestination = tripData.destination;
+    roadmap.tripDescription = tripData.description || '';
+    roadmap.tripStart = tripData.startDate;
+    roadmap.tripEnd = tripData.endDate;
+
+    // Limpa os dias antigos e cria novos dias
+    roadmap.days = [];
+
+    localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar dados da viagem:', error);
+    return false;
+  }
+}
+
+// Função para carregar os dados da viagem atual
+export function loadCurrentTripData() {
+  try {
+    const selectedTripId = localStorage.getItem('selectedTripId');
+    if (!selectedTripId) return null;
+
+    const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+    const trip = trips.find(t => String(t.id) === String(selectedTripId));
+
+    if (!trip) return null;
+
+    // Atualiza os dados do roadmap com os dados da viagem
+    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
+    roadmap.tripName = trip.title;
+    roadmap.tripDestination = trip.destination;
+    roadmap.tripDescription = trip.description || '';
+    roadmap.tripStart = trip.startDate;
+    roadmap.tripEnd = trip.endDate;
+
+    // Mantém os dados existentes dos dias
+    if (!roadmap.days) {
+      roadmap.days = [];
+    }
+
+    localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
+
+    return trip;
+  } catch (error) {
+    console.error('Erro ao carregar dados da viagem:', error);
+    return null;
+  }
+}

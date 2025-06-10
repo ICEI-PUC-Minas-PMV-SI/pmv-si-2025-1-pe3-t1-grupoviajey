@@ -2,8 +2,8 @@
 import { roadmapStorage } from './roadmap-storage.js';
 import { updateFinanceSummary } from './roadmap-finance.js';
 import { attachRoadmapEventListeners } from './roadmap-events.js';
-import { attachLocalCardActions } from './roadmap-utils.js';
-import { updateMap } from './roadmap-map.js';
+import { attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
+import { updateMap, clearMap } from './roadmap-map.js';
 
 // =============================================
 // CRIAÇÃO E GESTÃO DE DIAS
@@ -17,17 +17,29 @@ export function createDaysFromStorage(tripStart, tripEnd) {
   // Remove apenas os dias existentes
   tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
 
+  // Limpa o mapa quando os dias são removidos
+  clearMap();
+
   if (!tripStart || !tripEnd) return;
 
-  const startDate = parseDate(tripStart);
-  const endDate = parseDate(tripEnd);
+  // Garante que as datas são objetos Date válidos
+  const startDate = tripStart instanceof Date ? tripStart : new Date(tripStart);
+  const endDate = tripEnd instanceof Date ? tripEnd : new Date(tripEnd);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    console.error('Datas inválidas:', { tripStart, tripEnd, startDate, endDate });
+    return;
+  }
+
   console.log('[DEBUG] startDate:', startDate, 'endDate:', endDate);
-  if (!startDate || !endDate) return;
 
   const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  // Ajusta as datas para o início do dia
   let current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
   const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
   let count = 0;
 
   while (current <= end) {
@@ -60,21 +72,7 @@ export function createDaysFromStorage(tripStart, tripEnd) {
 
   // Força a atualização do DOM
   setTimeout(() => {
-    // Reativa os event listeners
     attachRoadmapEventListeners();
-
-    // Garante que todos os accordions estão visíveis
-    const dayContents = document.querySelectorAll('.day-content');
-    dayContents.forEach(content => {
-      content.style.display = 'block';
-      content.classList.add('active');
-      content.style.maxHeight = content.scrollHeight + 'px';
-    });
-
-    const arrows = document.querySelectorAll('.day-arrow svg');
-    arrows.forEach(arrow => {
-      arrow.style.transform = 'rotate(180deg)';
-    });
   }, 0);
 }
 
@@ -288,19 +286,21 @@ export function saveRoadmapToStorage() {
 }
 
 export function loadRoadmapFromStorage() {
-  try {
-    const data = roadmapStorage.load();
-    if (!data) return false;
+  const roadmap = roadmapStorage.load();
+  if (!roadmap) return;
 
-    if (data.tripStart && data.tripEnd) {
-      createDaysFromStorage(data.tripStart, data.tripEnd);
-    }
+  // Atualiza os elementos da UI
+  document.getElementById('tripNameBanner').textContent = roadmap.tripName;
+  document.getElementById('tripDestinationBanner').textContent = roadmap.tripDestination;
+  document.getElementById('tripDescriptionBanner').textContent = roadmap.tripDescription || '';
 
-    updateUIWithLoadedData(data);
-    return true;
-  } catch (error) {
-    console.error('Error loading roadmap:', error);
-    return false;
+  // Sempre cria os dias com as datas atuais
+  const startDate = new Date(roadmap.tripStart);
+  const endDate = new Date(roadmap.tripEnd);
+
+  if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+    document.getElementById('tripDateBanner').textContent = formatTripPeriod(startDate, endDate);
+    createDaysFromStorage(startDate.toISOString(), endDate.toISOString());
   }
 }
 

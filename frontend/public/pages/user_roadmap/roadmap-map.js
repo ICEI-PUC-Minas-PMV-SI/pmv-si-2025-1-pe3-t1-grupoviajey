@@ -156,6 +156,12 @@ function updateMap(places) {
   markers.forEach(marker => marker.setMap(null));
   markers = [];
 
+  // Se não houver places, apenas limpa o mapa
+  if (!places || places.length === 0) {
+    console.log('Nenhum place para exibir, mapa limpo');
+    return;
+  }
+
   // Adapta os dados para o formato esperado por createMarkers
   const placesForMarkers = places.map(place => {
     console.log('Processando place:', place);
@@ -198,11 +204,6 @@ function updateMap(places) {
   // Salva markers globalmente para hover
   window.roadmapMarkers = markers;
   window.updateMarkerAnimation = updateMarkerAnimation;
-
-  // Ajusta o zoom para mostrar todos os marcadores
-  const bounds = new google.maps.LatLngBounds();
-  markers.forEach(marker => bounds.extend(marker.getPosition()));
-  map.fitBounds(bounds);
 }
 
 /**
@@ -252,6 +253,19 @@ export function setupCardHoverEvents(card) {
       }
     }
   });
+}
+
+export function clearMap() {
+  if (!map) return;
+
+  // Remove todos os marcadores
+  markers.forEach(marker => marker.setMap(null));
+  markers = [];
+
+  // Limpa a referência global
+  window.roadmapMarkers = [];
+
+  console.log('Mapa limpo com sucesso');
 }
 
 export {
