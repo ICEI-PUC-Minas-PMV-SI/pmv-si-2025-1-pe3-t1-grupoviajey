@@ -3,6 +3,7 @@ import { formatCurrencyInput, formatCurrency } from './roadmap-utils.js';
 import { budgetStorage } from './roadmap-storage.js';
 import { updateFinanceSummary, saveBudget } from './roadmap-finance.js';
 import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
+import { saveRoadmapToStorage } from './roadmap-core.js';
 
 // =============================================
 // EVENTOS DE DRAG AND DROP
@@ -47,6 +48,7 @@ export function handleLocalCardDrop(e) {
       if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
     }
     afterLocalChange();
+    if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
   }
 }
 
@@ -103,6 +105,7 @@ export function handleDayContentDrop(e) {
     if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
   }
   afterLocalChange();
+  if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
 }
 
 export function handleDayContentDragLeave(e) {
@@ -116,10 +119,60 @@ export function handleDayHeaderDragOver(e) {
   const section = this.parentElement;
   const content = section.querySelector('.day-content');
   const arrow = this.querySelector('.day-arrow svg');
-  if (content && content.style.display !== 'block') {
+
+  // Abre o accordion se estiver fechado
+  if (content) {
     content.style.display = 'block';
+    content.classList.add('active');
+    content.style.maxHeight = content.scrollHeight + 'px';
     if (arrow) arrow.style.transform = 'rotate(180deg)';
   }
+
+  // Adiciona classe visual para feedback
+  this.classList.add('over');
+  e.dataTransfer.dropEffect = 'move';
+}
+
+// Adiciona também um handler de dragleave para remover a classe visual
+export function handleDayHeaderDragLeave(e) {
+  this.classList.remove('over');
+}
+
+// Adiciona um handler de drop para o header
+export function handleDayHeaderDrop(e) {
+  e.preventDefault();
+  this.classList.remove('over');
+
+  const dragged = window._draggedLocalCard;
+  const group = _draggedLocalCardGroup;
+  if (!dragged || !group) return;
+
+  const section = this.parentElement;
+  const content = section.querySelector('.day-content');
+  if (!content) return;
+
+  let timeline = content.querySelector('.day-timeline');
+  if (!timeline) {
+    timeline = document.createElement('div');
+    timeline.className = 'day-timeline';
+    timeline.innerHTML = '<div class="timeline-line"></div>';
+    const addBtn = content.querySelector('.add-place-btn');
+    if (addBtn) {
+      content.insertBefore(timeline, addBtn);
+    } else {
+      content.appendChild(timeline);
+    }
+  }
+
+  // Adiciona todos os elementos do grupo ao final do timeline
+  for (let el of group) {
+    timeline.appendChild(el);
+    if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') {
+      attachLocalCardActions(el);
+    }
+  }
+  afterLocalChange();
+  if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
 }
 
 // =============================================
@@ -286,53 +339,11 @@ function initRoadmapAccordion() {
   });
 }
 
-// Adiciona ao attachRoadmapEventListeners
-export function attachRoadmapEventListeners() {
-  // Event listeners para tabs
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', handleTabClick);
-  });
-
-  // Inicializa o accordion
-  initRoadmapAccordion();
-
-  // Debug: quantos accordions existem?
-  const headers = document.querySelectorAll('.day-header');
-  console.log('[DEBUG] attachRoadmapEventListeners: .day-header encontrados:', headers.length);
-
-  // ... resto do código existente ...
-}
-
-// =============================================
-// EVENTOS GLOBAIS E DE TABS
-// =============================================
-
-// Funções de eventos do roadmap
-
-function handleDayHeaderClick(e) {
-  const header = e.currentTarget;
-  const content = header.nextElementSibling;
-  const arrow = header.querySelector('.day-arrow svg');
-
-  if (content) {
-    const isOpen = header.classList.contains('active');
-
-    if (isOpen) {
-      content.style.maxHeight = '0';
-      header.classList.remove('active');
-      if (arrow) arrow.style.transform = 'rotate(0deg)';
-    } else {
-      content.style.maxHeight = content.scrollHeight + 'px';
-      header.classList.add('active');
-      if (arrow) arrow.style.transform = 'rotate(180deg)';
-    }
-  }
-}
-
 // Variáveis globais para drag and drop
 let dragSrcEl = null;
 let _draggedLocalCardGroup = null;
 let autoScrollInterval = null;
+window._draggedLocalCard = null;
 
 // Funções de drag and drop para cards
 export function handleDragStart(e) {
@@ -396,6 +407,8 @@ export function addDayContentDnDHandlers(dayContent) {
 
 export function addDayHeaderDnDHandlers(header) {
   header.addEventListener('dragover', handleDayHeaderDragOver, false);
+  header.addEventListener('dragleave', handleDayHeaderDragLeave, false);
+  header.addEventListener('drop', handleDayHeaderDrop, false);
 }
 
 // Inicializa drag and drop para todos os cards e dias
@@ -407,7 +420,12 @@ export function initLocalCardDnD() {
 
 // Função para salvar alterações após drag and drop
 export function afterLocalChange() {
-  if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
+  if (typeof saveRoadmapToStorage === 'function') {
+    const success = saveRoadmapToStorage();
+    if (!success) {
+      console.error('Failed to save roadmap after local change');
+    }
+  }
   if (typeof saveSavedPlacesToStorage === 'function') saveSavedPlacesToStorage();
 }
 
@@ -512,4 +530,47 @@ function parseCurrencyToNumber(str) {
     str = str.replace(/\./g, '').replace(',', '.');
   }
   return parseFloat(str) || 0;
+}
+
+export function attachRoadmapEventListeners() {
+  // Event listeners para tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', handleTabClick);
+  });
+
+  // Inicializa o accordion
+  initRoadmapAccordion();
+
+  // Inicializa drag and drop para cards
+  initLocalCardDnD();
+
+  // Debug: quantos accordions existem?
+  const headers = document.querySelectorAll('.day-header');
+  console.log('[DEBUG] attachRoadmapEventListeners: .day-header encontrados:', headers.length);
+}
+
+// =============================================
+// EVENTOS GLOBAIS E DE TABS
+// =============================================
+
+// Funções de eventos do roadmap
+
+function handleDayHeaderClick(e) {
+  const header = e.currentTarget;
+  const content = header.nextElementSibling;
+  const arrow = header.querySelector('.day-arrow svg');
+
+  if (content) {
+    const isOpen = header.classList.contains('active');
+
+    if (isOpen) {
+      content.style.maxHeight = '0';
+      header.classList.remove('active');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    } else {
+      content.style.maxHeight = content.scrollHeight + 'px';
+      header.classList.add('active');
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+    }
+  }
 }

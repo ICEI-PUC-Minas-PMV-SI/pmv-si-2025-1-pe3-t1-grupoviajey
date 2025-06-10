@@ -331,7 +331,8 @@ function collectDaysData() {
         rating: card.querySelector('.local-rating .stars')?.textContent || '',
         img: card.querySelector('.local-img img')?.src || '',
         lat: card.dataset.lat || null,
-        lng: card.dataset.lng || null
+        lng: card.dataset.lng || null,
+        key: card.dataset.key || null
       };
       dayData.places.push(placeData);
     });
