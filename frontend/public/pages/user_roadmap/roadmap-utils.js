@@ -127,8 +127,8 @@ export function createExpenseDiv(expenseName, value, currency) {
 export function formatCurrencyInput(value, currency) {
   if (!value) return '';
 
-  // Remove todos os caracteres não numéricos
-  let numericValue = value.replace(/\D/g, '');
+  // Converte o valor para string e remove todos os caracteres não numéricos
+  let numericValue = String(value).replace(/\D/g, '');
 
   // Converte para número e divide por 100 para considerar os centavos
   let number = Number(numericValue) / 100;
@@ -148,7 +148,7 @@ export function formatCurrency(value, currency) {
   if (value === undefined || value === null || value === '') return '';
   let number;
   if (typeof value === 'string') {
-    number = Number(value.replace(/\D/g, '')) / 100;
+    number = Number(String(value).replace(/\D/g, '')) / 100;
   } else if (typeof value === 'number') {
     number = value;
   } else {

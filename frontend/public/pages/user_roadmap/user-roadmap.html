@@ -93,8 +93,7 @@
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                 </select>
-                <input type="text" id="budgetInput" placeholder="Informe o valor total" min="0" pattern="[0-9]*"
-                  inputmode="numeric">
+                <input type="text" id="budgetInput" placeholder="Informe o valor total" inputmode="numeric">
               </div>
               <button class="save-budget-btn" id="saveBudgetBtn">Salvar</button>
             </div>
@@ -123,7 +122,7 @@
           <!-- O bloco de resumo financeiro deve ficar após os accordions dos dias do roteiro -->
           <div id="financeSummaryRow">
             <div class="finance-summary-item" id="summaryBudget" style="display:none;">
-              <span class="finance-icon">🪙</span>
+              <span class="finance-icon">💰</span>
               <span class="summary-label">Orçamento total:</span>
               <span class="summary-value" id="summaryBudgetValue"></span>
             </div>
@@ -133,7 +132,7 @@
               <span class="summary-value" id="summarySpentValue"></span>
             </div>
             <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
-              <span class="finance-icon">🟩</span>
+              <span class="finance-icon">💵</span>
               <span class="summary-label">Orçamento disponível:</span>
               <span class="summary-value" id="summaryAvailableValue"></span>
             </div>
