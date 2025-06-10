@@ -301,6 +301,9 @@ export function loadRoadmapFromStorage() {
   if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
     document.getElementById('tripDateBanner').textContent = formatTripPeriod(startDate, endDate);
     createDaysFromStorage(startDate.toISOString(), endDate.toISOString());
+
+    // Carrega os dados dos locais após criar os dias
+    updateUIWithLoadedData(roadmap);
   }
 }
 
