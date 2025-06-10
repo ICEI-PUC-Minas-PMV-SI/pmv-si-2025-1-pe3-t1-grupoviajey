@@ -157,13 +157,30 @@ function updateMap(places) {
   markers = [];
 
   // Adapta os dados para o formato esperado por createMarkers
-  const placesForMarkers = places.map(place => ({
-    ...place,
-    key: place.key || place.name || place.address || (place.latitude + ',' + place.longitude),
-    geometry: { location: new google.maps.LatLng(place.latitude, place.longitude) }
-  }));
+  const placesForMarkers = places.map(place => {
+    console.log('Processando place:', place);
+    const lat = Number(place.lat);
+    const lng = Number(place.lng);
+    console.log('Coordenadas convertidas:', { lat, lng });
+
+    if (isNaN(lat) || isNaN(lng)) {
+      console.error('Coordenadas inválidas para place:', place);
+      return null;
+    }
+
+    return {
+      ...place,
+      key: place.key || place.name || place.address || (lat + ',' + lng),
+      geometry: { location: new google.maps.LatLng(lat, lng) }
+    };
+  }).filter(Boolean);
 
   console.log('Places formatados para markers:', placesForMarkers);
+
+  if (placesForMarkers.length === 0) {
+    console.error('Nenhum place válido para criar markers');
+    return;
+  }
 
   // Cria novos marcadores usando createMarkers
   markers = createMarkers(map, placesForMarkers);
@@ -182,20 +199,10 @@ function updateMap(places) {
   window.roadmapMarkers = markers;
   window.updateMarkerAnimation = updateMarkerAnimation;
 
-  console.log('Markers salvos globalmente:', window.roadmapMarkers);
-
   // Ajusta o zoom para mostrar todos os marcadores
-  if (markers.length > 0) {
-    const bounds = new google.maps.LatLngBounds();
-    markers.forEach(marker => bounds.extend(marker.getPosition()));
-    map.fitBounds(bounds);
-  }
-
-  // Dispara evento personalizado para notificar que os markers foram atualizados
-  setTimeout(() => {
-    console.log('Disparando evento markersUpdated');
-    window.dispatchEvent(new CustomEvent('markersUpdated'));
-  }, 1000);
+  const bounds = new google.maps.LatLngBounds();
+  markers.forEach(marker => bounds.extend(marker.getPosition()));
+  map.fitBounds(bounds);
 }
 
 /**
@@ -207,6 +214,42 @@ function setupMapEvents() {
     if (window.currentInfoWindow) {
       window.currentInfoWindow.close();
       window.currentInfoWindow = null;
+    }
+  });
+}
+
+/**
+ * Configura os eventos de hover para os cards de local
+ * @param {HTMLElement} card - O card do local
+ */
+export function setupCardHoverEvents(card) {
+  card.addEventListener('mouseenter', () => {
+    if (window.roadmapMarkers && window.updateMarkerAnimation) {
+      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+      if (marker) {
+        window.updateMarkerAnimation(marker, true);
+        // Move o mapa para o marcador
+        if (window.map) {
+          const position = marker.getPosition();
+          window.map.panTo(position);
+          window.map.setZoom(15);
+        }
+      }
+    }
+  });
+
+  card.addEventListener('mouseleave', () => {
+    if (window.roadmapMarkers && window.updateMarkerAnimation) {
+      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+      if (marker) {
+        window.updateMarkerAnimation(marker, false);
+        // Retorna o mapa para a visão geral
+        if (window.map) {
+          const bounds = new google.maps.LatLngBounds();
+          window.roadmapMarkers.forEach(m => bounds.extend(m.getPosition()));
+          window.map.fitBounds(bounds);
+        }
+      }
     }
   });
 }

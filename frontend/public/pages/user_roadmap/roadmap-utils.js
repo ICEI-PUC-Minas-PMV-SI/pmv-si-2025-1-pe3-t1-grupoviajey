@@ -1,6 +1,7 @@
 import { formatShortDateRange } from '../../js/utils/date.js';
 import { updateFinanceSummary, parseCurrencyToNumber } from './roadmap-finance.js';
 import { saveRoadmapToStorage } from './roadmap-core.js';
+import { setupCardHoverEvents } from './roadmap-map.js';
 
 // =============================================
 // CRIAÇÃO DE ELEMENTOS
@@ -236,8 +237,8 @@ export function attachLocalCardActions(card) {
           .filter(p => p.lat && p.lng)
           .map(p => ({
             ...p,
-            latitude: Number(p.lat),
-            longitude: Number(p.lng),
+            lat: Number(p.lat),
+            lng: Number(p.lng),
             key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
             types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
           }));
@@ -366,18 +367,8 @@ export function attachLocalCardActions(card) {
     };
   }
 
-  card.addEventListener('mouseenter', () => {
-    if (window.roadmapMarkers && window.updateMarkerAnimation) {
-      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
-      if (marker) window.updateMarkerAnimation(marker, true);
-    }
-  });
-  card.addEventListener('mouseleave', () => {
-    if (window.roadmapMarkers && window.updateMarkerAnimation) {
-      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
-      if (marker) window.updateMarkerAnimation(marker, false);
-    }
-  });
+  // Configura os eventos de hover do mapa
+  setupCardHoverEvents(card);
 }
 
 export function attachNoteActions(noteDiv, card) {

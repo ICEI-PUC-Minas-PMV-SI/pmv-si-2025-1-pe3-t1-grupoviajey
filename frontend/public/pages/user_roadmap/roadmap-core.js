@@ -157,13 +157,21 @@ export function handleAddToTimeline(placeData, dayContent) {
     const allPlaces = roadmap.days
       .flatMap(day => day.places)
       .filter(p => p.lat && p.lng)
-      .map(p => ({
-        ...p,
-        latitude: Number(p.lat),
-        longitude: Number(p.lng),
-        key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
-        types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-      }));
+      .map(p => {
+        const lat = Number(p.lat);
+        const lng = Number(p.lng);
+        console.log('Convertendo coordenadas:', { original: p, converted: { lat, lng } });
+        return {
+          ...p,
+          lat,
+          lng,
+          key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + lat + '|' + lng),
+          types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
+        };
+      })
+      .filter(p => !isNaN(p.lat) && !isNaN(p.lng));
+
+    console.log('Places para atualizar mapa:', allPlaces);
     updateMap(allPlaces);
   }
 
@@ -199,6 +207,21 @@ export function createLocalCard({ name, address, rating, img, key, placeName, pl
   }
   const card = document.createElement('div');
   card.className = 'local-card';
+
+  // Armazena as coordenadas nos atributos data
+  if (geometry?.location) {
+    card.dataset.lat = geometry.location.lat();
+    card.dataset.lng = geometry.location.lng();
+  } else if (lat && lng) {
+    card.dataset.lat = lat;
+    card.dataset.lng = lng;
+  }
+
+  // Adiciona o key como atributo data
+  if (key) {
+    card.dataset.key = key;
+  }
+
   card.innerHTML = `
     ${getDragHandleSVG()}
     <button class="remove-place-btn" title="Remover local">
@@ -215,7 +238,6 @@ export function createLocalCard({ name, address, rating, img, key, placeName, pl
       </div>
     </div>
   `;
-  card.dataset.key = key || name || address || (lat + ',' + lng);
   return card;
 }
 
@@ -386,11 +408,12 @@ function updateUIWithLoadedData(data) {
       .filter(p => p.lat && p.lng)
       .map(p => ({
         ...p,
-        latitude: Number(p.lat),
-        longitude: Number(p.lng),
+        lat: Number(p.lat),
+        lng: Number(p.lng),
         key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
         types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-      }));
+      }))
+      .filter(p => !isNaN(p.lat) && !isNaN(p.lng));
     if (typeof updateMap === 'function') {
       updateMap(allPlaces);
     }
