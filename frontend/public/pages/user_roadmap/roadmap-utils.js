@@ -181,7 +181,7 @@ export function parseDate(str) {
   const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const idx = meses.findIndex(m => mes.toLowerCase().startsWith(m));
   if (idx !== -1) {
-    return new Date(Number(ano), idx, parseInt(dia));
+    return new Date(Date.UTC(Number(ano), idx, parseInt(dia)));
   }
   return null;
 }
@@ -542,4 +542,4 @@ export function getTrashSVG() {
 
 export function getDragHandleSVG() {
   return `<span class="drag-handle" title="Arraste para mover">&#9776;</span>`;
-} 
+}

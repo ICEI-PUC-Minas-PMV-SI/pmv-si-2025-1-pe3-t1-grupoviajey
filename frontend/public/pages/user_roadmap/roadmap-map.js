@@ -15,18 +15,18 @@ let lastSelectedPlace = null;
  * @returns {Object|null} The last selected place or null if none
  */
 function getLastSelectedPlace() {
-    return lastSelectedPlace;
+  return lastSelectedPlace;
 }
 
 /**
  * Clears the last selected place from the autocomplete
  */
 function clearLastSelectedPlace() {
-    lastSelectedPlace = null;
-    const input = document.getElementById('autocomplete');
-    if (input) {
-        input.value = '';
-    }
+  lastSelectedPlace = null;
+  const input = document.getElementById('autocomplete');
+  if (input) {
+    input.value = '';
+  }
 }
 
 /**
@@ -36,57 +36,57 @@ function clearLastSelectedPlace() {
  * @returns {Promise<Object>} O objeto autocomplete
  */
 async function initializeGoogleMapsAutocomplete(city, inputSelector) {
-    try {
-        await loadGoogleMapsScript();
+  try {
+    await loadGoogleMapsScript();
 
-        const input = document.querySelector(inputSelector);
-        if (!input) {
-            // Não lança erro aqui, apenas retorna null para evitar log desnecessário
-            return null;
-        }
-
-        let options = {
-            types: ['establishment', 'geocode'],
-            fields: ['name', 'geometry', 'formatted_address', 'place_id']
-        };
-
-        if (city) {
-            // Geocodifica a cidade para obter lat/lng
-            const apiKey = await loadApiKey();
-            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`);
-            const geo = await response.json();
-            if (geo.results && geo.results[0]) {
-                const location = geo.results[0].geometry.location;
-                const center = new google.maps.LatLng(location.lat, location.lng);
-                // Cria bounds de ~10km ao redor do centro da cidade
-                const circle = new google.maps.Circle({ center, radius: 10000 });
-                options.bounds = circle.getBounds();
-                options.strictBounds = true;
-            }
-        }
-
-        autocomplete = new google.maps.places.Autocomplete(input, options);
-
-        // Previne o envio do formulário ao pressionar enter
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-            }
-        });
-
-        // Armazena o último lugar selecionado
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (place.geometry) {
-                lastSelectedPlace = place;
-            }
-        });
-
-        return autocomplete;
-    } catch (error) {
-        console.error('Erro ao inicializar autocomplete:', error);
-        return null;
+    const input = document.querySelector(inputSelector);
+    if (!input) {
+      // Não lança erro aqui, apenas retorna null para evitar log desnecessário
+      return null;
     }
+
+    let options = {
+      types: ['establishment', 'geocode'],
+      fields: ['name', 'geometry', 'formatted_address', 'place_id']
+    };
+
+    if (city) {
+      // Geocodifica a cidade para obter lat/lng
+      const apiKey = await loadApiKey();
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`);
+      const geo = await response.json();
+      if (geo.results && geo.results[0]) {
+        const location = geo.results[0].geometry.location;
+        const center = new google.maps.LatLng(location.lat, location.lng);
+        // Cria bounds de ~10km ao redor do centro da cidade
+        const circle = new google.maps.Circle({ center, radius: 10000 });
+        options.bounds = circle.getBounds();
+        options.strictBounds = true;
+      }
+    }
+
+    autocomplete = new google.maps.places.Autocomplete(input, options);
+
+    // Previne o envio do formulário ao pressionar enter
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+    });
+
+    // Armazena o último lugar selecionado
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        lastSelectedPlace = place;
+      }
+    });
+
+    return autocomplete;
+  } catch (error) {
+    console.error('Erro ao inicializar autocomplete:', error);
+    return null;
+  }
 }
 
 /**
@@ -95,49 +95,49 @@ async function initializeGoogleMapsAutocomplete(city, inputSelector) {
  * @returns {Promise<Object>} The initialized map object
  */
 async function initRoadmapMap(destination) {
-    if (!destination) {
-        console.log('Destino não definido');
-        return null;
+  if (!destination) {
+    console.log('Destino não definido');
+    return null;
+  }
+
+  try {
+    console.log('Iniciando carregamento do mapa...');
+
+    // Primeiro carrega o script do Google Maps
+    await loadGoogleMapsScript();
+    console.log('Script do Google Maps carregado');
+
+    const apiKey = await loadApiKey();
+    if (!apiKey) {
+      throw new Error('API key não disponível');
     }
+    console.log('API key obtida com sucesso');
 
-    try {
-        console.log('Iniciando carregamento do mapa...');
+    // Geocodifica o destino para obter as coordenadas
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(destination)}&key=${apiKey}`);
+    const geo = await response.json();
+    console.log('Dados de geocodificação:', geo);
 
-        // Primeiro carrega o script do Google Maps
-        await loadGoogleMapsScript();
-        console.log('Script do Google Maps carregado');
+    if (geo.results && geo.results[0]) {
+      const location = geo.results[0].geometry.location;
 
-        const apiKey = await loadApiKey();
-        if (!apiKey) {
-            throw new Error('API key não disponível');
-        }
-        console.log('API key obtida com sucesso');
+      console.log('Inicializando mapa...');
+      map = initMap('map', location, 12);
+      if (!map) {
+        throw new Error('Falha ao inicializar mapa');
+      }
+      window.map = map;
 
-        // Geocodifica o destino para obter as coordenadas
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(destination)}&key=${apiKey}`);
-        const geo = await response.json();
-        console.log('Dados de geocodificação:', geo);
-
-        if (geo.results && geo.results[0]) {
-            const location = geo.results[0].geometry.location;
-
-            console.log('Inicializando mapa...');
-            map = initMap('map', location, 12);
-            if (!map) {
-                throw new Error('Falha ao inicializar mapa');
-            }
-            window.map = map;
-
-            setupMapEvents();
-            console.log('Mapa inicializado com sucesso');
-            return map;
-        } else {
-            throw new Error('Nenhum resultado de geocodificação encontrado');
-        }
-    } catch (error) {
-        console.error('Erro ao inicializar mapa:', error);
-        return null;
+      setupMapEvents();
+      console.log('Mapa inicializado com sucesso');
+      return map;
+    } else {
+      throw new Error('Nenhum resultado de geocodificação encontrado');
     }
+  } catch (error) {
+    console.error('Erro ao inicializar mapa:', error);
+    return null;
+  }
 }
 
 /**
@@ -145,61 +145,76 @@ async function initRoadmapMap(destination) {
  * @param {Array} places - Array of places to be displayed on the map
  */
 function updateMap(places) {
-    if (!map) {
-        console.error('Mapa não inicializado');
-        return;
+  if (!map) {
+    console.error('Mapa não inicializado');
+    return;
+  }
+
+  console.log('Atualizando mapa com places:', places);
+
+  // Remove marcadores existentes
+  markers.forEach(marker => marker.setMap(null));
+  markers = [];
+
+  // Adapta os dados para o formato esperado por createMarkers
+  const placesForMarkers = places.map(place => ({
+    ...place,
+    key: place.key || place.name || place.address || (place.latitude + ',' + place.longitude),
+    geometry: { location: new google.maps.LatLng(place.latitude, place.longitude) }
+  }));
+
+  console.log('Places formatados para markers:', placesForMarkers);
+
+  // Cria novos marcadores usando createMarkers
+  markers = createMarkers(map, placesForMarkers);
+
+  console.log('Markers criados:', markers);
+
+  // Garante que cada marker tem _localKey igual ao key do respectivo place
+  markers.forEach((marker, i) => {
+    if (placesForMarkers[i] && placesForMarkers[i].key) {
+      marker._localKey = placesForMarkers[i].key;
+      console.log('Marker configurado com key:', marker._localKey);
     }
+  });
 
-    // Remove marcadores existentes
-    markers.forEach(marker => marker.setMap(null));
-    markers = [];
+  // Salva markers globalmente para hover
+  window.roadmapMarkers = markers;
+  window.updateMarkerAnimation = updateMarkerAnimation;
 
-    // Adapta os dados para o formato esperado por createMarkers
-    const placesForMarkers = places.map(place => ({
-        ...place,
-        key: place.key || place.name || place.address || (place.latitude + ',' + place.longitude),
-        geometry: { location: new google.maps.LatLng(place.latitude, place.longitude) }
-    }));
+  console.log('Markers salvos globalmente:', window.roadmapMarkers);
 
-    // Cria novos marcadores usando createMarkers
-    markers = createMarkers(map, placesForMarkers);
+  // Ajusta o zoom para mostrar todos os marcadores
+  if (markers.length > 0) {
+    const bounds = new google.maps.LatLngBounds();
+    markers.forEach(marker => bounds.extend(marker.getPosition()));
+    map.fitBounds(bounds);
+  }
 
-    // Garante que cada marker tem _localKey igual ao key do respectivo place
-    markers.forEach((marker, i) => {
-        if (placesForMarkers[i] && placesForMarkers[i].key) {
-            marker._localKey = placesForMarkers[i].key;
-        }
-    });
-
-    // Salva markers globalmente para hover
-    window.roadmapMarkers = markers;
-    window.updateMarkerAnimation = updateMarkerAnimation;
-
-    // Ajusta o zoom para mostrar todos os marcadores
-    if (markers.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        markers.forEach(marker => bounds.extend(marker.getPosition()));
-        map.fitBounds(bounds);
-    }
+  // Dispara evento personalizado para notificar que os markers foram atualizados
+  setTimeout(() => {
+    console.log('Disparando evento markersUpdated');
+    window.dispatchEvent(new CustomEvent('markersUpdated'));
+  }, 1000);
 }
 
 /**
  * Sets up map event listeners
  */
 function setupMapEvents() {
-    // Close InfoWindow when clicking outside
-    google.maps.event.addListener(map, 'click', () => {
-        if (window.currentInfoWindow) {
-            window.currentInfoWindow.close();
-            window.currentInfoWindow = null;
-        }
-    });
+  // Close InfoWindow when clicking outside
+  google.maps.event.addListener(map, 'click', () => {
+    if (window.currentInfoWindow) {
+      window.currentInfoWindow.close();
+      window.currentInfoWindow = null;
+    }
+  });
 }
 
 export {
-    initRoadmapMap,
-    updateMap,
-    initializeGoogleMapsAutocomplete,
-    clearLastSelectedPlace,
-    getLastSelectedPlace
+  initRoadmapMap,
+  updateMap,
+  initializeGoogleMapsAutocomplete,
+  clearLastSelectedPlace,
+  getLastSelectedPlace
 };

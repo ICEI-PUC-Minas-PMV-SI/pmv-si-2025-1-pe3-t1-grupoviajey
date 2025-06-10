@@ -37,6 +37,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       includeSearchBar()
     ]);
 
+    // Adiciona listener para o evento de atualização dos markers
+    window.addEventListener('markersUpdated', () => {
+      console.log('Markers atualizados, anexando eventos de hover...');
+      setTimeout(attachHoverEvents, 500);
+    });
+
     // 2. Carrega dados da viagem
     const selectedTripId = localStorage.getItem('selectedTripId');
     const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
@@ -56,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Inicializa módulos específicos (inclui o mapa)
     await initModules(trip);
 
-    // 6. Só aqui, depois do mapa e dos dados prontos, chame updateMap:
+    // 6. Carrega e atualiza o mapa com os locais salvos
     const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
     if (roadmap && Array.isArray(roadmap.days)) {
       const allPlaces = roadmap.days
@@ -66,9 +72,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           ...p,
           latitude: Number(p.lat),
           longitude: Number(p.lng),
+          key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
           types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
         }));
-      if (typeof updateMap === 'function') {
+
+      if (typeof updateMap === 'function' && allPlaces.length > 0) {
+        console.log('Atualizando mapa com locais:', allPlaces);
         updateMap(allPlaces);
       }
     }
@@ -109,7 +118,7 @@ function initRoadmapStructure(trip) {
     createDaysFromStorage(start, end);
   }
 
-  // Carrega os dados salvos do roteiro 
+  // Carrega os dados salvos do roteiro
   loadRoadmapFromStorage();
 }
 
@@ -126,6 +135,8 @@ async function initModules(trip) {
       const savedPlaces = loadSavedPlacesFromStorage();
       if (savedPlaces && savedPlaces.length > 0) {
         updateMap(savedPlaces);
+        // Garante que os eventos de hover são anexados após atualizar o mapa
+        setTimeout(attachHoverEvents, 500);
       }
     }
 
@@ -249,6 +260,41 @@ function updateFooterHeightVar() {
 window.addEventListener('DOMContentLoaded', updateFooterHeightVar);
 window.addEventListener('resize', updateFooterHeightVar);
 
+function attachHoverEvents() {
+  console.log('Anexando eventos de hover...');
+  console.log('Markers disponíveis:', window.roadmapMarkers);
+  console.log('Cards disponíveis:', document.querySelectorAll('.local-card').length);
 
+  // Remove eventos antigos para evitar duplicação
+  document.querySelectorAll('.local-card').forEach(card => {
+    const newCard = card.cloneNode(true);
+    card.parentNode.replaceChild(newCard, card);
+  });
 
+  // Adiciona novos eventos
+  document.querySelectorAll('.local-card').forEach(card => {
+    if (card.dataset.key) {
+      console.log('Anexando eventos para card:', card.dataset.key);
+      card.addEventListener('mouseenter', () => {
+        console.log('Mouse enter em card:', card.dataset.key);
+        if (window.roadmapMarkers) {
+          const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+          console.log('Marker encontrado:', marker);
+          if (marker && window.updateMarkerAnimation) {
+            window.updateMarkerAnimation(marker, true);
+          }
+        }
+      });
 
+      card.addEventListener('mouseleave', () => {
+        console.log('Mouse leave em card:', card.dataset.key);
+        if (window.roadmapMarkers) {
+          const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
+          if (marker && window.updateMarkerAnimation) {
+            window.updateMarkerAnimation(marker, false);
+          }
+        }
+      });
+    }
+  });
+}

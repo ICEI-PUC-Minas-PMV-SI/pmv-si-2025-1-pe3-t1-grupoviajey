@@ -216,7 +216,8 @@
   transition: background-color 0.2s;
   user-select: none;
   margin-left: 24px;
-  margin-bottom: 15px
+  margin-bottom: 15px;
+  padding: 16px;
 }
 
 .day-header:hover {
@@ -235,7 +236,7 @@
   color: #1a3c4e;
 }
 
-.day-arrow {
+.day-arrow svg {
   transition: transform 0.3s ease;
 }
 
@@ -247,11 +248,12 @@
   background: #fff;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
+  margin: 0 24px;
 }
 
-.day-content.active {
+.day-header.active+.day-content {
   max-height: 2000px;
-  /* Valor alto o suficiente para acomodar o conteúdo */
+  transition: max-height 0.5s ease-in;
 }
 
 .add-place-btn.outlined {
