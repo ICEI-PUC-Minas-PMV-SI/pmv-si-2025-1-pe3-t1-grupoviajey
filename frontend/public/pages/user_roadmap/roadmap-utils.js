@@ -198,15 +198,10 @@ function adjustTimelineHeight(timeline) {
 
   cards.forEach(card => {
     const cardHeight = card.offsetHeight;
-    const cardMargin = parseInt(window.getComputedStyle(card).marginBottom);
-    totalHeight += cardHeight + cardMargin;
+    totalHeight += cardHeight;
   });
 
-  // Adiciona um pequeno padding extra para espaçamento
-  totalHeight += 20;
-
-  // Define a altura mínima da timeline
-  timeline.style.minHeight = Math.max(totalHeight, 100) + 'px';
+  timeline.style.height = totalHeight + 'px';
 }
 
 export function attachLocalCardActions(card) {

@@ -187,71 +187,68 @@ export function createTimeline(dayContent) {
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
 
-function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
+export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
+  // rating pode ser string ("★★★☆☆") ou número
   let ratingHtml = '';
+  // Prioriza rating numérico
   const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
   if (ratingNumber) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${'★'.repeat(Math.round(ratingNumber))}</span></div>`;
+    ratingHtml = `<div class="local-rating"><span class="stars">${getStarsHtml(ratingNumber)}</span></div>`;
   } else if (rating) {
     ratingHtml = `<div class="local-rating"><span class="stars">${rating}</span></div>`;
   }
   const card = document.createElement('div');
   card.className = 'local-card';
-
-  // Armazena as coordenadas nos atributos data
-  if (geometry?.location) {
-    card.dataset.lat = geometry.location.lat();
-    card.dataset.lng = geometry.location.lng();
-  } else if (lat && lng) {
-    card.dataset.lat = lat;
-    card.dataset.lng = lng;
-  }
-
-  // Adiciona o key como atributo data
-  if (key) {
-    card.dataset.key = key;
-  }
-
   card.innerHTML = `
-        <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-        <button class="remove-place-btn" title="Remover local">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 6h18"></path>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-        </button>
-        <div class="local-img">${img ? `<img src="${img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
-        <div class="local-info">
-          <div class="local-title">${name || placeName || ''}</div>
-          <div class="local-address">${address || placeAddress || ''}</div>
-          ${ratingHtml}
-          <div class="local-actions">
-            <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> Anotação</button>
-            <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> Gastos</button>
-          </div>
-        </div>
-    `;
-
-  // Adiciona eventos de hover
-  card.addEventListener('mouseenter', () => {
-    if (window.roadmapMarkers && card.dataset.key) {
-      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
-      if (marker && window.updateMarkerAnimation) {
-        window.updateMarkerAnimation(marker, true);
-      }
-    }
-  });
-
-  card.addEventListener('mouseleave', () => {
-    if (window.roadmapMarkers && card.dataset.key) {
-      const marker = window.roadmapMarkers.find(m => m._localKey === card.dataset.key);
-      if (marker && window.updateMarkerAnimation) {
-        window.updateMarkerAnimation(marker, false);
-      }
-    }
-  });
-
+    ${getDragHandleSVG()}
+    <button class="remove-place-btn" title="Remover local">
+      ${getTrashSVG()}
+    </button>
+    <div class="local-img">${img ? `<img src="${img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
+    <div class="local-info">
+      <div class="local-title">${name || placeName || ''}</div>
+      <div class="local-address">${address || placeAddress || ''}</div>
+      ${ratingHtml}
+      <div class="local-actions">
+        <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
+        <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+      </div>
+    </div>
+  `;
+  card.dataset.key = key || name || address || (lat + ',' + lng);
   return card;
+}
+
+export function createNoteDiv(value) {
+  const noteDiv = document.createElement('div');
+  noteDiv.className = 'timeline-note';
+  noteDiv.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="2" fill="none" stroke="#222" stroke-width="1.3"/><path d="M6 8h8M6 12h5" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <span class="note-text">${value}</span>
+    <button class="edit-note-btn" title="Editar anotação">
+      <svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
+    </button>
+    <button class="delete-note-btn" title="Excluir anotação">${getTrashSVG()}</button>
+  `;
+  return noteDiv;
+}
+
+export function createExpenseDiv(expenseName, value, currency) {
+  const expenseDiv = document.createElement('div');
+  expenseDiv.className = 'timeline-expense';
+  let label = value + ' ' + currency;
+  if (expenseName && expenseName.trim() !== '') {
+    label = `<b>${expenseName}:</b> ` + label;
+  }
+  expenseDiv.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <span class="expense-text">${label}</span>
+    <button class="edit-expense-btn" title="Editar gasto">
+      <svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
+    </button>
+    <button class="delete-expense-btn" title="Excluir gasto">${getTrashSVG()}</button>
+  `;
+  return expenseDiv;
 }
 
 // =============================================
@@ -500,4 +497,15 @@ function adjustTimelineHeight() {
       });
     }
   });
+}
+
+export function getTrashSVG() {
+  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18"></path>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>`;
+}
+
+export function getDragHandleSVG() {
+  return `<span class="drag-handle" title="Arraste para mover">&#9776;</span>`;
 }

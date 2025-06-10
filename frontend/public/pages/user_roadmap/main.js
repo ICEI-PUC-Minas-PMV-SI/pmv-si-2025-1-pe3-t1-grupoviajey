@@ -1,6 +1,7 @@
 //Ponto de entrada, orquestra os outros módulos
 
-import { createLocalCard, getTrashSVG, getDragHandleSVG, createNoteDiv, createExpenseDiv, formatCurrencyInput, formatCurrency, getCurrencyLocale, attachNoteActions, attachExpenseActions, formatTripPeriod, parseDate } from './roadmap-utils.js';
+import { createLocalCard, createNoteDiv, createExpenseDiv } from './roadmap-core.js';
+import { getTrashSVG, getDragHandleSVG, formatCurrencyInput, formatCurrency, getCurrencyLocale, attachNoteActions, attachExpenseActions, formatTripPeriod, parseDate } from './roadmap-utils.js';
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
 import { searchDestinationImage } from '../../services/api/unsplash.js';
