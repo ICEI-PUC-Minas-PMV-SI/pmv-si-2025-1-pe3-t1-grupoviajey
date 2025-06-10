@@ -277,6 +277,23 @@
     </div>
   </div>
 
+  <!-- Modal de alerta de locais movidos -->
+  <div id="placesMovedAlertModal" class="modal-alert" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Locais movidos</h2>
+        <button class="modal-close-btn" id="closePlacesMovedAlertModal" title="Fechar">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Alguns locais foram movidos para "Locais salvos" porque suas datas não estão mais no período da viagem.</p>
+        <p>Você pode encontrá-los na aba "Locais salvos" e adicioná-los novamente ao roteiro quando desejar.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmPlacesMovedAlert" class="modal-confirm-btn">Entendi</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="../../js/core/map/init.js" defer></script>
   <script type="module" src="../../js/core/map/utils.js" defer></script>
   <script type="module" src="../../js/core/map/markers.js" defer></script>

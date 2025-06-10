@@ -484,6 +484,46 @@ function handleAddPlaceConfirm() {
 }
 
 // =============================================
+// MODAL DE ALERTA DE LOCAIS MOVIDOS
+// =============================================
+
+export function showPlacesMovedAlert() {
+  const modal = document.getElementById('placesMovedAlertModal');
+  if (!modal) return;
+
+  modal.style.display = 'flex';
+}
+
+export function closePlacesMovedAlert() {
+  const modal = document.getElementById('placesMovedAlertModal');
+  if (!modal) return;
+
+  modal.style.display = 'none';
+}
+
+function initPlacesMovedAlertModal() {
+  const closeBtn = document.getElementById('closePlacesMovedAlertModal');
+  const confirmBtn = document.getElementById('confirmPlacesMovedAlert');
+  const modal = document.getElementById('placesMovedAlertModal');
+
+  if (closeBtn) {
+    closeBtn.onclick = closePlacesMovedAlert;
+  }
+
+  if (confirmBtn) {
+    confirmBtn.onclick = closePlacesMovedAlert;
+  }
+
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closePlacesMovedAlert();
+      }
+    };
+  }
+}
+
+// =============================================
 // INICIALIZAÇÃO DOS MODAIS
 // =============================================
 
@@ -640,6 +680,8 @@ export function initModals() {
 
   // Configura o popup de requisitos da foto
   setupEditPhotoRequirementsPopup();
+
+  initPlacesMovedAlertModal();
 }
 
 // Função para configurar o popup de requisitos da foto

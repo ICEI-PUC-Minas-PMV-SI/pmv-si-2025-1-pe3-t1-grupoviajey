@@ -1,4 +1,5 @@
 import { createLocalCard, attachLocalCardActions } from './roadmap-utils.js';
+import { showPlacesMovedAlert } from './roadmap-modals.js';
 
 // =============================================
 // STORAGE DE ROTEIRO
@@ -200,6 +201,7 @@ export function saveTripData(tripData) {
 
     // Atualiza os dados do roadmap
     const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
+    const oldDays = roadmap.days || [];
 
     // Atualiza os dados básicos
     roadmap.tripName = tripData.title;
@@ -207,6 +209,79 @@ export function saveTripData(tripData) {
     roadmap.tripDescription = tripData.description || '';
     roadmap.tripStart = tripData.startDate;
     roadmap.tripEnd = tripData.endDate;
+
+    // Se as datas foram alteradas, move os locais dos dias removidos para locais salvos
+    if (tripData.startDate && tripData.endDate) {
+      const startDate = new Date(tripData.startDate);
+      const endDate = new Date(tripData.endDate);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error('Datas inválidas');
+      }
+
+      // Cria um array com todas as datas do novo período
+      const newDates = [];
+      let current = new Date(startDate);
+      while (current <= endDate) {
+        newDates.push(current.toISOString().split('T')[0]);
+        current.setDate(current.getDate() + 1);
+      }
+
+      // Carrega os locais salvos existentes
+      const savedPlaces = JSON.parse(localStorage.getItem('userRoadmapSavedPlaces') || '[]');
+      let placesMoved = false;
+
+      // Processa cada dia antigo
+      oldDays.forEach(day => {
+        try {
+          // Extrai a data do formato "Dia da semana, DD de Mês de YYYY"
+          const dateMatch = day.date.match(/(\d{1,2}) de ([^ ]+) de (\d{4})/);
+          if (!dateMatch) return;
+
+          const [, dia, mes, ano] = dateMatch;
+          const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+          const mesIndex = meses.findIndex(m => m.toLowerCase() === mes.toLowerCase());
+          if (mesIndex === -1) return;
+
+          const dayDate = new Date(ano, mesIndex, dia);
+          if (isNaN(dayDate.getTime())) return;
+
+          const dayDateStr = dayDate.toISOString().split('T')[0];
+
+          // Se o dia não está no novo período e tem lugares, move-os para locais salvos
+          if (!newDates.includes(dayDateStr) && day.places && day.places.length > 0) {
+            placesMoved = true;
+            day.places.forEach(place => {
+              // Verifica se o lugar já existe em locais salvos
+              const existingPlaceIndex = savedPlaces.findIndex(p => p.key === place.key);
+              if (existingPlaceIndex === -1) {
+                // Adiciona o lugar aos locais salvos
+                savedPlaces.push({
+                  ...place,
+                  key: place.key || `${place.name}|${place.address}|${place.lat}|${place.lng}`
+                });
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao processar dia:', day.date, error);
+        }
+      });
+
+      // Salva os locais atualizados
+      localStorage.setItem('userRoadmapSavedPlaces', JSON.stringify(savedPlaces));
+
+      // Atualiza o estado dos locais salvos
+      savedPlacesState.places = savedPlaces;
+
+      // Atualiza a UI dos locais salvos
+      renderSavedPlacesTab();
+
+      // Se algum lugar foi movido, mostra o alerta
+      if (placesMoved) {
+        showPlacesMovedAlert();
+      }
+    }
 
     // Limpa os dias antigos e cria novos dias
     roadmap.days = [];
