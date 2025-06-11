@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Anúncio - Viajey</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="createPost.css">
+</head>
+<body>
+  <div id="header"></div>
+  
+  <main class="main-content">
+    <div class="create-post-container">
+      <h1>Criar Anúncio</h1>
+      
+      <form id="createPostForm" class="post-form">
+        <div class="form-group">
+          <label for="postTitle">Título*</label>
+          <input type="text" id="postTitle" name="title" required placeholder="Digite o título da postagem">
+        </div>
+
+        <div class="form-group">
+          <label for="postDescription">Descrição*</label>
+          <textarea id="postDescription" name="description" required placeholder="Descreva sua postagem..." rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="postImage">Imagem (URL)</label>
+          <input type="url" id="postImage" name="image" placeholder="https://exemplo.com/imagem.jpg">
+          <div class="image-preview" id="imagePreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="postCategory">Categoria*</label>
+          <select id="postCategory" name="category" required>
+            <option value="">Selecione uma categoria</option>
+            <option value="hotel">Hotel</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="atividade">Atividade</option>
+            <option value="transporte">Transporte</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="postRating">Avaliação (1-5 estrelas)*</label>
+          <div class="rating-input">
+            <input type="range" id="postRating" name="rating" min="1" max="5" value="5">
+            <div class="rating-display" id="ratingDisplay">★★★★★</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="postAddress">Endereço</label>
+          <input type="text" id="postAddress" name="address" placeholder="Endereço do local">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+          <button type="submit" class="btn-primary">Criar Postagem</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="../../js/utils/include.js"></script>
+  <script src="createPost.js"></script>
+</body>
+</html>

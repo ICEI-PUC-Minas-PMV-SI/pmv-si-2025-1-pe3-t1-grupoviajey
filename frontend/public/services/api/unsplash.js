@@ -14,7 +14,12 @@ function extractCity(destination) {
 export async function searchDestinationImage(destination) {
     try {
         const city = extractCity(destination);
-        const response = await fetch(`/api/unsplash/search?destination=${encodeURIComponent(city)}`);
+        const response = await fetch(
+            `/api/unsplash/search?destination=${encodeURIComponent(city)}`,
+            {
+                method: 'GET'
+            }
+        );
         if (!response.ok) throw new Error('Erro ao buscar imagem');
         const data = await response.json();
         if (data.results && data.results.length > 0) {
@@ -29,7 +34,7 @@ export async function searchDestinationImage(destination) {
                 }));
         }
         return [];
-    } catch (err) {
+    } catch (err) {gggg
         console.error(err);
         return [];
     }

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Anúncio - Parceiro Viajey</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="../posts/createPost.css">
+</head>
+<body>
+  <div id="header"></div>
+  
+  <main class="main-content">
+    <div class="create-post-container">
+      <h1>Editar Anúncio</h1>
+      
+      <form id="createAdForm" class="post-form">
+        <div class="form-group">
+          <label for="adTitle">Título do Anúncio*</label>
+          <input type="text" id="adTitle" name="title" required placeholder="Ex: Hotel Paradise - Quarto Duplo com Vista para o Mar">
+        </div>
+
+        <div class="form-group">
+          <label for="adDescription">Descrição*</label>
+          <textarea id="adDescription" name="description" required placeholder="Descreva seu estabelecimento, serviços oferecidos, diferenciais..." rows="6"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="adImage">Imagem Principal (URL)*</label>
+          <input type="url" id="adImage" name="image" required placeholder="https://exemplo.com/imagem.jpg">
+          <div class="image-preview" id="imagePreview">Prévia da imagem aparecerá aqui</div>
+        </div>
+
+        <div class="form-group">
+          <label for="adCategory">Categoria*</label>
+          <select id="adCategory" name="category" required>
+            <option value="">Selecione uma categoria</option>
+            <option value="hotel">Hotel/Pousada</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="atividade">Atividade/Passeio</option>
+            <option value="transporte">Transporte</option>
+            <option value="outros">Outros Serviços</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="adRating">Classificação (1-5 estrelas)*</label>
+          <div class="rating-input">
+            <input type="range" id="adRating" name="rating" min="1" max="5" value="5">
+            <div class="rating-display" id="ratingDisplay">★★★★★</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="adAddress">Endereço Completo*</label>
+          <input type="text" id="adAddress" name="address" required placeholder="Rua, número, bairro, cidade, estado">
+        </div>
+
+        <div class="form-group">
+          <label for="adPhone">Telefone de Contato</label>
+          <input type="tel" id="adPhone" name="phone" placeholder="(11) 99999-9999">
+        </div>
+
+        <div class="form-group">
+          <label for="adWebsite">Website</label>
+          <input type="url" id="adWebsite" name="website" placeholder="https://seusite.com.br">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="../../js/utils/include.js"></script>
+  <script src="createAd.js"></script>
+</body>
+</html>

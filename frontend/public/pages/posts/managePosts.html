@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Postagens - Viajey</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="managePosts.css">
+</head>
+<body>
+  <div id="header"></div>
+  
+  <main class="main-content">
+    <div class="manage-posts-container">
+      <div class="page-header">
+        <h1>Postagens</h1>
+        <button class="btn-primary" id="createPostBtn">+ Criar</button>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-status="all">Todas</button>
+        <button class="tab-btn" data-status="pending">Pendentes</button>
+        <button class="tab-btn" data-status="approved">Aprovadas</button>
+        <button class="tab-btn" data-status="rejected">Rejeitadas</button>
+      </div>
+
+      <div class="posts-grid" id="postsGrid">
+        <!-- Posts will be loaded here -->
+      </div>
+
+      <div class="pagination" id="pagination">
+        <!-- Pagination will be loaded here -->
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="../../js/utils/include.js"></script>
+  <script src="managePosts.js"></script>
+</body>
+</html>

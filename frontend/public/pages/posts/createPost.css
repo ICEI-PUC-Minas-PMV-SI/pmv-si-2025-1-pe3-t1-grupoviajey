@@ -1,0 +1,151 @@
+.main-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.create-post-container h1 {
+  text-align: center;
+  color: #004954;
+  margin-bottom: 32px;
+  font-size: 2rem;
+}
+
+.post-form {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #004954;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #004954;
+}
+
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rating-input input[type="range"] {
+  flex: 1;
+  max-width: 200px;
+}
+
+.rating-display {
+  font-size: 1.2rem;
+  color: #ffd700;
+  min-width: 120px;
+}
+
+.image-preview {
+  margin-top: 12px;
+  min-height: 100px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.image-preview.has-image {
+  border-style: solid;
+  border-color: #004954;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #004954;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #007c91;
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #c3e6cb;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px 8px;
+  }
+  
+  .post-form {
+    padding: 24px 16px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
