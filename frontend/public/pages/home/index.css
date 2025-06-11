@@ -15,14 +15,17 @@
   min-height: 260px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   background: #eee;
 }
 
 .ia-banner-bg {
   background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80') center center/cover no-repeat;
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   opacity: 0.85;
   z-index: 1;
 }
@@ -32,11 +35,14 @@
   z-index: 2;
   padding: 48px 32px;
   color: #fff !important;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 500px;
+  min-width: 900px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .ia-banner-content h2 {
@@ -54,7 +60,7 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   transition: background 0.2s, color 0.2s;
 }
 
@@ -73,7 +79,7 @@
 .cta-card {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   padding: 32px 24px;
   min-width: 220px;
   max-width: 300px;
@@ -85,7 +91,7 @@
 }
 
 .cta-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
 }
 
 .subheading-cta {
@@ -94,6 +100,20 @@
   font-weight: 500;
 }
 
+/* Para telas muito grandes, aumenta o banner */
+@media (min-width: 1400px) {
+  .ia-banner-cta {
+    max-width: 1200px;
+  }
+
+  .ia-banner-content {
+    max-width: 1200px;
+    padding: 64px 80px;
+    font-size: 2.2rem;
+  }
+}
+
+/* Para tablets e telas médias */
 @media (max-width: 900px) {
   .cards-section {
     flex-direction: column;
@@ -101,8 +121,29 @@
     max-width: 95vw;
     margin: 32px auto 0 auto;
   }
-  
+
   .ia-banner-cta {
     max-width: 95vw;
   }
-} 
+
+  .ia-banner-content {
+    max-width: 100%;
+    padding: 32px 16px;
+    font-size: 1.2rem;
+  }
+}
+
+/* Para mobile */
+@media (max-width: 600px) {
+  .ia-banner-content {
+    padding: 20px 8px;
+    font-size: 1rem;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .ia-banner-content h2 {
+    font-size: 1.2rem;
+    line-height: 1.3;
+  }
+}

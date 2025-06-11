@@ -1,10 +1,19 @@
+import { includeSearchBar } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeSearchBar(() => {
+    // Só inicializa o JS da search-bar depois do HTML estar no DOM
+    import('../../components/search-bar/search-bar.js');
+  });
+});
+
 function initAutocomplete() {
   const input = document.getElementById('autocomplete');
   if (input && window.google && window.google.maps) {
     const autocomplete = new google.maps.places.Autocomplete(input, {
       types: ['(cities)'],
     });
-    autocomplete.addListener('place_changed', function() {
+    autocomplete.addListener('place_changed', function () {
       const place = autocomplete.getPlace();
       if (place.address_components) {
         const city = place.address_components.find(comp => comp.types.includes('locality'));
@@ -50,7 +59,7 @@ if (calendarBtn) {
     locale: 'pt',
     showMonths: 2,
     positionElement: calendarBtn,
-    onClose: function(selectedDates) {
+    onClose: function (selectedDates) {
       if (selectedDates.length === 2) {
         const opts = { weekday: 'short', day: '2-digit', month: 'short' };
         const start = selectedDates[0].toLocaleDateString('pt-BR', opts).replace('.', '');
@@ -60,7 +69,7 @@ if (calendarBtn) {
     }
   });
 
-  calendarBtn.addEventListener('click', function(e) {
+  calendarBtn.addEventListener('click', function (e) {
     e.preventDefault();
     fp.open();
   });
@@ -69,15 +78,15 @@ if (calendarBtn) {
 // Redireciona para a página de resultados ao clicar em Pesquisar
 const searchBtn = document.querySelector('.search-btn');
 if (searchBtn) {
-  searchBtn.addEventListener('click', function(e) {
+  searchBtn.addEventListener('click', function (e) {
     e.preventDefault();
     const cidade = document.getElementById('autocomplete')?.value || '';
     let checkin = '', checkout = '';
     const fpInstance = document.getElementById('date-range')?._flatpickr;
     if (fpInstance && fpInstance.selectedDates.length === 2) {
       const [start, end] = fpInstance.selectedDates;
-      checkin = `${String(start.getDate()).padStart(2, '0')}/${String(start.getMonth()+1).padStart(2, '0')}/${start.getFullYear()}`;
-      checkout = `${String(end.getDate()).padStart(2, '0')}/${String(end.getMonth()+1).padStart(2, '0')}/${end.getFullYear()}`;
+      checkin = `${String(start.getDate()).padStart(2, '0')}/${String(start.getMonth() + 1).padStart(2, '0')}/${start.getFullYear()}`;
+      checkout = `${String(end.getDate()).padStart(2, '0')}/${String(end.getMonth() + 1).padStart(2, '0')}/${end.getFullYear()}`;
     }
     const tipo = 'hotel';
     // Salva no localStorage

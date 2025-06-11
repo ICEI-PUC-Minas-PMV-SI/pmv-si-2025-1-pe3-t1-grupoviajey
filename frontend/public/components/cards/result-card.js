@@ -1,4 +1,6 @@
-window.createResultCard = function({ image, title, rating, tags, address, favorite = false }) {
+import { userService } from '../../services/user/userService.js';
+
+export function createResultCard({ id, image, title, rating, tags, address, favorite = false }) {
   const card = document.createElement('div');
   card.className = 'result-card';
 
@@ -20,30 +22,43 @@ window.createResultCard = function({ image, title, rating, tags, address, favori
     </svg>
   `;
 
-  // Preencher o coração por padrão se favorite=true
-  const path = favoriteBtn.querySelector('path');
-  if (favorite) {
+  // Check if this place is in favorites
+  const isFavorite = userService.isFavorite(id);
+  if (isFavorite) {
     favoriteBtn.classList.add('active');
+    const path = favoriteBtn.querySelector('path');
     path.setAttribute('fill', '#ff4d4d');
     path.setAttribute('stroke', '#ff4d4d');
   }
 
   favoriteBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent card click event
+
     favoriteBtn.classList.toggle('active');
     const path = favoriteBtn.querySelector('path');
-    
+
     // Create feedback message
     const feedbackMsg = document.createElement('div');
     feedbackMsg.className = 'favorite-feedback';
-    
+
+    const place = {
+      id,
+      image,
+      title,
+      rating,
+      tags,
+      address
+    };
+
     if (favoriteBtn.classList.contains('active')) {
       path.setAttribute('fill', '#ff4d4d');
       path.setAttribute('stroke', '#ff4d4d');
+      userService.addToFavorites(place);
       feedbackMsg.textContent = 'Adicionado aos favoritos';
     } else {
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke', 'currentColor');
+      userService.removeFromFavorites(id);
       feedbackMsg.textContent = 'Removido dos favoritos';
     }
 
@@ -55,7 +70,7 @@ window.createResultCard = function({ image, title, rating, tags, address, favori
     // Add to body and show
     document.body.appendChild(feedbackMsg);
     feedbackMsg.classList.add('show');
-    
+
     // Remove after animation
     setTimeout(() => {
       feedbackMsg.classList.remove('show');

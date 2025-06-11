@@ -2,7 +2,7 @@
 
 body {
   background: #fff;
-  font-family: 'Inter', Arial, sans-serif;
+  /* font-family removido para usar o global.css */
   color: #15332B;
 }
 
@@ -11,7 +11,7 @@ body {
   margin: 40px auto 0 auto;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
   padding: 40px 32px 32px 32px;
 }
 
@@ -28,7 +28,9 @@ body {
   height: 100px;
 }
 
-#user-avatar {
+/* Especificidade para avatar do perfil, não afeta o header */
+.profile-header #user-profile-avatar,
+.profile-header .user-avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -51,17 +53,19 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 0;
   z-index: 2;
 }
+
 .edit-avatar-btn svg {
   display: block;
   width: 16px;
   height: 16px;
 }
+
 .edit-avatar-btn:hover {
-  box-shadow: 0 4px 16px rgba(21,51,43,0.12);
+  box-shadow: 0 4px 16px rgba(21, 51, 43, 0.12);
   border-color: #1e4a3d;
   background: #E6F0EE;
 }
@@ -75,6 +79,7 @@ body {
 .profile-form-section {
   margin-top: 12px;
 }
+
 .profile-form-section h3 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -87,10 +92,12 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
 #profile-form label {
   font-size: 1.1rem;
   font-weight: 500;
 }
+
 #profile-form input {
   background: #fff;
   border: 1.5px solid #B0B0B0;
@@ -102,6 +109,7 @@ body {
   outline: none;
   transition: none;
 }
+
 #profile-form input:focus {
   box-shadow: none;
   border: 1.5px solid #B0B0B0;
@@ -116,8 +124,7 @@ body {
 
 .btn-outline {
   background: #fff;
-  color: #15332B;
-  border: 2px solid #15332B;
+  color: #004954;
   border-radius: 6px;
   padding: 10px 0;
   width: 180px;
@@ -126,12 +133,13 @@ body {
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-outline:hover {
   background: #E6F0EE;
 }
 
 .btn-primary {
-  background: #15332B;
+  background: #004954;
   color: #fff;
   border: 2px solid #15332B;
   border-radius: 6px;
@@ -142,25 +150,30 @@ body {
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .btn-primary:hover {
-  background: #1e4a3d;
+  background: #02505c;
 }
 
 @media (max-width: 600px) {
   .profile-container {
     padding: 18px 4vw;
   }
+
   .profile-header {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
+
   .form-actions {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  .btn-outline, .btn-primary {
+
+  .btn-outline,
+  .btn-primary {
     width: 100%;
   }
 }
@@ -171,29 +184,36 @@ body {
   border-bottom: 2px solid #E6F0EE;
   margin-bottom: 24px;
 }
+
 .tab-btn {
   background: none;
   border: none;
   outline: none;
   font-size: 1.3rem;
   font-weight: 600;
-  color: #15332B;
+  color: #004954;
   padding: 14px 32px 10px 32px;
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: border-color 0.2s, background 0.2s;
 }
+
 .tab-btn.active {
-  border-bottom: 3px solid #15332B;
-  background: #E6F0EE;
+  border-bottom: 3px solid #004954;
+  background: #02505c;
   border-radius: 6px 6px 0 0;
+  color: #fff;
 }
+
 .tab-btn:not(.active):hover {
   background: #F5F8F7;
+  color: darkslategray;
 }
+
 .tab-content {
   display: none;
 }
+
 .tab-content.active {
   display: block;
 }
@@ -204,10 +224,12 @@ body {
   flex-direction: column;
   gap: 10px;
 }
+
 #security-form label {
   font-size: 1.1rem;
   font-weight: 500;
 }
+
 #security-form input {
   background: #fff;
   border: 1.5px solid #B0B0B0;
@@ -221,10 +243,12 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
+
 #security-form input:focus {
   box-shadow: none;
   border: 1.5px solid #B0B0B0;
 }
+
 #security-form .form-actions {
   display: flex;
   gap: 24px;

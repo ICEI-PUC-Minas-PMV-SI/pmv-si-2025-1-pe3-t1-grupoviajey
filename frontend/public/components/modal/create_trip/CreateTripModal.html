@@ -1,0 +1,78 @@
+<div class="create-trip-modal-overlay" id="create-trip-modal-overlay">
+    <div class="create-trip-modal" role="dialog" aria-modal="true" aria-labelledby="create-trip-modal-title">
+        <button class="create-trip-modal-close" id="create-trip-modal-close" aria-label="Fechar">&times;</button>
+        <div class="create-trip-modal-header">
+            <h2 id="create-trip-modal-title">Criar nova viagem</h2>
+        </div>
+        <form id="create-trip-form" class="create-trip-form">
+            <div class="form-group">
+                <label for="trip-title">Nome da viagem</label>
+                <input type="text" id="trip-title" name="title" required placeholder="Ex: Férias em Paris">
+            </div>
+
+            <div class="form-group">
+                <label for="trip-destination">Destino</label>
+                <div class="destination-input-container">
+                    <span class="search-icon">
+                        <svg width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="9" r="7" stroke="#BDBDBD" stroke-width="2" />
+                            <path d="M15 15L18 18" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <input type="text" id="trip-destination" name="destination" placeholder="Digite o destino" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="trip-dates">Período da viagem</label>
+                <div class="date-range-container">
+                    <input type="text" id="trip-dates" name="dates" placeholder="Selecione as datas" readonly required>
+                    <span class="date-icon">
+                        <img src="../../../assets/images/calendar.svg" alt="Calendário" />
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="trip-description">Descrição (opcional)</label>
+                <textarea id="trip-description" name="description" rows="4"
+                    placeholder="Adicione detalhes sobre sua viagem..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="trip-photo">Foto da viagem (opcional)</label>
+                <div class="photo-upload-container">
+                    <input type="file" id="trip-photo" name="photo" accept="image/*" class="photo-input">
+                    <div class="photo-upload-actions-row">
+                        <button type="button" id="search-destination-photo" class="btn-secondary">
+                            Buscar foto do destino
+                        </button>
+                        <label for="trip-photo" class="photo-upload-label">
+                            <div class="photo-upload-content">
+                                <span>Upload</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="photo-preview" class="photo-preview"></div>
+                <div id="photo-credits" class="photo-credits"></div>
+
+                <input type="hidden" id="photo-url-hidden" name="photo_url" />
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Criar viagem</button>
+                </div>
+        </form>
+    </div>
+</div>
+
+<div id="photo-requirements-popup">
+    <div class="popup-title">Recomendações para a imagem</div>
+    <ul>
+        <li>Formato paisagem (horizontal)</li>
+        <li>Mínimo de 800x600 pixels</li>
+        <li>Máximo de 5MB</li>
+    </ul>
+    <button class="close-popup" type="button">OK</button>
+</div>

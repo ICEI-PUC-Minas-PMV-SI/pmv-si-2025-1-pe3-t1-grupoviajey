@@ -3,6 +3,7 @@
  */
 import { selectedType, isTypeMatch, markers } from './map-config.js';
 import { updateMarkerAnimation } from '../../js/core/map/markers.js';
+import { createResultCard } from '../../components/cards/result-card.js';
 
 let floatingDropdown = null;
 let allResults = [];
@@ -77,7 +78,7 @@ function showFloatingDropdown(btn) {
   const salvar = floatingDropdown.querySelector('.roteiro-salvar');
 
   lista.querySelectorAll('.roteiro-item').forEach(item => {
-    item.onclick = function(ev) {
+    item.onclick = function (ev) {
       ev.stopPropagation();
       if (item.textContent === '+ Criar novo roteiro') {
         criar.style.display = 'flex';
@@ -92,7 +93,7 @@ function showFloatingDropdown(btn) {
     };
   });
 
-  salvar.onclick = function(ev) {
+  salvar.onclick = function (ev) {
     ev.stopPropagation();
     const nome = input.value.trim();
     if (nome) {
@@ -117,7 +118,7 @@ function showFloatingDropdown(btn) {
  */
 function bindFloatingDropdownToCards() {
   document.querySelectorAll('.add-roteiro-btn').forEach(btn => {
-    btn.onclick = function(e) {
+    btn.onclick = function (e) {
       e.stopPropagation();
       showFloatingDropdown(btn);
     };
@@ -144,17 +145,18 @@ function renderResults(results) {
   }
 
   grid.innerHTML = '';
-  
+
   const filtered = results.filter(place => isTypeMatch(place, selectedType));
   console.log('Resultados filtrados:', filtered);
-  
+
   if (filtered.length === 0) {
     grid.innerHTML = '<div class="no-results">Nenhum resultado encontrado para o tipo selecionado.</div>';
     return;
   }
-  
+
   filtered.forEach((place, index) => {
-    const card = window.createResultCard({
+    const card = createResultCard({
+      id: place.place_id,
       image: '',
       title: place.name,
       rating: place.rating || 0,
@@ -162,7 +164,7 @@ function renderResults(results) {
       address: place.vicinity || '',
       price_level: place.price_level
     });
-    
+
     card.classList.add('result-card');
     card.dataset.placeIndex = index;
 
@@ -177,7 +179,7 @@ function renderResults(results) {
         updateMarkerAnimation(markers[index], true);
       }
     });
-    
+
     card.addEventListener('mouseleave', () => {
       if (markers[index]) {
         updateMarkerAnimation(markers[index], false);

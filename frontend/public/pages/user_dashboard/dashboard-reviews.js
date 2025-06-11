@@ -1,80 +1,133 @@
 import { openReviewModal } from '../../components/modal/review_modal/ReviewModal.js';
 
+const ITEMS_PER_PAGE = 5;
+
 export async function renderReviews(page = 1) {
-  const reviewsContainer = document.getElementById('dashboard-reviews');
-  if (!reviewsContainer) return;
-  reviewsContainer.innerHTML = '';
-  const { reviews, total, perPage } = await fetchUserReviews(page);
+  const el = document.getElementById('dashboard-reviews');
+  if (!el) return;
 
-  reviews.forEach((review, idx) => {
-    const card = document.createElement('div');
-    card.className = 'review-card';
-    card.style.background = '#fff';
-    card.style.borderRadius = '12px';
-    card.style.marginBottom = '20px';
-    card.style.padding = '20px';
-    card.style.display = 'flex';
-    card.style.gap = '24px';
-    card.style.alignItems = 'flex-start';
+  // Busca avaliações do localStorage
+  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  const totalReviews = reviews.length;
+  const totalPages = Math.ceil(totalReviews / ITEMS_PER_PAGE);
+  const start = (page - 1) * ITEMS_PER_PAGE;
+  const end = start + ITEMS_PER_PAGE;
+  const pageReviews = reviews.slice(start, end);
 
-    const avatar = document.createElement('div');
-    avatar.className = 'review-avatar';
-    avatar.style.width = '60px';
-    avatar.style.height = '60px';
-    avatar.style.borderRadius = '50%';
-    avatar.style.background = '#e0e0e0';
-    avatar.style.display = 'flex';
-    avatar.style.alignItems = 'center';
-    avatar.style.justifyContent = 'center';
-    avatar.style.fontSize = '2.2rem';
-    avatar.textContent = '';
+  // Limpa o container e cria a estrutura
+  el.innerHTML = `
+    <div class="reviews-container">
+      <div class="reviews-list"></div>
+      <div class="reviews-pagination"></div>
+    </div>
+  `;
 
-    const info = document.createElement('div');
-    info.style.flex = '1';
+  const list = el.querySelector('.reviews-list');
+  const paginationContainer = el.querySelector('.reviews-pagination');
 
-    const title = document.createElement('div');
-    title.style.fontWeight = '600';
-    title.style.fontSize = '1.1rem';
-    title.style.marginBottom = '8px';
-    title.textContent = review.name;
+  if (!reviews.length) {
+    list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
+    return;
+  }
 
-    const rating = document.createElement('div');
-    rating.style.fontSize = '1.1rem';
-    rating.style.marginBottom = '8px';
-    rating.innerHTML = `<span style="color:#f5b50a;font-size:1.2rem;">${'★'.repeat(Math.round(review.rating))}${'☆'.repeat(5 - Math.round(review.rating))}</span> <span style="color:#222;font-size:1rem;vertical-align:middle;">${review.rating.toFixed(1)}</span>`;
+  // Renderiza apenas as reviews da página atual
+  list.innerHTML = ''; // Limpa a lista antes de adicionar os novos cards
+  pageReviews.forEach(review => {
+    const card = createReviewCard(review);
+    list.appendChild(card);
+  });
 
-    const comment = document.createElement('div');
-    comment.style.fontSize = '1rem';
-    comment.style.color = '#222';
-    comment.textContent = review.comment;
+  // Renderiza a paginação
+  if (totalPages > 1) {
+    renderReviewsPagination(paginationContainer, page, totalReviews, ITEMS_PER_PAGE);
+  }
+}
 
-    info.appendChild(title);
-    info.appendChild(rating);
-    info.appendChild(comment);
+function openReviewForm() {
+  const el = document.getElementById('dashboard-reviews');
+  el.innerHTML = `
+    <div class="review-form">
+      <h3>Nova avaliação (mock)</h3>
+      <form id="form-review">
+        <label>Nome do lugar:<input type="text" name="place" required></label><br>
+        <label>Nota:<input type="number" name="rating" min="1" max="5" required></label><br>
+        <label>Comentário:<textarea name="comment"></textarea></label><br>
+        <button type="submit" class="action-btn">Salvar</button>
+        <button type="button" id="cancel-review" class="action-btn">Cancelar</button>
+      </form>
+    </div>
+  `;
+  document.getElementById('cancel-review').onclick = renderReviews;
+  document.getElementById('form-review').onsubmit = function (e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(this));
+    addReview(data);
+    renderReviews();
+  };
+}
 
-    card.appendChild(avatar);
-    card.appendChild(info);
-    reviewsContainer.appendChild(card);
+function addReview(review) {
+  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  review.id = Date.now();
+  reviews.push(review);
+  localStorage.setItem('userReviews', JSON.stringify(reviews));
+}
 
-    // Abrir modal ao clicar no card
-    card.addEventListener('click', () => {
-      openReviewModal({
-        local: { name: review.name, address: 'Endereço do local' },
-        userReview: { rating: review.rating, comment: review.comment },
-        otherReviews: [
-          { user: 'Maria', rating: 4.5, comment: 'Ótimo local!' },
-          { user: 'João', rating: 4, comment: 'Gostei bastante.' }
-        ],
-        onSave: async ({ rating, comment }) => {
-          // Aqui você faria a chamada ao backend para salvar
-          return new Promise(resolve => setTimeout(resolve, 800));
+function createReviewCard(review) {
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.innerHTML = `
+    <div class="review-info">
+      <div class="review-place">${review.place}</div>
+      <div class="review-rating">${'★'.repeat(Number(review.rating))}${'☆'.repeat(5 - Number(review.rating))}</div>
+      <div class="review-comment">${review.comment || ''}</div>
+    </div>
+  `;
+
+  // Adiciona evento de clique para abrir o modal
+  card.addEventListener('click', () => {
+    openReviewModal({
+      local: {
+        name: review.place,
+        address: review.address || ''
+      },
+      userReview: {
+        rating: review.rating,
+        comment: review.comment
+      },
+      otherReviews: [
+        {
+          user: 'João Silva',
+          rating: 4.5,
+          comment: 'Lugar incrível! Vale muito a pena visitar.'
+        },
+        {
+          user: 'Maria Santos',
+          rating: 5,
+          comment: 'Experiência única, superou minhas expectativas!'
         }
-      });
+      ],
+      onSave: async (data) => {
+        // Atualiza a avaliação no localStorage
+        const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+        const index = reviews.findIndex(r => r.id === review.id);
+        if (index !== -1) {
+          reviews[index] = { ...reviews[index], ...data };
+          localStorage.setItem('userReviews', JSON.stringify(reviews));
+          renderReviews(); // Atualiza a lista
+        }
+      }
     });
   });
 
-  // Paginação
-  renderReviewsPagination(reviewsContainer, page, total, perPage);
+  return card;
+}
+
+function deleteReview(id) {
+  let reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
+  reviews = reviews.filter(review => review.id !== id);
+  localStorage.setItem('userReviews', JSON.stringify(reviews));
+  renderReviews();
 }
 
 async function fetchUserReviews(page = 1, perPage = 4) {
@@ -102,45 +155,34 @@ async function fetchUserReviews(page = 1, perPage = 4) {
 function renderReviewsPagination(container, page, total, perPage) {
   const totalPages = Math.ceil(total / perPage);
   if (totalPages <= 1) return;
-  const nav = document.createElement('nav');
-  nav.className = 'reviews-pagination';
-  nav.style.display = 'flex';
-  nav.style.justifyContent = 'center';
-  nav.style.gap = '8px';
-  nav.style.margin = '24px 0 0 0';
+
+  container.innerHTML = ''; // Limpa a paginação existente
 
   function createPageBtn(p, label = null) {
     const btn = document.createElement('button');
     btn.textContent = label || p;
     btn.disabled = p === page;
-    btn.style.minWidth = '36px';
-    btn.style.height = '36px';
-    btn.style.borderRadius = '50%';
-    btn.style.border = '1px solid #ccc';
-    btn.style.background = p === page ? '#222' : '#fff';
-    btn.style.color = p === page ? '#fff' : '#222';
-    btn.style.fontWeight = '600';
-    btn.style.cursor = p === page ? 'default' : 'pointer';
     btn.addEventListener('click', () => renderReviews(p));
     return btn;
   }
 
   // Prev
-  nav.appendChild(createPageBtn(Math.max(1, page - 1), '‹'));
+  if (page > 1) {
+    container.appendChild(createPageBtn(Math.max(1, page - 1), '‹'));
+  }
 
   for (let p = 1; p <= totalPages; p++) {
     if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) {
-      nav.appendChild(createPageBtn(p));
+      container.appendChild(createPageBtn(p));
     } else if (p === page - 2 || p === page + 2) {
       const dots = document.createElement('span');
       dots.textContent = '...';
-      dots.style.padding = '0 8px';
-      nav.appendChild(dots);
+      container.appendChild(dots);
     }
   }
 
   // Next
-  nav.appendChild(createPageBtn(Math.min(totalPages, page + 1), '›'));
-
-  container.appendChild(nav);
+  if (page < totalPages) {
+    container.appendChild(createPageBtn(Math.min(totalPages, page + 1), '›'));
+  }
 } 

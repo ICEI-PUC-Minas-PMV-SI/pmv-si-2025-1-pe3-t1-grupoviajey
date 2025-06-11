@@ -1,61 +1,62 @@
-// import { renderNotesInput, saveTripNote } from './dashboard-notes.js';
+import { initCreateTripModal, openCreateTripModal } from '../../components/modal/create_trip/CreateTripModal.js';
+import { formatShortDateRange } from '../../js/utils/date.js';
 
 export async function initDashboardTrips() {
+  await initCreateTripModal();
   await renderTrips();
 }
 
-async function fetchUserTrips() {
-  // Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
-  // return fetch('/api/viagens').then(res => res.json());
+//async function fetchUserTrips() {
+// Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
+// return fetch('/api/viagens').then(res => res.json());
 
-  // Simulação de chamada ao backend (mock)
-  return [
-    {
-      id: 1,
-      title: 'Viagem a Paris',
-      date: '2025-05-15/2025-05-25',
-      descricao: 'Uma viagem inesquecível pela capital francesa.',
-      isPast: false
-    },
-    {
-      id: 2,
-      title: 'Férias no Rio',
-      date: '2025-05-15/2025-05-25',
-      descricao: 'Aproveite as praias e o clima carioca.',
-      isPast: false
-    },
-    {
-      id: 3,
-      title: 'Viagem a Roma',
-      date: '2025-05-15/2025-05-25',
-      descricao: 'Uma viagem inesquecível pela capital italiana.',
-      isPast: true
-    }
-  ];
+// Simulação de chamada ao backend (mock)
+//return [
+/*{
+  id: 1,
+  title: 'Viagem a Paris',
+  date: '2025-05-15/2025-05-25',
+  descricao: 'Uma viagem inesquecível pela capital francesa.',
+  isPast: false
+},
+{
+  id: 2,
+  title: 'Férias no Rio',
+  date: '2025-05-15/2025-05-25',
+  descricao: 'Aproveite as praias e o clima carioca.',
+  isPast: false
+},
+{
+  id: 3,
+  title: 'Viagem a Roma',
+  date: '2025-05-15/2025-05-25',
+  descricao: 'Uma viagem inesquecível pela capital italiana.',
+  isPast: true
 }
+*/
+//];
+//}
 
-async function renderTrips() {
-  const tripsContainer = document.getElementById('dashboard-trips');
-  if (!tripsContainer) return;
+export function renderTrips() {
+  const el = document.getElementById('dashboard-trips');
+  if (!el) return;
 
-  const allTrips = await fetchUserTrips();
-  const tripsAtuais = allTrips.filter(trip => !trip.isPast);
-  const tripsPassadas = allTrips.filter(trip => trip.isPast);
+  // Busca viagens do localStorage
+  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
 
-  tripsContainer.innerHTML = `
-    <div class="trips-list" id="trips-atuais-list"></div>
-    <div class="trips-section-title">Viagens passadas</div>
-    <div class="trips-list" id="trips-passadas-list"></div>
+  el.innerHTML = `
+    <div class="trips-list"></div>
   `;
 
-  renderTripsList('trips-atuais-list', tripsAtuais);
-  renderTripsList('trips-passadas-list', tripsPassadas);
-}
+  // Adicionar evento ao botão de criar viagem
+  document.getElementById('btn-create-trip').onclick = openCreateTripModal;
 
-function renderTripsList(containerId, trips) {
-  const list = document.getElementById(containerId);
-  if (!list) return;
-  list.innerHTML = '';
+  const list = el.querySelector('.trips-list');
+  if (!trips.length) {
+    list.innerHTML = '<p>Nenhuma viagem criada ainda.</p>';
+    return;
+  }
+
   trips.forEach(trip => {
     const card = createTripCard(trip);
     list.appendChild(card);
@@ -65,37 +66,59 @@ function renderTripsList(containerId, trips) {
 function createTripCard(trip) {
   const card = document.createElement('div');
   card.className = 'trip-card';
+  // Extrai cidade, estado, país do destino (esperando string "cidade, estado, país")
+  let city = '', state = '', country = '';
+  if (trip.destination) {
+    const parts = trip.destination.split(',').map(s => s.trim());
+    [city, state, country] = parts;
+  }
+
+  // Cria o conteúdo da imagem baseado na foto disponível
+  const imageContent = trip.photo
+    ? `<img src="${trip.photo}" alt="${trip.title}" class="trip-photo">`
+    : `<span>📷</span>`;
 
   card.innerHTML = `
-    <div class="trip-img-placeholder">
-      <span>📷</span>
-    </div>
+    <div class="trip-img-placeholder">${imageContent}</div>
     <div class="trip-info">
-      <div class="trip-title">[${trip.title}]</div>
-      <div class="trip-date"><span>📅</span> ${formatTripDate(trip.date)}</div>
-      <div class="trip-desc">${trip.descricao || ''}</div>
+      <div class="trip-title">${trip.title}</div>
+      <div class="trip-destination-row">
+        <span class="dashboard-pin-icon"><img src="../../../assets/images/pin.svg" alt="Local" /></span>
+        <span class="trip-destination">${city || 'Destino não definido'}${state ? ', ' + state : ''}${country ? ', ' + country : ''}</span>
+      </div>
+      <div class="trip-dates-row">
+        <span class="dashboard-date-icon"><img src="../../../assets/images/calendar.svg" alt="Calendário" /></span>
+        <span class="trip-date">${formatTripPeriod(trip)}</span>
+      </div>
+      <div class="trip-desc">${trip.description || ''}</div>
     </div>
   `;
+
+  // Evento de clique para abrir o roadmap
+  card.addEventListener('click', () => {
+    localStorage.setItem('selectedTripId', trip.id);
+    window.location.href = '/pages/user_roadmap/user-roadmap.html';
+  });
 
   return card;
 }
 
-function formatTripDate(dateStr) {
-  // Espera formato 'YYYY-MM-DD/YYYY-MM-DD'
-  if (!dateStr.includes('/')) return dateStr;
-  const [start, end] = dateStr.split('/');
-  const [sy, sm, sd] = start.split('-');
-  const [ey, em, ed] = end.split('-');
-  // Exemplo: Dias 15 - 25 de Maio de 2025
-  const meses = [
-    '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-  return `Dias ${parseInt(sd)} - ${parseInt(ed)} de ${meses[parseInt(em)]} de ${ey}`;
+function formatTripPeriod(trip) {
+  if (trip.startDate && trip.endDate) {
+    return formatShortDateRange(trip.startDate, trip.endDate);
+  } else if (trip.startDate) {
+    return formatShortDateRange(trip.startDate, trip.startDate);
+  } else if (trip.endDate) {
+    return formatShortDateRange(trip.endDate, trip.endDate);
+  } else {
+    return 'Data não definida';
+  }
 }
 
 function deleteTrip(id) {
-  alert('Viagem excluída (mock): ' + id);
+  let trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+  trips = trips.filter(trip => trip.id !== id);
+  localStorage.setItem('userTrips', JSON.stringify(trips));
   renderTrips();
 }
 

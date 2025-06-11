@@ -2,8 +2,22 @@
   <a href="../../pages/home/index.html">
     <img src="../../assets/images/LogoViajeyOficial.svg" alt="Logo Viajey" class="logo">
   </a>
-  <nav class="nav">
-    <a href="#" class="nav-link">Cadastrar</a>
-    <a href="#" class="nav-link login">Entrar</a>
-  </nav>
-</header> 
+  <div id="searchbar-container"></div>
+  <div class="user-info">
+    <!-- Bloco para usuário não autenticado (deslogado) -->
+    <div id="user-actions" style="display: none;">
+      <a href="../../pages/cadastro-usuario/cadastro.html" class="nav-link">Cadastrar</a>
+      <a href="../../pages/login-usuario/login.html" class="nav-link login">Entrar</a>
+    </div>
+    <!-- Bloco para usuário autenticado (logado) -->
+    <span id="user-greeting">Oi,</span>
+    <span id="user-name"></span>
+    <img id="user-avatar" class="user-avatar" alt="Avatar do usuário">
+    <div id="user-menu" class="user-menu" style="display: none;">
+      <a href="../../pages/user_profile/index.html" class="user-menu-link">Meu perfil</a>
+      <a href="../../pages/user_dashboard/index.html" class="user-menu-link">Dashboard</a>
+      <a href="#" id="logout-btn" class="user-menu-link logout">Sair</a>
+    </div>
+  </div>
+</header>
+<!-- O search-bar será incluído via include.js no container acima -->

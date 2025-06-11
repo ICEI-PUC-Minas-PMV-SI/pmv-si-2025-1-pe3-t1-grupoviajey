@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roteiro do Usuário | Viajey</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/pages/user_roadmap/user-roadmap.css">
-  <link rel="stylesheet" href="/components/map/map.css">
-  <link rel="stylesheet" href="/components/header/header.css">
-  <link rel="stylesheet" href="/components/footer/footer.css">
+  <link rel="stylesheet" href="../../components/modal/place_details/PlaceDetailsModal.css">
+  <link rel="stylesheet" href="../../components/modal/reviews/ReviewsModal.css">
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../pages/user_roadmap/user-roadmap.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+  <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/modal/create_trip/CreateTripModal.css">
+  <!-- <link rel="icon" href="/favicon.ico"> -->
 </head>
+
 <body>
   <!-- Header -->
   <div id="header"></div>
@@ -20,24 +27,50 @@
       <!-- Imagem de capa e informações principais -->
       <div class="roadmap-cover">
         <!-- Imagem de fundo -->
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="Florianópolis" class="cover-img">
+        <img id="cover-img" class="cover-img" src="" alt="Foto da viagem">
         <div class="cover-actions">
           <button class="cover-action-btn" title="Adicionar pessoa">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="10" r="6" stroke="#222" stroke-width="1.5"/><path d="M4 20c0-2.21 3.582-4 8-4s8 1.79 8 4" stroke="#222" stroke-width="1.5"/><path d="M19 8v4M21 10h-4" stroke="#222" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="10" cy="10" r="6" stroke="#222" stroke-width="1.5" />
+              <path d="M4 20c0-2.21 3.582-4 8-4s8 1.79 8 4" stroke="#222" stroke-width="1.5" />
+              <path d="M19 8v4M21 10h-4" stroke="#222" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
           </button>
           <button class="cover-action-btn" title="Compartilhar">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="#222" stroke-width="1.5"/><circle cx="6" cy="12" r="3" stroke="#222" stroke-width="1.5"/><circle cx="18" cy="19" r="3" stroke="#222" stroke-width="1.5"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="#222" stroke-width="1.5"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="18" cy="5" r="3" stroke="#222" stroke-width="1.5" />
+              <circle cx="6" cy="12" r="3" stroke="#222" stroke-width="1.5" />
+              <circle cx="18" cy="19" r="3" stroke="#222" stroke-width="1.5" />
+              <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="#222" stroke-width="1.5" />
+            </svg>
           </button>
           <button class="cover-action-btn" title="Configurações">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.03 7.03 0 0 0-1.7-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.38 2.65a7.03 7.03 0 0 0-1.7.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.53.38 1.1.7 1.7.98l.38 2.65A.5.5 0 0 0 10 22h4a.5.5 0 0 0 .5-.42l.38-2.65a7.03 7.03 0 0 0 1.7-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" stroke="#222" stroke-width="1.5" fill="none"/>
+              <path
+                d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.03 7.03 0 0 0-1.7-.98l-.38-2.65A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42l-.38 2.65a7.03 7.03 0 0 0-1.7.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.53.38 1.1.7 1.7.98l.38 2.65A.5.5 0 0 0 10 22h4a.5.5 0 0 0 .5-.42l.38-2.65a7.03 7.03 0 0 0 1.7-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
+                stroke="#222" stroke-width="1.5" fill="none" />
             </svg>
           </button>
         </div>
         <div class="cover-info">
           <h1 id="tripNameBanner">Minha Viagem</h1>
-          <p id="tripDestinationBanner">Florianópolis</p>
-          <p id="tripDateBanner">23 Maio - 25 Maio</p>
+
+          <div class="trip-destination-banner-row">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22s7-7.58 7-12A7 7 0 1 0 5 10c0 4.42 7 12 7 12Z" stroke="#fff" stroke-width="1.7" />
+              <circle cx="12" cy="10" r="3" fill="none" stroke="#fff" stroke-width="1.5" />
+            </svg>
+            <p id="tripDestinationBanner">Destino</p>
+          </div>
+
+          <div class="trip-date-banner-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="5" width="18" height="16" rx="3" fill="#fff" stroke="#fff" stroke-width="1.7" />
+              <path d="M7 3v4M17 3v4" stroke="#0a7c6a" stroke-width="1" stroke-linecap="round" />
+            </svg>
+            <p id="tripDateBanner">Datas</p>
+          </div>
+          <p id="tripDescriptionBanner" class="trip-description-banner"></p>
         </div>
       </div>
     </section>
@@ -60,53 +93,28 @@
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                 </select>
-                <input type="text" id="budgetInput" placeholder="Informe o valor total" min="0" pattern="[0-9]*" inputmode="numeric">
+                <input type="text" id="budgetInput" placeholder="Informe o valor total" inputmode="numeric">
               </div>
               <button class="save-budget-btn" id="saveBudgetBtn">Salvar</button>
             </div>
           </div>
         </div>
-        
-        
-      
+
         <div id="tab-checklist" style="display:none;">
           <div class="checklists-container" id="checklistsContainer">
-            <div class="checklist-details checklist-block">
-              <div class="checklist-title-row" style="display:flex;align-items:center;gap:8px;">
-                <h3 class="checklist-title">Check-list de Viagem</h3>
-                <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;vertical-align:middle;padding:0;">
-                  <svg width="18" height="18" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
-                </button>
-              </div>
-              <ul class="checklist-list">
-                <li class="checklist-item" draggable="true">
-                  <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-                  <label><input type="checkbox"> Passagem comprada</label>
-                  <button class="remove-checklist-btn" title="Remover item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-                </li>
-                <li class="checklist-item" draggable="true">
-                  <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-                  <label><input type="checkbox"> Reserva de hotel</label>
-                  <button class="remove-checklist-btn" title="Remover item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-                </li>
-                <li class="checklist-item" draggable="true">
-                  <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-                  <label><input type="checkbox"> Documentos separados</label>
-                  <button class="remove-checklist-btn" title="Remover item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-                </li>
-                <li class="checklist-item" draggable="true">
-                  <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-                  <label><input type="checkbox"> Roupas adequadas</label>
-                  <button class="remove-checklist-btn" title="Remover item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-                </li>
-              </ul>
-              <form class="add-checklist-form" autocomplete="off">
-                <input type="text" class="newChecklistInput" placeholder="Novo item..." required />
-                <button type="submit" class="add-checklist-btn">Adicionar</button>
-              </form>
-            </div>
+            <!-- O conteúdo será adicionado dinamicamente pelo JavaScript -->
           </div>
           <button id="addChecklistBlockBtn" class="add-checklist-btn" style="margin-top:18px;">+ Novo checklist</button>
+        </div>
+        <div id="tab-saved-places" style="display:none;">
+          <div class="saved-places-container">
+            <h4 class="saved-places-title">Locais salvos sem dia definido</h4>
+            <button id="addSavedPlaceBtn" class="add-place-btn outlined" style="margin-bottom:18px;">+ Adicionar
+              local</button>
+            <div id="savedPlacesList">
+              <p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>
+            </div>
+          </div>
         </div>
         <!-- Conteúdo do roteiro será adicionado aqui -->
         <div class="itinerary-details" id="tab-itinerary">
@@ -114,7 +122,7 @@
           <!-- O bloco de resumo financeiro deve ficar após os accordions dos dias do roteiro -->
           <div id="financeSummaryRow">
             <div class="finance-summary-item" id="summaryBudget" style="display:none;">
-              <span class="finance-icon">🪙</span>
+              <span class="finance-icon">💰</span>
               <span class="summary-label">Orçamento total:</span>
               <span class="summary-value" id="summaryBudgetValue"></span>
             </div>
@@ -124,20 +132,16 @@
               <span class="summary-value" id="summarySpentValue"></span>
             </div>
             <div class="finance-summary-item" id="summaryAvailableRow" style="display:none;">
-              <span class="finance-icon">🟩</span>
+              <span class="finance-icon">💵</span>
               <span class="summary-label">Orçamento disponível:</span>
               <span class="summary-value" id="summaryAvailableValue"></span>
             </div>
           </div>
         </div>
-      </div>  
-    </div>
-      <div class="roadmap-map">
-        <!-- Mapa será inserido aqui -->
-        <div id="map-container">
-          <button id="search-area-btn" style="display:none;">Buscar nesta área</button>
-          <div id="map" style="width:100%;height:100%;background:#e0e0e0;"></div>
-        </div>
+      </div>
+      <div class="results-map">
+        <button id="search-area-btn">Buscar nesta área</button>
+        <div id="map"></div>
       </div>
     </section>
   </main>
@@ -148,7 +152,9 @@
   <div id="addPlaceModal" class="modal-add-place" style="display:none;">
     <div class="modal-content">
       <h2 class="modal-title">Qual local você gostaria de adicionar?</h2>
-      <div id="modalSearchBarContainer"></div>
+      <div id="modalSearchBarContainer">
+        <input id="autocomplete" type="text" placeholder="Busque um local..." />
+      </div>
       <div class="modal-actions">
         <button id="closeAddPlaceModal" class="modal-cancel-btn">Cancelar</button>
         <button id="confirmAddPlaceModal" class="modal-confirm-btn">Adicionar</button>
@@ -156,8 +162,9 @@
     </div>
   </div>
 
+  <!-- Modal de edição de viagem -->
   <div id="editTripModal" class="modal-edit-trip" style="display:none;">
-    <div class="modal-content" style="max-height:80vh; overflow-y:auto;">
+    <div class="modal-content modal-content-scrollable">
       <button class="modal-close-btn" id="closeEditTripModal" title="Fechar">×</button>
       <h2 class="modal-title">Editar detalhes da viagem</h2>
       <form id="editTripForm">
@@ -167,24 +174,66 @@
         <input type="text" id="tripDestination" name="tripDestination" required />
         <label for="editTripDateRange">Datas da viagem</label>
         <input type="text" id="editTripDateRange" name="editTripDateRange" required />
-        
-        <label style="margin-top:12px;">Privacidade da viagem</label>
-        <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px;">
-          <label style="display:flex; align-items:flex-start; gap:8px;">
-            <input type="radio" name="tripPrivacy" value="publica" style="margin-top:2px;" />
-            <span><b>Pública</b><br><span style="font-weight:normal; color:#666;">Visível para toda a comunidade Viajey. Por privacidade, só mostramos o mês e ano da viagem após as datas passarem.</span></span>
+        <div class="form-group">
+          <label for="edit-trip-description">Descrição (opcional)</label>
+          <textarea id="edit-trip-description" name="description" rows="6"
+            placeholder="Adicione detalhes sobre sua viagem..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit-trip-photo">Foto da viagem (opcional)</label>
+          <div class="photo-upload-ontainer">
+            <input type="file" id="edit-trip-photo" name="photo" accept="image/*" class="photo-input">
+            <div class="photo-upload-actions-row">
+              <button type="button" id="edit-search-destination-photo" class="btn-secondary">
+                Buscar foto do destino
+              </button>
+              <label for="edit-trip-photo" class="photo-upload-label">
+                <div class="photo-upload-content">
+                  <span>Upload</span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div id="edit-photo-preview" class="photo-preview"></div>
+          <div id="edit-photo-credits" class="photo-credits"></div>
+          <input type="hidden" id="edit-photo-url-hidden" name="photo_url" />
+        </div>
+        <div id="edit-photo-requirements-overlay" style="display:none"></div>
+        <div id="edit-photo-requirements-popup" style="display:none">
+          <div class="popup-title">Recomendações para a imagem</div>
+          <ul>
+            <li>Formato paisagem (horizontal)</li>
+            <li>Mínimo de 800x600 pixels</li>
+            <li>Máximo de 5MB</li>
+          </ul>
+          <button class="close-popup" type="button">OK</button>
+        </div>
+        <div class="privacy-options">
+          <label class="privacy-option">
+            <input type="radio" name="tripPrivacy" value="publica" />
+            <span><b>Pública</b><br><span class="privacy-option-text">Visível para toda a comunidade Viajey. Por
+                privacidade, só mostramos o mês e ano da viagem após as datas passarem.</span></span>
           </label>
-          <label style="display:flex; align-items:flex-start; gap:8px;">
-            <input type="radio" name="tripPrivacy" value="restrita" checked style="margin-top:2px;" />
-            <span><b>Restrita</b><br><span style="font-weight:normal; color:#666;">Visível apenas para quem receber o link de compartilhamento ou for convidado a colaborar.</span></span>
+          <label class="privacy-option">
+            <input type="radio" name="tripPrivacy" value="restrita" checked />
+            <span><b>Restrita</b><br><span class="privacy-option-text">Visível apenas para quem receber o link de
+                compartilhamento ou for convidado a colaborar.</span></span>
           </label>
         </div>
-        <button type="button" id="deleteTripBtn" style="background:#ffeaea; color:#e05a47; border:1.5px solid #e05a47; display:flex; align-items:center; gap:6px; font-weight:600; padding:6px 14px; border-radius:7px; min-width:0; font-size:0.98rem; cursor:pointer; transition:background 0.2s, border 0.2s; margin-top:24px; margin-bottom:0;">
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/><path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <button type="button" id="deleteTripBtn" class="delete-trip-btn">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47"
+              stroke-width="1.5" stroke-linecap="round" />
+          </svg>
           Deletar viagem
         </button>
-        <div class="modal-actions-row" style="position:sticky; bottom:0; left:0; right:0; display:flex; justify-content:flex-end; align-items:center; background:#fff; padding:0 16px 0 0; z-index:2; gap:12px;">
-          <button type="submit" class="modal-save-btn" style="min-width:120px;">Salvar</button>
+        <div class="modal-actions-row">
+          <button class="modal-save-btn" type="submit">Salvar</button>
         </div>
       </form>
     </div>
@@ -192,54 +241,71 @@
 
   <!-- Modal de Compartilhamento -->
   <div id="shareModal" class="modal-add-place" style="display:none;">
-    <div class="modal-content" style="max-width:380px;align-items:center;position:relative;">
-      <button id="closeShareModal" class="modal-close-btn" title="Fechar" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;color:#0a7c6a;cursor:pointer;z-index:2;">&times;</button>
-      <h2 class="modal-title" style="margin-bottom:18px;">Compartilhar viagem</h2>
-      <div style="display:flex;gap:8px;width:100%;align-items:center;">
-        <input id="shareLinkInput" type="text" readonly style="flex:1;margin-bottom:0;padding:8px 10px;font-size:1.05rem;border-radius:6px;border:1.2px solid #b0b8c1;" />
-        <button id="copyShareLinkBtn" class="modal-confirm-btn" style="padding:8px 16px;min-width:110px;">Copiar link</button>
+    <div class="modal-content">
+      <button id="closeShareModal" class="closeBtn" title="Fechar">&times;</button>
+      <h2 class="modal-title">Compartilhar viagem</h2>
+      <div class="share-link-container">
+        <input id="shareLinkInput" type="text" readonly class="share-link-input" />
+        <button id="copyShareLinkBtn" class="modal-confirm-btn copy-link-btn">Copiar link</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de Colaboração -->
   <div id="collabModal" class="modal-add-place" style="display:none;">
-    <div class="modal-content" style="max-width:380px;align-items:center;position:relative;">
-      <button id="closeCollabModal" class="modal-close-btn" title="Fechar" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.5rem;color:#0a7c6a;cursor:pointer;z-index:2;">&times;</button>
-      <h2 class="modal-title" style="margin-bottom:18px;">Colaboração da viagem</h2>
-      <div style="width:100%;">
-        <label style="font-weight:600;display:block;margin-bottom:8px;">Convidar colaboradores</label>
-        <p style="font-size:0.98rem;margin-bottom:10px;">Copie e envie o link abaixo para convidar colaboradores. Qualquer pessoa com este link poderá editar e adicionar à sua viagem.</p>
-        <div style="display:flex;gap:8px;width:100%;align-items:center;">
-          <input id="collabLinkInput" type="text" readonly style="flex:1;margin-bottom:0;padding:8px 10px;font-size:1.05rem;border-radius:6px;border:1.2px solid #b0b8c1;" />
-          <button id="copyCollabLinkBtn" class="modal-confirm-btn" style="padding:8px 16px;min-width:110px;">Copiar</button>
+    <div class="modal-content">
+      <button id="closeCollabModal" class="closeBtn" title="Fechar">&times;</button>
+      <h2 class="modal-title">Colaboração da viagem</h2>
+      <div class="collab-section">
+        <label class="collab-label">Convidar colaboradores</label>
+        <p class="collab-description">Copie e envie o link abaixo para convidar colaboradores. Qualquer pessoa com este
+          link poderá editar e adicionar à sua viagem.</p>
+        <div class="share-link-container">
+          <input id="collabLinkInput" type="text" readonly class="share-link-input" />
+          <button id="copyCollabLinkBtn" class="modal-confirm-btn copy-link-btn">Copiar</button>
         </div>
       </div>
-      <div style="width:100%;margin-top:24px;">
-        <label style="font-weight:600;display:block;margin-bottom:8px;">Colaboradores</label>
-        <div id="collabList" style="display:flex;align-items:center;gap:10px;">
-          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Amanda M" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-          <span style="font-weight:600;">Amanda M</span>
-          <span style="color:#888;font-size:0.98rem;">(Dono)</span>
+      <div class="collab-section">
+        <label class="collab-label">Colaboradores</label>
+        <div id="collabList" class="collab-list">
+          <!-- <img src="../../assets/images/default-avatar.png" alt="Avatar padrão"> -->
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Amanda M" class="collab-avatar">
+          <span class="collab-name">Amanda M</span>
+          <span class="collab-role">(Dono)</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="tab-saved-places" style="display:none;">
-    <div class="saved-places-container">
-      <h3 class="saved-places-title">Locais salvos sem dia definido</h3>
-      <button id="addSavedPlaceBtn" class="add-place-btn outlined" style="margin-bottom:18px;">+ Adicionar local</button>
-      <div id="savedPlacesList">
-        <p class="empty-saved-places-msg">Nenhum local salvo ainda.</p>
+  <!-- Modal de alerta de locais movidos -->
+  <div id="placesMovedAlertModal" class="modal-alert" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Locais movidos</h2>
+        <button class="modal-close-btn" id="closePlacesMovedAlertModal" title="Fechar">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Alguns locais foram movidos para "Locais salvos" porque suas datas não estão mais no período da viagem.</p>
+        <p>Você pode encontrá-los na aba "Locais salvos" e adicioná-los novamente ao roteiro quando desejar.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmPlacesMovedAlert" class="modal-confirm-btn">Entendi</button>
       </div>
     </div>
   </div>
 
-  <script src="/js/core/map/map.js"></script>
-  <script src="../../js/utils/include.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-  <script type="module" src="/pages/user_roadmap/user-roadmap.js" defer></script>
+  <script type="module" src="../../js/core/map/init.js" defer></script>
+  <script type="module" src="../../js/core/map/utils.js" defer></script>
+  <script type="module" src="../../js/core/map/markers.js" defer></script>
+  <script type="module" src="../../js/utils/include.js" defer></script>
+  <script type="module" src="../../js/config/config.js" defer></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js" defer></script>
+  <script type="module" src="roadmap-utils.js" defer></script>
+  <script type="module" src="roadmap-core.js" defer></script>
+  <script type="module" src="roadmap-finance.js" defer></script>
+  <script type="module" src="roadmap-map.js" defer></script>
+  <script type="module" src="main.js" defer></script>
 </body>
+
 </html>

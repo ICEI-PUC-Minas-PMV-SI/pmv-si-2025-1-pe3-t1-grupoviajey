@@ -1,38 +1,64 @@
 /* user-dashboard.css */
 
+/* Garante que todos os containers principais tenham largura mínima */
 .dashboard-container {
+  min-width: 1000px;
   max-width: 1100px;
   margin: var(--spacing-lg) auto;
-  padding: var(--spacing-lg);
-  background: var(--background-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 2px 16px var(--shadow-color);
 }
 
 .dashboard-tabs {
   display: flex;
-  gap: var(--spacing-lg);
-  border-bottom: 2px solid var(--primary-color);
+  gap: 5px;
   margin-bottom: var(--spacing-lg);
   font-size: 1.3rem;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
 }
 
 .dashboard-tab {
-  padding: var(--spacing-sm) var(--spacing-lg);
+  flex: 1 1 0;
+  padding: 1.1rem 0;
   cursor: pointer;
   font-weight: 500;
   color: var(--text-color);
   border: none;
-  background: none;
-  transition: color 0.2s;
+  background: #ffffff;
+  transition: background 0.2s, color 0.2s;
+  font-size: 1.15rem;
+  border-bottom: 1px solid #004954;
+}
+
+.dashboard-tab:last-child {
+  border-right: none;
 }
 
 .dashboard-tab.active {
-  color: var(--primary-color);
-  border-bottom: 3px solid var(--primary-color);
+  background: var(--primary-color);
+  border-radius: 10px 10px 0 0;
+  color: #fff;
+  z-index: 1;
 }
 
-.dashboard-tabs .dashboard-tab h2 {
+.dashboard-tab.active:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+
+.dashboard-tab:not(.active) {
+  background: #ffffff;
+  color: var(--text-color);
+}
+
+.dashboard-tab:hover {
+  background: #317883;
+  color: #fff;
+  border-radius: 10px 10px 0 0;
+}
+
+#dashboard-tabs .dashboard-tab h2 {
   font-size: 2.2rem;
   font-weight: 700;
   margin: 0;
@@ -50,9 +76,9 @@
   width: 100%;
   min-width: 0;
   max-width: none;
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-sm) 0;
   border: 1px solid var(--primary-color);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   background: var(--background-color);
   color: var(--primary-color);
   font-size: 1rem;
@@ -60,6 +86,7 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .action-btn:hover {
   background: var(--primary-color);
   color: #fff;
@@ -85,32 +112,57 @@
   background: var(--background-color);
   border: 1.5px solid #e0e0e0;
   border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  align-items: flex-start;
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
+  overflow: hidden;
+  min-height: 180px;
+  align-items: stretch;
 }
+
 .trip-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   transform: scale(1.02);
   border-color: #e0e0e0;
 }
 
 .trip-img-placeholder {
-  width: 110px;
-  height: 90px;
+  width: 350px;
+  min-width: 350px;
+  height: auto;
   background: var(--secondary-color);
   border-radius: var(--border-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #bbb;
-  font-size: 2.2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.trip-img-placeholder img.trip-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.trip-img-placeholder span {
+  font-size: 2rem;
+  opacity: 0.5;
+  z-index: 1;
 }
 
 .trip-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--spacing-xs);
 }
 
 .trip-title {
@@ -119,13 +171,32 @@
   margin-bottom: 0.3rem;
 }
 
+.trip-dates-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.trip-dates-row .dashboard-date-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+}
+
 .trip-date {
   font-size: 0.98rem;
   color: #444;
-  margin-bottom: 0.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+}
+
+.trip-desc {
+  margin-top: 0.2rem;
+  color: #444;
+  font-size: 0.98rem;
+  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .trip-rating {
@@ -173,14 +244,17 @@
   color: var(--primary-color);
   font-size: 1.2rem;
   transition: color 0.2s;
-  padding: 0.2rem;
+  padding: 0.5rem;
 }
+
 .trip-action-btn.delete {
   color: #d32f2f;
 }
+
 .trip-action-btn:hover {
   color: #0d47a1;
 }
+
 .trip-action-btn.delete:hover {
   color: #b71c1c;
 }
@@ -189,20 +263,34 @@
   .dashboard-container {
     padding: var(--spacing-sm);
   }
+
   .trip-card {
     flex-direction: column;
     align-items: stretch;
   }
+
+  .trip-img-placeholder {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+  }
+
   .dashboard-actions {
     flex-direction: column;
     gap: var(--spacing-sm);
   }
 }
 
+@media (max-width: 700px) {
+  .trip-img-placeholder {
+    height: 180px;
+  }
+}
+
 #dashboard-favorites {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
+  gap: 24px;
   margin-top: var(--spacing-lg);
 }
 
@@ -218,6 +306,14 @@
   }
 }
 
+/* Garante que os cards de favoritos usem o mesmo visual do result-card */
+#dashboard-favorites .results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  flex: 2 1 0;
+}
+
 .review-card {
   background: #fff;
   border-radius: 12px;
@@ -229,9 +325,182 @@
   border: 1.5px solid #e0e0e0;
   transition: box-shadow 0.2s, transform 0.2s;
 }
+
 .review-card:hover {
   box-shadow: 0 6px 24px rgba(160, 132, 232, 0.10);
   cursor: pointer;
   transform: scale(1.02);
   border-color: #e0e0e0;
-} 
+}
+
+@media (max-width: 1100px) {
+  #dashboard-favorites .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  #dashboard-favorites .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+#dashboard-favorites .trash-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  padding: 0;
+  z-index: 2;
+}
+
+#dashboard-favorites .trash-btn svg {
+  width: 22px;
+  height: 22px;
+  color: #e05a47;
+  transition: color 0.2s;
+}
+
+#dashboard-favorites .trash-btn:hover {
+  background: #fff0f0;
+  box-shadow: 0 4px 16px rgba(224, 90, 71, 0.10);
+}
+
+#dashboard-favorites .trash-btn:hover svg {
+  color: #b71c1c;
+}
+
+.trip-destination-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.dashboard-pin-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5px;
+}
+
+.dashboard-pin-icon img {
+  width: 25px;
+  height: 25px;
+  bor: 1px solid red;
+  display: block;
+}
+
+.trip-destination {
+  font-size: 1rem;
+  color: #444;
+}
+
+#dashboard-reviews {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.reviews-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  flex: 1;
+}
+
+.reviews-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.review-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1.5px solid #e0e0e0;
+  transition: box-shadow 0.2s, transform 0.2s;
+  width: 95%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.review-card:hover {
+  box-shadow: 0 6px 24px rgba(160, 132, 232, 0.10);
+  cursor: pointer;
+  transform: scale(1.02);
+  border-color: #e0e0e0;
+}
+
+.reviews-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0 24px 0;
+  border-top: 1px solid #e0e0e0;
+  background: #fff;
+  width: 100%;
+  margin-top: auto;
+}
+
+.reviews-pagination button {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #222;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reviews-pagination button:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.reviews-pagination button:disabled {
+  background: #222;
+  color: #fff;
+  cursor: default;
+}
+
+.reviews-pagination span {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 800px) {
+  .reviews-container {
+    max-width: 98vw;
+    padding: 0 2vw;
+  }
+
+  .review-card {
+    padding: 16px 8px;
+  }
+}

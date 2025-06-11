@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard do Usuário | Viajey</title>
   <link rel="stylesheet" href="../../css/main.css">
   <link rel="stylesheet" href="../../css/global.css">
-  <link rel="stylesheet" href="user-dashboard.css">
+  <link rel="stylesheet" href="../../pages/user_dashboard/user-dashboard.css">
   <link rel="stylesheet" href="../../components/header/header.css">
   <link rel="stylesheet" href="../../components/footer/footer.css">
   <link rel="stylesheet" href="../../components/search-bar/search-bar.css">
+  <link rel="stylesheet" href="../../components/cards/result-card.css">
+  <link rel="stylesheet" href="../../components/modal/place_details/PlaceDetailsModal.css">
+  <link rel="stylesheet" href="../../components/modal/reviews/ReviewsModal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="../../js/config/config.js"></script>
-  <script src="../../js/utils/include.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 </head>
+
 <body>
   <div id="header"></div>
   <main>
-    <div id="search-bar-include"></div>
     <section class="dashboard-container">
-      <nav class="dashboard-tabs" id="dashboard-tabs"></nav>
+      <nav class="dashboard-tabs" id="dashboard-tabs">
+        <button class="dashboard-tab" data-tab="trips">Viagens</button>
+        <button class="dashboard-tab" data-tab="favorites">Favoritos</button>
+        <button class="dashboard-tab" data-tab="reviews">Avaliações</button>
+      </nav>
       <section id="dashboard-content">
         <div class="dashboard-actions">
-          <button class="action-btn" id="btn-nova-viagem">Criar nova viagem</button>
-          <button class="action-btn" id="btn-nova-viagem-ia">Criar nova viagem com IA</button>
+          <button class="action-btn" id="btn-create-trip">Criar nova viagem</button>
+          <button class="action-btn" id="btn-create-trip-ai">Criar nova viagem com IA</button>
         </div>
         <div id="dashboard-trips"></div>
+        <section id="dashboard-favorites" class="results-content-section">
+          <div class="results-grid"></div>
+        </section>
+        <div id="dashboard-reviews"></div>
       </section>
     </section>
   </main>
   <div id="footer"></div>
-  <script type="module" src="dashboard-tabs.js"></script>
-  <script type="module" src="dashboard-trips.js"></script>
-  <script type="module" src="dashboard-favorites.js"></script>
-  <script type="module" src="dashboard-reviews.js"></script>
-  <script type="module" src="dashboard-events.js"></script>
-  <script type="module" src="user-dashboard.js"></script>
+
+  <!-- Scripts do dashboard -->
+  <script type="module" src="dashboard-tabs.js" defer></script>
+  <script type="module" src="dashboard-trips.js" defer></script>
+  <script type="module" src="dashboard-favorites.js" defer></script>
+  <script type="module" src="dashboard-reviews.js" defer></script>
+  <script type="module" src="dashboard-events.js" defer></script>
+  <script type="module" src="../../components/modal/place_details/PlaceDetailsModal.js" defer></script>
+  <script type="module" src="../../components/modal/reviews/ReviewsModal.js" defer></script>
+  <script type="module" src="main.js" defer></script>
 </body>
-</html> 
+
+</html>

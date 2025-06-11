@@ -4,7 +4,7 @@
 window.ProfileAvatar = (function() {
   function init() {
     const editBtn = document.getElementById('edit-avatar-btn');
-    const avatarImg = document.getElementById('user-avatar');
+    const avatarImg = document.getElementById('user-profile-avatar');
     if (!editBtn || !avatarImg) return;
 
     // Create hidden file input

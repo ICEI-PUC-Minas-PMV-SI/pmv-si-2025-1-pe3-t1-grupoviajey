@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  /* font-family removido para usar o global.css */
   background: #fff !important;
   color: #222;
 }

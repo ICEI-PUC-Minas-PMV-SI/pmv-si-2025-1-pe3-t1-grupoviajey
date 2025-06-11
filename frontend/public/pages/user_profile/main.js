@@ -1,7 +1,13 @@
 // user-profile.js
 // Main orchestrator for the user profile page
 
-document.addEventListener('DOMContentLoaded', async () => {
+import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeHeader();
+  includeFooter();
+  includeSearchBar();
+
   // Import and initialize modules
   if (window.ProfileAvatar && typeof window.ProfileAvatar.init === 'function') {
     window.ProfileAvatar.init();
@@ -12,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (window.ProfileEvents && typeof window.ProfileEvents.init === 'function') {
     window.ProfileEvents.init();
   }
+
   // Tabs logic
   const tabPersonalBtn = document.getElementById('tab-personal-btn');
   const tabSecurityBtn = document.getElementById('tab-security-btn');
@@ -40,25 +47,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabSecurityBtn.addEventListener('click', () => activateTab('security'));
   }
 
-  // Load user profile data and fill form
-  if (window.ProfileStorage && typeof window.ProfileStorage.loadProfile === 'function') {
-    try {
-      const profile = await window.ProfileStorage.loadProfile();
-      if (window.ProfileForm && typeof window.ProfileForm.fillForm === 'function') {
-        window.ProfileForm.fillForm(profile);
+  // Função async para carregar o perfil do usuário
+  async function loadUserProfile() {
+    if (window.ProfileStorage && typeof window.ProfileStorage.loadProfile === 'function') {
+      try {
+        const profile = await window.ProfileStorage.loadProfile();
+        if (window.ProfileForm && typeof window.ProfileForm.fillForm === 'function') {
+          window.ProfileForm.fillForm(profile);
+        }
+        // Set greeting name
+        if (profile && profile.firstName) {
+          const greetingName = document.getElementById('user-greeting-name');
+          if (greetingName) greetingName.textContent = profile.firstName;
+        }
+        // Set avatar if available
+        if (profile && profile.avatarUrl) {
+          const avatarImg = document.getElementById('user-profile-avatar');
+          if (avatarImg) avatarImg.src = profile.avatarUrl;
+        }
+      } catch (err) {
+        console.error('Failed to load user profile:', err);
       }
-      // Set greeting name
-      if (profile && profile.firstName) {
-        const greetingName = document.getElementById('user-greeting-name');
-        if (greetingName) greetingName.textContent = profile.firstName;
-      }
-      // Set avatar if available
-      if (profile && profile.avatarUrl) {
-        const avatarImg = document.getElementById('user-avatar');
-        if (avatarImg) avatarImg.src = profile.avatarUrl;
-      }
-    } catch (err) {
-      console.error('Failed to load user profile:', err);
     }
   }
+
+  // Chama a função async
+  loadUserProfile();
 });

@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Profile</title>
+  <link rel="stylesheet" href="../../css/global.css">
   <link rel="stylesheet" href="../../css/main.css">
   <link rel="stylesheet" href="../../components/header/header.css">
   <link rel="stylesheet" href="../../components/footer/footer.css">
-  <link rel="stylesheet" href="user-profile.css">
+  <link rel="stylesheet" href="../../pages/user_profile/user-profile.css">
 </head>
+
 <body>
   <div id="header"></div>
 
   <main class="profile-container">
     <section class="profile-header">
       <div class="avatar-wrapper">
-        <img id="user-avatar" src="../../assets/images/avatar-default.svg" alt="User Avatar">
+        <img id="user-profile-avatar" src="../../assets/images/avatar-default.svg" alt="User Avatar">
         <button id="edit-avatar-btn" class="edit-avatar-btn" title="Edit avatar">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15332B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15332B" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z" />
+          </svg>
         </button>
       </div>
       <div class="greeting">
-        <h2>Olá, <span id="user-greeting-name">Usuário</span>!</h2>
+        <h2>Oi, <span id="user-greeting-name">Usuário</span>!</h2>
       </div>
     </section>
     <nav class="profile-tabs">
@@ -61,7 +68,8 @@
           <input type="password" id="newPassword" name="newPassword" placeholder="Nova senha" required>
 
           <label for="confirmPassword">Confirmar nova senha</label>
-          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar nova senha" required>
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmar nova senha"
+            required>
 
           <div class="form-actions">
             <button type="submit" id="save-password-btn" class="btn-primary">Salvar nova senha</button>
@@ -73,14 +81,13 @@
 
   <div id="footer"></div>
 
-  <div id="search-bar-include"></div>
 
-  <script src="../../js/utils/include.js" defer></script>
-  <script src="profile-avatar.js" defer></script>
-  <script src="profile-form.js" defer></script>
-  <script src="profile-storage.js" defer></script>
-  <script src="profile-events.js" defer></script>
-  <script src="profile-security.js" defer></script>
-  <script src="user-profile.js" defer></script>
+  <script type="module" src="profile-avatar.js" defer></script>
+  <script type="module" src="profile-form.js" defer></script>
+  <script type="module" src="profile-storage.js" defer></script>
+  <script type="module" src="profile-events.js" defer></script>
+  <script type="module" src="profile-security.js" defer></script>
+  <script type="module" src="main.js"></script>
 </body>
+
 </html>

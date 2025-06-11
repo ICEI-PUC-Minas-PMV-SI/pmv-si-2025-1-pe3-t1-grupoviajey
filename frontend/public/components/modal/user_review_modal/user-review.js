@@ -109,4 +109,11 @@ export function openReviewModal({ local, userReview, otherReviews, onSave }) {
         document.removeEventListener('keydown', escListener);
       });
     });
-} 
+}
+
+import { includeUserReviewModal } from '../../js/utils/include.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  includeUserReviewModal();
+  // ...outros includes...
+}); 
