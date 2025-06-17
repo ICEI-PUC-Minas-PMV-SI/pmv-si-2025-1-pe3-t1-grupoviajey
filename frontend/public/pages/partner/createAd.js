@@ -1,4 +1,4 @@
-const partnerId = 'partner_001'; // Simulated partner ID
+const userId = 'partner_001'; // Simulated partner ID
 
 document.addEventListener('DOMContentLoaded', function() {
   // Load header and footer
@@ -45,29 +45,29 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Handle form submission
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
     
     const formData = new FormData(form);
     const adData = {
-      id: Date.now().toString(),
-      partnerId: partnerId,
-      title: formData.get('title'),
-      description: formData.get('description'),
-      image: formData.get('image'),
-      category: formData.get('category'),
-      rating: parseInt(formData.get('rating')),
-      address: formData.get('address'),
-      phone: formData.get('phone') || '',
-      website: formData.get('website') || '',
-      status: 'pending',
-      type: 'partner_ad',
+      adId: Date.now().toString(),
+      userId: userId,
+      adTitle: formData.get('title'),
+      adDescription: formData.get('description'),
+      adImage: formData.get('image'),
+      adCategory: formData.get('category'),
+      adRating: parseInt(formData.get('rating')),
+      adAddress: formData.get('address'),
+      adPhone: formData.get('phone') || '',
+      adWebsite: formData.get('website') || '',
+      adStatus: 'pending',
+      adType: 'partner_ad',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     // Validate required fields
-    if (!adData.title || !adData.description || !adData.image || !adData.category || !adData.address) {
+    if (!adData.adTitle || !adData.adDescription || !adData.adImage || !adData.adCategory || !adData.adAddress) {
       showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
       return;
     }
@@ -134,26 +134,26 @@ function showMessage(message, type) {
 
 function loadAdForEdit(adId) {
   const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  const ad = posts.find(p => p.id === adId && p.partnerId === partnerId);
+  const ad = posts.find(p => p.adId === adId && p.userId === userId);
   
   if (ad) {
-    document.getElementById('adTitle').value = ad.title;
-    document.getElementById('adDescription').value = ad.description;
-    document.getElementById('adImage').value = ad.image;
-    document.getElementById('adCategory').value = ad.category;
-    document.getElementById('adRating').value = ad.rating;
-    document.getElementById('adAddress').value = ad.address;
-    document.getElementById('adPhone').value = ad.phone || '';
-    document.getElementById('adWebsite').value = ad.website || '';
+    document.getElementById('adTitle').value = ad.adTitle;
+    document.getElementById('adDescription').value = ad.adDescription;
+    document.getElementById('adImage').value = ad.adImage;
+    document.getElementById('adCategory').value = ad.adCategory;
+    document.getElementById('adRating').value = ad.adRating;
+    document.getElementById('adAddress').value = ad.adAddress;
+    document.getElementById('adPhone').value = ad.adPhone || '';
+    document.getElementById('adWebsite').value = ad.adWebsite || '';
     
     // Update displays
     const ratingDisplay = document.getElementById('ratingDisplay');
-    const stars = '★'.repeat(ad.rating) + '☆'.repeat(5 - ad.rating);
+    const stars = '★'.repeat(ad.adRating) + '☆'.repeat(5 - ad.adRating);
     ratingDisplay.textContent = stars;
     
-    if (ad.image) {
+    if (ad.adImage) {
       const imagePreview = document.getElementById('imagePreview');
-      imagePreview.style.backgroundImage = `url('${ad.image}')`;
+      imagePreview.style.backgroundImage = `url('${ad.adImage}')`;
       imagePreview.classList.add('has-image');
     }
     
@@ -163,8 +163,8 @@ function loadAdForEdit(adId) {
     
     // Update form handler for editing
     const form = document.getElementById('createAdForm');
-    form.onsubmit = function(e) {
-      e.preventDefault();
+    form.onsubmit = function(event) {
+      event.preventDefault();
       updateAd(adId);
     };
   }
@@ -175,20 +175,20 @@ function updateAd(adId) {
   const formData = new FormData(form);
   
   const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  const adIndex = posts.findIndex(p => p.id === adId && p.partnerId === partnerId);
+  const adIndex = posts.findIndex(p => p.adId === adId && p.userId === userId);
   
   if (adIndex !== -1) {
     posts[adIndex] = {
       ...posts[adIndex],
-      title: formData.get('title'),
-      description: formData.get('description'),
-      image: formData.get('image'),
-      category: formData.get('category'),
-      rating: parseInt(formData.get('rating')),
-      address: formData.get('address'),
-      phone: formData.get('phone') || '',
-      website: formData.get('website') || '',
-      status: 'pending', // Reset to pending after edit
+      adTitle: formData.get('title'),
+      adDescription: formData.get('description'),
+      adImage: formData.get('image'),
+      adCategory: formData.get('category'),
+      adRating: parseInt(formData.get('rating')),
+      adAddress: formData.get('address'),
+      adPhone: formData.get('phone') || '',
+      adWebsite: formData.get('website') || '',
+      adStatus: 'pending', // Reset to pending after edit
       updatedAt: new Date().toISOString()
     };
     

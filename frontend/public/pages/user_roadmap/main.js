@@ -90,28 +90,28 @@ function renderTripData(trip) {
     document.getElementById('trip-title').textContent = trip.title;
   }
   if (document.getElementById('tripNameBanner')) {
-    document.getElementById('tripNameBanner').textContent = trip.title;
+    document.getElementById('tripNameBanner').textContent = trip.tripName || trip.title;
   }
   if (document.getElementById('tripDestinationBanner')) {
-    document.getElementById('tripDestinationBanner').textContent = trip.destination;
+    document.getElementById('tripDestinationBanner').textContent = trip.tripDestination || trip.destination;
   }
   if (document.getElementById('tripDateBanner')) {
-    const start = trip.startDate || trip.tripStart;
-    const end = trip.endDate || trip.tripEnd;
+    const start = trip.tripStartDate || trip.startDate;
+    const end = trip.tripEndDate || trip.endDate;
     document.getElementById('tripDateBanner').textContent = formatTripPeriod(start, end);
   }
   if (trip.photo && document.getElementById('cover-img')) {
     document.getElementById('cover-img').src = trip.photo;
   }
-  if (trip.description && document.getElementById('tripDescriptionBanner')) {
-    document.getElementById('tripDescriptionBanner').textContent = trip.description;
+  if (trip.tripDescription && document.getElementById('tripDescriptionBanner')) {
+    document.getElementById('tripDescriptionBanner').textContent = trip.tripDescription || trip.description;
   }
 }
 
 function initRoadmapStructure(trip) {
   // Cria os dias do roteiro baseado nas datas da viagem
-  const start = trip.startDate || trip.tripStart;
-  const end = trip.endDate || trip.tripEnd;
+  const start = trip.tripStartDate || trip.startDate;
+  const end = trip.tripEndDate || trip.endDate;
   if (start && end) {
     createDaysFromStorage(start, end);
   }

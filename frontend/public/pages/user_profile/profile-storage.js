@@ -18,7 +18,7 @@ window.ProfileStorage = (function() {
           resolve({
             firstName: 'Rita',
             lastName: 'Venturi',
-            cpfCnpj: '12345678901',
+            DocNumber: '12345678901',
             email: 'rita.venturi@email.com',
             password: '********',
             avatarUrl: 'https://i.pravatar.cc/100?img=' + Math.floor(Math.random() * 70 + 1)

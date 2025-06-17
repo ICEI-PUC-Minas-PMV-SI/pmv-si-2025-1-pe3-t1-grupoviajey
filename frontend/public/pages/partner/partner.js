@@ -1,7 +1,7 @@
 let currentFilter = 'all';
 let currentPage = 1;
 const adsPerPage = 6;
-const partnerId = 'partner_001'; // Simulated partner ID
+const userId = 'partner_001'; // Simulated partner ID
 
 document.addEventListener('DOMContentLoaded', function() {
   // Load header and footer
@@ -33,7 +33,7 @@ function initializeEventListeners() {
 
 function loadPartnerAds() {
   const allAds = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  let partnerAds = allAds.filter(ad => ad.partnerId === partnerId);
+  let partnerAds = allAds.filter(ad => ad.userId === userId);
 
   // Apply filter
   if (currentFilter !== 'all') {

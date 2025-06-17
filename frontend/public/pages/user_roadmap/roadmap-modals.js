@@ -56,7 +56,7 @@ export function openEditTripModal() {
   }
 
   if (tripDescriptionInput && tripDescriptionBanner) {
-    tripDescriptionInput.value = tripDescriptionBanner.textContent || '';
+    tripDescriptionInput.value = tripDescriptionBanner.textContent;
   }
 
   // Configura datas
@@ -228,9 +228,9 @@ function handleEditTripFormSubmit(event) {
     if (tripId) {
       const tripData = {
         id: tripId,
-        title: name,
-        destination: dest,
-        description: tripDescriptionInput?.value || ''
+        tripName: name,
+        tripDestination: dest,
+        tripDescription: tripDescriptionInput?.value || ''
       };
 
       // Atualiza as datas se houver seleção

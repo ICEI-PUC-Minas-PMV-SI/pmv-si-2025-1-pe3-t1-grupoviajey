@@ -52,9 +52,8 @@ export const roadmapStorage = {
   load: () => storage.load(STORAGE_KEYS.ROADMAP, {
     tripName: '',
     tripDestination: '',
-    tripDate: '',
-    tripStart: '',
-    tripEnd: '',
+    tripStartDate: '',
+    tripEndDate: '',
     tripDescription: '',
     days: [],
     checklist: []
@@ -204,11 +203,11 @@ export function saveTripData(tripData) {
     const oldDays = roadmap.days || [];
 
     // Atualiza os dados básicos
-    roadmap.tripName = tripData.title;
-    roadmap.tripDestination = tripData.destination;
-    roadmap.tripDescription = tripData.description || '';
-    roadmap.tripStart = tripData.startDate;
-    roadmap.tripEnd = tripData.endDate;
+    roadmap.tripName = tripData.tripName || tripData.title;
+    roadmap.tripDestination = tripData.tripDestination || tripData.destination;
+    roadmap.tripDescription = tripData.tripDescription || tripData.description || '';
+    roadmap.tripStartDate = tripData.tripStartDate || tripData.startDate;
+    roadmap.tripEndDate = tripData.tripEndDate || tripData.endDate;
 
     // Se as datas foram alteradas, move os locais dos dias removidos para locais salvos
     if (tripData.startDate && tripData.endDate) {
@@ -308,11 +307,11 @@ export function loadCurrentTripData() {
 
     // Atualiza os dados do roadmap com os dados da viagem
     const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
-    roadmap.tripName = trip.title;
-    roadmap.tripDestination = trip.destination;
-    roadmap.tripDescription = trip.description || '';
-    roadmap.tripStart = trip.startDate;
-    roadmap.tripEnd = trip.endDate;
+    roadmap.tripName = trip.tripName || trip.title;
+    roadmap.tripDestination = trip.tripDestination || trip.destination;
+    roadmap.tripDescription = trip.tripDescription || trip.description || '';
+    roadmap.tripStartDate = trip.tripStartDate || trip.startDate;
+    roadmap.tripEndDate = trip.tripEndDate || trip.endDate;
 
     // Mantém os dados existentes dos dias
     if (!roadmap.days) {

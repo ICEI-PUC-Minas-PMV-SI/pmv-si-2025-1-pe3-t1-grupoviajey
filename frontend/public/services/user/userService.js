@@ -17,8 +17,16 @@ class UserService {
 
   // Add a place to favorites
   addToFavorites(place) {
-    if (!this.favorites.some(fav => fav.id === place.id)) {
-      this.favorites.push(place);
+    if (!this.favorites.some(fav => fav.favoritePlaceId === place.id)) {
+      const favoriteData = {
+        favoriteId: Date.now().toString(),
+        favoritePlaceId: place.id,
+        favoriteTitle: place.title,
+        favoriteAddress: place.address,
+        favoriteRating: place.rating,
+        favoriteData: place
+      };
+      this.favorites.push(favoriteData);
       this.saveFavorites();
       return true;
     }
@@ -28,7 +36,7 @@ class UserService {
   // Remove a place from favorites
   removeFromFavorites(placeId) {
     const initialLength = this.favorites.length;
-    this.favorites = this.favorites.filter(fav => fav.id !== placeId);
+    this.favorites = this.favorites.filter(fav => fav.favoritePlaceId !== placeId);
     if (this.favorites.length !== initialLength) {
       this.saveFavorites();
       return true;
@@ -38,7 +46,7 @@ class UserService {
 
   // Check if a place is in favorites
   isFavorite(placeId) {
-    return this.favorites.some(fav => fav.id === placeId);
+    return this.favorites.some(fav => fav.favoritePlaceId === placeId);
   }
 
   // Get all favorites

@@ -1,4 +1,6 @@
 // include.js
+import { loadGoogleMapsScript } from '../core/map/loader.js';
+
 // Função genérica para incluir HTML em um elemento
 export function includeHTML(id, file, callback) {
   fetch(file)
@@ -96,6 +98,9 @@ export function includeUserReviewModal() {
   });
 }
 
+// Re-export loadGoogleMapsScript
+export { loadGoogleMapsScript };
+
 // Compatibilidade para páginas legadas (opcional)
 if (typeof window !== 'undefined') {
   window.includeSearchBar = includeSearchBar;
@@ -106,6 +111,3 @@ if (typeof window !== 'undefined') {
   window.includeAiModal = includeAiModal;
   window.includeUserReviewModal = includeUserReviewModal;
 }
-
-import { loadGoogleMapsScript } from '../core/map/loader.js';
-export { loadGoogleMapsScript };

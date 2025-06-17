@@ -1,5 +1,3 @@
-import { saveUserToStorage, loadUserFromStorage } from '../storage/userStorage.js';
-
 const USER_KEY = 'viajey_user';
 
 export function saveUserToStorage(user) {

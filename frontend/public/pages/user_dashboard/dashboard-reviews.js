@@ -68,8 +68,14 @@ function openReviewForm() {
 
 function addReview(review) {
   const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-  review.id = Date.now();
-  reviews.push(review);
+  const reviewData = {
+    reviewId: Date.now(),
+    reviewRating: review.rating,
+    reviewComment: review.comment,
+    placeName: review.place,
+    createdAt: new Date().toISOString()
+  };
+  reviews.push(reviewData);
   localStorage.setItem('userReviews', JSON.stringify(reviews));
 }
 
@@ -78,9 +84,9 @@ function createReviewCard(review) {
   card.className = 'review-card';
   card.innerHTML = `
     <div class="review-info">
-      <div class="review-place">${review.place}</div>
-      <div class="review-rating">${'★'.repeat(Number(review.rating))}${'☆'.repeat(5 - Number(review.rating))}</div>
-      <div class="review-comment">${review.comment || ''}</div>
+      <div class="review-place">${review.placeName}</div>
+      <div class="review-rating">${'★'.repeat(Number(review.reviewRating))}${'☆'.repeat(5 - Number(review.reviewRating))}</div>
+      <div class="review-comment">${review.reviewComment || ''}</div>
     </div>
   `;
 
@@ -88,12 +94,12 @@ function createReviewCard(review) {
   card.addEventListener('click', () => {
     openReviewModal({
       local: {
-        name: review.place,
+        name: review.placeName,
         address: review.address || ''
       },
       userReview: {
-        rating: review.rating,
-        comment: review.comment
+        rating: review.reviewRating,
+        comment: review.reviewComment
       },
       otherReviews: [
         {
@@ -110,7 +116,7 @@ function createReviewCard(review) {
       onSave: async (data) => {
         // Atualiza a avaliação no localStorage
         const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-        const index = reviews.findIndex(r => r.id === review.id);
+        const index = reviews.findIndex(r => r.reviewId === data.reviewId);
         if (index !== -1) {
           reviews[index] = { ...reviews[index], ...data };
           localStorage.setItem('userReviews', JSON.stringify(reviews));
@@ -123,9 +129,9 @@ function createReviewCard(review) {
   return card;
 }
 
-function deleteReview(id) {
+function deleteReview(reviewId) {
   let reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-  reviews = reviews.filter(review => review.id !== id);
+  reviews = reviews.filter(review => review.reviewId !== reviewId);
   localStorage.setItem('userReviews', JSON.stringify(reviews));
   renderReviews();
 }
