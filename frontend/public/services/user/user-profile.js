@@ -1,7 +1,7 @@
 import { saveUserToStorage, loadUserFromStorage } from '../storage/userStorage.js';
 
-export function salvarPerfil({ nome, sobrenome, cpf, email, senha }) {
-  const dados = { nome, sobrenome, cpf, email, senha };
+export function salvarPerfil({ firstName, lastName, DocNumber, email, password }) {
+  const dados = { firstName, lastName, DocNumber, email, password };
   saveUserToStorage(dados);
 }
 

@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (loginBtn) {
-    loginBtn.addEventListener('click', function(e) {
-      e.preventDefault();
+    loginBtn.addEventListener('click', function(event) {
+      event.preventDefault();
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
       login(email, password);

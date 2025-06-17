@@ -33,23 +33,29 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Handle form submission
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
     
     const formData = new FormData(form);
     const postData = {
-      id: Date.now().toString(),
-      title: formData.get('title'),
-      description: formData.get('description'),
-      image: formData.get('image') || null,
-      category: formData.get('category'),
+      postId: Date.now().toString(),
+      postTitle: formData.get('title'),
+      postDescription: formData.get('description'),
+      postImage: formData.get('image'),
+      postCategory: formData.get('category'),
       rating: parseInt(formData.get('rating')),
       address: formData.get('address') || '',
-      status: 'pending',
-      type: 'user_post', // Distinguish from partner ads
+      postStatus: 'pending',
+      postType: 'user_post',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+
+    // Validate required fields
+    if (!postData.postTitle || !postData.postDescription || !postData.postImage || !postData.postCategory) {
+      showMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
 
     // Save to localStorage
     const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
@@ -57,12 +63,13 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('viajey_posts', JSON.stringify(posts));
 
     // Show success message
-    showMessage('Postagem criada com sucesso! Aguardando aprovação.', 'success');
+    showMessage('Postagem criada com sucesso! Aguardando aprovação da equipe.', 'success');
     
     // Reset form
     form.reset();
     imagePreview.style.backgroundImage = '';
     imagePreview.classList.remove('has-image');
+    imagePreview.textContent = 'Prévia da imagem aparecerá aqui';
     ratingDisplay.textContent = '★★★★★';
     
     // Redirect after 2 seconds
@@ -112,13 +119,13 @@ function showMessage(message, type) {
 
 function loadPostForEdit(postId) {
   const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find(p => p.postId === postId);
   
   if (post) {
-    document.getElementById('postTitle').value = post.title;
-    document.getElementById('postDescription').value = post.description;
-    document.getElementById('postImage').value = post.image || '';
-    document.getElementById('postCategory').value = post.category;
+    document.getElementById('postTitle').value = post.postTitle;
+    document.getElementById('postDescription').value = post.postDescription;
+    document.getElementById('postImage').value = post.postImage || '';
+    document.getElementById('postCategory').value = post.postCategory;
     document.getElementById('postRating').value = post.rating;
     document.getElementById('postAddress').value = post.address;
     
@@ -127,9 +134,9 @@ function loadPostForEdit(postId) {
     const stars = '★'.repeat(post.rating) + '☆'.repeat(5 - post.rating);
     ratingDisplay.textContent = stars;
     
-    if (post.image) {
+    if (post.postImage) {
       const imagePreview = document.getElementById('imagePreview');
-      imagePreview.style.backgroundImage = `url('${post.image}')`;
+      imagePreview.style.backgroundImage = `url('${post.postImage}')`;
       imagePreview.classList.add('has-image');
     }
     
@@ -139,8 +146,8 @@ function loadPostForEdit(postId) {
     
     // Update form handler for editing
     const form = document.getElementById('createPostForm');
-    form.onsubmit = function(e) {
-      e.preventDefault();
+    form.onsubmit = function(event) {
+      event.preventDefault();
       updatePost(postId);
     };
   }
@@ -151,17 +158,18 @@ function updatePost(postId) {
   const formData = new FormData(form);
   
   const posts = JSON.parse(localStorage.getItem('viajey_posts') || '[]');
-  const postIndex = posts.findIndex(p => p.id === postId);
+  const postIndex = posts.findIndex(p => p.postId === postId);
   
   if (postIndex !== -1) {
     posts[postIndex] = {
       ...posts[postIndex],
-      title: formData.get('title'),
-      description: formData.get('description'),
-      image: formData.get('image') || null,
-      category: formData.get('category'),
+      postTitle: formData.get('title'),
+      postDescription: formData.get('description'),
+      postImage: formData.get('image'),
+      postCategory: formData.get('category'),
       rating: parseInt(formData.get('rating')),
       address: formData.get('address') || '',
+      postStatus: 'pending',
       updatedAt: new Date().toISOString()
     };
     

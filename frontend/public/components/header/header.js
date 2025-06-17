@@ -4,7 +4,11 @@ async function getAuthenticatedUser() {
   const isAuthenticated = true; // Troque para true/false para simular
   if (!isAuthenticated) return null;
   return {
-    nome: 'Rita',
+    firstName: 'Rita',
+    lastName: 'Silva',
+    DocNumber: '123.456.789-00',
+    email: 'rita@email.com',
+    password: 'password123',
     avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg'
   };
 }
@@ -26,7 +30,7 @@ async function renderUserInfo() {
     const newAvatar = document.getElementById('user-avatar');
 
     if (user) {
-      userName.textContent = user.nome || user.firstName || user.first_name || 'Usuário';
+      userName.textContent = user.firstName || 'Usuário';
       newAvatar.src = user.avatarUrl || '../../assets/images/default-avatar.png';
       newAvatar.style.display = '';
       userActions.style.display = 'none';

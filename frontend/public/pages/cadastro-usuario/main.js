@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
   includeHeader();
   includeFooter();
   const form = document.getElementById('cadastro-form');
-  const nomeInput = document.getElementById('cadastro-nome');
-  const sobrenomeInput = document.getElementById('cadastro-sobrenome');
-  const cpfCnpjInput = document.getElementById('cadastro-cpf-cnpj');
+  const firstNameInput = document.getElementById('cadastro-nome');
+  const lastNameInput = document.getElementById('cadastro-sobrenome');
+  const DocNumberInput = document.getElementById('cadastro-cpf-cnpj');
   const emailInput = document.getElementById('cadastro-email');
-  const senhaInput = document.getElementById('cadastro-senha');
+  const passwordInput = document.getElementById('cadastro-senha');
   const tipoViajante = document.getElementById('tipo-viajante');
   const tipoParceiro = document.getElementById('tipo-parceiro');
 
@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // const data = await response.json(); // use data conforme necessário
 
       // Mock: aceita qualquer cadastro
-      if (!dados.nome || !dados.sobrenome || !dados.cpfCnpj || !dados.email || !dados.senha) {
-        alert('Preencha todos os campos.');
+      if (!dados.firstName || !dados.lastName || !dados.DocNumber || !dados.email || !dados.password) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
         return;
       }
       window.localStorage.setItem('isAuthenticated', 'true');
@@ -33,15 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
       const dados = {
-        nome: nomeInput.value.trim(),
-        sobrenome: sobrenomeInput.value.trim(),
-        cpfCnpj: cpfCnpjInput.value.trim(),
+        firstName: firstNameInput.value.trim(),
+        lastName: lastNameInput.value.trim(),
+        DocNumber: DocNumberInput.value.trim(),
         email: emailInput.value.trim(),
-        senha: senhaInput.value.trim(),
-        tipo: tipoViajante.checked ? 'viajante' : 'parceiro'
+        password: passwordInput.value.trim(),
+        userType: tipoViajante.checked ? 'traveler' : 'partner'
       };
       cadastrarUsuario(dados);
     });

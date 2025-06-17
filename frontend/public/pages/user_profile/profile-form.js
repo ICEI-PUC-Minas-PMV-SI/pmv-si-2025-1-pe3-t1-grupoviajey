@@ -18,7 +18,7 @@ window.ProfileForm = (function() {
     if (!formEl || !profile) return;
     formEl.firstName.value = profile.firstName || '';
     formEl.lastName.value = profile.lastName || '';
-    formEl.cpfCnpj.value = profile.cpfCnpj || '';
+    formEl.DocNumber.value = profile.DocNumber || '';
     formEl.email.value = profile.email || '';
   }
 
@@ -27,7 +27,7 @@ window.ProfileForm = (function() {
     return {
       firstName: formEl.firstName.value.trim(),
       lastName: formEl.lastName.value.trim(),
-      cpfCnpj: formEl.cpfCnpj.value.trim(),
+      DocNumber: formEl.DocNumber.value.trim(),
       email: formEl.email.value.trim(),
     };
   }
@@ -35,7 +35,7 @@ window.ProfileForm = (function() {
   function validate() {
     // Simple validation (expand as needed)
     const data = getFormData();
-    if (!data.firstName || !data.lastName || !data.cpfCnpj || !data.email) {
+    if (!data.firstName || !data.lastName || !data.DocNumber || !data.email) {
       return { valid: false, message: 'All fields are required.' };
     }
     // Email format
@@ -43,7 +43,7 @@ window.ProfileForm = (function() {
       return { valid: false, message: 'Invalid email format.' };
     }
     // CPF/CNPJ basic check (only numbers, length)
-    if (!/^\d{11,14}$/.test(data.cpfCnpj.replace(/\D/g, ''))) {
+    if (!/^\d{11,14}$/.test(data.DocNumber.replace(/\D/g, ''))) {
       return { valid: false, message: 'CPF/CNPJ must have 11 to 14 digits.' };
     }
     return { valid: true };

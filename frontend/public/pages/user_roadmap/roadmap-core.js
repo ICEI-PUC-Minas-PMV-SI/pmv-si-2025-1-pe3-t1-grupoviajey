@@ -9,25 +9,26 @@ import { updateMap, clearMap } from './roadmap-map.js';
 // CRIAÇÃO E GESTÃO DE DIAS
 // =============================================
 
-export function createDaysFromStorage(tripStart, tripEnd) {
-  console.log('[DEBUG] createDaysFromStorage tripStart:', tripStart, 'tripEnd:', tripEnd);
-  const tabItinerary = document.getElementById('tab-itinerary');
-  if (!tabItinerary) return;
+export function createDaysFromStorage(tripStartDate, tripEndDate) {
+  console.log('[DEBUG] createDaysFromStorage tripStartDate:', tripStartDate, 'tripEndDate:', tripEndDate);
+  
+  const daysContainer = document.getElementById('daysContainer');
+  if (!daysContainer) {
+    console.error('Container de dias não encontrado');
+    return;
+  }
 
-  // Remove apenas os dias existentes
-  tabItinerary.querySelectorAll('.day-section').forEach(ds => ds.remove());
+  // Limpa o container
+  daysContainer.innerHTML = '';
 
-  // Limpa o mapa quando os dias são removidos
-  clearMap();
+  // Valida as datas
+  if (!tripStartDate || !tripEndDate) return;
 
-  if (!tripStart || !tripEnd) return;
-
-  // Garante que as datas são objetos Date válidos
-  const startDate = tripStart instanceof Date ? tripStart : new Date(tripStart);
-  const endDate = tripEnd instanceof Date ? tripEnd : new Date(tripEnd);
+  const startDate = tripStartDate instanceof Date ? tripStartDate : new Date(tripStartDate);
+  const endDate = tripEndDate instanceof Date ? tripEndDate : new Date(tripEndDate);
 
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    console.error('Datas inválidas:', { tripStart, tripEnd, startDate, endDate });
+    console.error('Datas inválidas:', { tripStartDate, tripEndDate, startDate, endDate });
     return;
   }
 
@@ -49,7 +50,7 @@ export function createDaysFromStorage(tripStart, tripEnd) {
     const ano = current.getFullYear();
 
     const section = createDaySection(diaSemana, dia, mes, ano);
-    tabItinerary.appendChild(section);
+    daysContainer.appendChild(section);
 
     // Garante que o conteúdo do dia está visível e o accordion está expandido
     const content = section.querySelector('.day-content');
@@ -107,12 +108,10 @@ export function handleAddToTimeline(placeData, dayContent) {
 
   console.log('handleAddToTimeline - dayContent:', dayContent);
 
-  const key = placeData.key || (
+  const key = 
     (placeData.name || placeData.placeName || '') + '|' +
     (placeData.address || placeData.placeAddress || '') + '|' +
-    (placeData.geometry?.location?.lat?.() || placeData.lat || '') + '|' +
-    (placeData.geometry?.location?.lng?.() || placeData.lng || '')
-  );
+    (placeData.rating || placeData.placeRating || '');
 
   const card = createLocalCard({ ...placeData, key });
   if (!card) {
@@ -138,13 +137,15 @@ export function handleAddToTimeline(placeData, dayContent) {
   attachLocalCardActions(card);
 
   const placeToSave = {
-    name: placeData.name || placeData.placeName,
-    address: placeData.address || placeData.placeAddress,
-    rating: placeData.rating || placeData.placeRating,
-    img: placeData.img,
-    lat: placeData.geometry?.location?.lat() || placeData.lat,
-    lng: placeData.geometry?.location?.lng() || placeData.lng,
-    key
+    placeId: placeData.placeId || placeData.id,
+    placeName: placeData.name || placeData.placeName,
+    placeAddress: placeData.address || placeData.placeAddress,
+    placeRating: placeData.rating || placeData.placeRating,
+    placeLatitude: placeData.lat || placeData.latitude,
+    placeLongitude: placeData.lng || placeData.longitude,
+    placeKey: key,
+    placeTypes: placeData.types || [],
+    placeData: placeData
   };
 
   saveRoadmapToStorage();
@@ -194,45 +195,26 @@ export function createTimeline(dayContent) {
 // =============================================
 
 export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
-  // rating pode ser string ("★★★☆☆") ou número
-  let ratingHtml = '';
-  // Prioriza rating numérico
-  const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
-  if (ratingNumber) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${getStarsHtml(ratingNumber)}</span></div>`;
-  } else if (rating) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${rating}</span></div>`;
-  }
   const card = document.createElement('div');
   card.className = 'local-card';
+  card.draggable = true;
 
-  // Armazena as coordenadas nos atributos data
-  if (geometry?.location) {
-    card.dataset.lat = geometry.location.lat();
-    card.dataset.lng = geometry.location.lng();
-  } else if (lat && lng) {
-    card.dataset.lat = lat;
-    card.dataset.lng = lng;
-  }
+  const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
+  const stars = ratingNumber ? '★'.repeat(Math.floor(ratingNumber)) + '☆'.repeat(5 - Math.floor(ratingNumber)) : '';
+  const ratingText = ratingNumber ? ratingNumber.toFixed(1) : 'N/A';
 
-  // Adiciona o key como atributo data
-  if (key) {
-    card.dataset.key = key;
-  }
+  const imageUrl = img || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
 
   card.innerHTML = `
-    ${getDragHandleSVG()}
-    <button class="remove-place-btn" title="Remover local">
-      ${getTrashSVG()}
-    </button>
-    <div class="local-img">${img ? `<img src="${img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
+    <div class="local-img">
+      <img src="${imageUrl}" alt="${name || placeName || 'Local'}" onerror="this.src='https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80'">
+    </div>
     <div class="local-info">
       <div class="local-title">${name || placeName || ''}</div>
       <div class="local-address">${address || placeAddress || ''}</div>
-      ${ratingHtml}
-      <div class="local-actions">
-        <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-        <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+      <div class="local-rating">
+        <span class="stars">${stars}</span>
+        <span class="rating-value">${ratingText}</span>
       </div>
     </div>
   `;
@@ -295,8 +277,8 @@ export function loadRoadmapFromStorage() {
   document.getElementById('tripDescriptionBanner').textContent = roadmap.tripDescription || '';
 
   // Sempre cria os dias com as datas atuais
-  const startDate = new Date(roadmap.tripStart);
-  const endDate = new Date(roadmap.tripEnd);
+  const startDate = new Date(roadmap.tripStartDate);
+  const endDate = new Date(roadmap.tripEndDate);
 
   if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
     document.getElementById('tripDateBanner').textContent = formatTripPeriod(startDate, endDate);
@@ -315,11 +297,11 @@ function collectRoadmapData() {
   const tripName = document.getElementById('tripNameBanner')?.textContent || '';
   const tripDestination = document.getElementById('tripDestinationBanner')?.textContent || '';
   const tripDate = document.getElementById('tripDateBanner')?.textContent || '';
-  let tripStart = document.getElementById('tripStart')?.value || '';
-  let tripEnd = document.getElementById('tripEnd')?.value || '';
+  let tripStartDate = document.getElementById('tripStartDate')?.value || '';
+  let tripEndDate = document.getElementById('tripEndDate')?.value || '';
 
-  if (tripStart) tripStart = formatShortDate(new Date(tripStart));
-  if (tripEnd) tripEnd = formatShortDate(new Date(tripEnd));
+  if (tripStartDate) tripStartDate = formatShortDate(new Date(tripStartDate));
+  if (tripEndDate) tripEndDate = formatShortDate(new Date(tripEndDate));
 
   const tripDescription = document.getElementById('tripDescriptionBanner')?.textContent || '';
   const days = collectDaysData();
@@ -328,8 +310,8 @@ function collectRoadmapData() {
     tripName,
     tripDestination,
     tripDate,
-    tripStart,
-    tripEnd,
+    tripStartDate,
+    tripEndDate,
     tripDescription,
     days
   };

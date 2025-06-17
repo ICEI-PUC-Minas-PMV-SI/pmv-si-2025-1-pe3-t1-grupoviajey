@@ -53,7 +53,7 @@ function addChecklistDnDHandlers(elem) {
 }
 
 // MULTI CHECKLISTS - NOVA LÓGICA
-export function createChecklistBlock(title = 'Check-list de Viagem', items = [
+export function createChecklistBlock(checklistTitle = 'Check-list de Viagem', checklistItems = [
   'Passagem comprada',
   'Reserva de hotel',
   'Documentos separados',
@@ -65,122 +65,91 @@ export function createChecklistBlock(title = 'Check-list de Viagem', items = [
   'Mapas e guias',
   'Adaptador de tomada'
 ]) {
-  console.log('[Checklist] Criando bloco:', { title, items });
-  try {
-    const block = document.createElement('div');
-    block.className = 'checklist-details checklist-block';
-    block.innerHTML = `
-            <div class="checklist-title-row">
-                <h3 class="checklist-title">${title}</h3>
-                <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;margin-left:8px;vertical-align:middle;">
-                    <svg width="18" height="18" viewBox="0 0 20 20"><path d="M4 14.5V16h1.5l8.1-8.1-1.5-1.5L4 14.5zM15.7 6.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" fill="#0a7c6a"/></svg>
-                </button>
-                <button class="remove-checklist-block-btn" title="Remover checklist" style="background:none;border:none;cursor:pointer;margin-left:auto;vertical-align:middle;padding:0 0 0 8px;display:flex;align-items:center;">${getTrashSVG()}</button>
-            </div>
-            <div class="checklist-sections">
-                <div class="checklist-section active">
-                    <h4 class="checklist-section-title">Pendentes</h4>
-                    <ul class="checklist-list"></ul>
-                </div>
-                <div class="checklist-section completed">
-                    <h4 class="checklist-section-title">Concluídos</h4>
-                    <ul class="checklist-list-completed"></ul>
-                </div>
-            </div>
-            <form class="add-checklist-form" autocomplete="off">
-                <input type="text" class="newChecklistInput" placeholder="Novo item..." required />
-                <button type="submit" class="add-checklist-btn">Adicionar</button>
-            </form>
-        `;
+  const checklistId = `checklist-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  console.log('[Checklist] Criando bloco:', { checklistTitle, checklistItems });
 
-    // Adiciona itens
-    const ul = block.querySelector('.checklist-list');
-    console.log('[Checklist] Adicionando itens ao bloco');
-    items.forEach(text => addChecklistItemToBlock(ul, text));
+  const block = document.createElement('div');
+  block.className = 'checklist-block';
+  block.dataset.checklistId = checklistId;
 
-    // Eventos do bloco
-    console.log('[Checklist] Anexando eventos do bloco');
-    attachChecklistBlockEvents(block);
+  block.innerHTML = `
+    <div class="checklist-title-row">
+      <h3 class="checklist-title">${checklistTitle}</h3>
+      <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;margin-left:8px;vertical-align:middle;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </button>
+      <button class="remove-checklist-block-btn" title="Remover checklist" style="background:none;border:none;cursor:pointer;margin-left:auto;vertical-align:middle;padding:0 0 0 8px;display:flex;align-items:center;">${getTrashSVG()}</button>
+    </div>
+    <div class="checklist-sections">
+      <div class="checklist-section">
+        <h4 class="checklist-section-title">Pendentes</h4>
+        <ul class="checklist-list" data-section="pending"></ul>
+      </div>
+      <div class="checklist-section completed">
+        <h4 class="checklist-section-title">Concluídos</h4>
+        <ul class="checklist-list-completed" data-section="completed"></ul>
+      </div>
+    </div>
+  `;
 
-    // Evento de remoção do checklist
-    const removeBtn = block.querySelector('.remove-checklist-block-btn');
-    if (removeBtn) {
-      removeBtn.onclick = function (e) {
-        e.preventDefault();
-        showRemoveChecklistModal(block);
-      };
-    }
+  // Adiciona os itens iniciais
+  const ul = block.querySelector('[data-section="pending"]');
+  checklistItems.forEach(checklistText => addChecklistItemToBlock(ul, checklistText));
 
-    console.log('[Checklist] Bloco criado com sucesso');
-    return block;
-  } catch (error) {
-    console.error('[Checklist] Erro ao criar bloco:', error);
-    throw error;
-  }
+  attachChecklistBlockEvents(block);
+  return block;
 }
 
-export function addChecklistItemToBlock(ul, text, isChecked = false) {
-  console.log('[Checklist] Adicionando item:', { text, isChecked });
-  try {
-    const li = document.createElement('li');
-    li.className = 'checklist-item';
-    li.setAttribute('draggable', 'true');
-    li.innerHTML = `
-            <span class="drag-handle" title="Arraste para mover">&#9776;</span>
-            <label class="checklist-label">
-                <input type="checkbox" class="checklist-checkbox" ${isChecked ? 'checked' : ''}>
-                <span class="checklist-text">${text}</span>
-            </label>
-            <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
-        `;
+export function addChecklistItemToBlock(ul, checklistText, checklistChecked = false) {
+  console.log('[Checklist] Adicionando item:', { checklistText, checklistChecked });
 
-    // Adiciona ao container apropriado baseado no estado inicial
-    const block = ul.closest('.checklist-block');
-    const targetList = isChecked ?
-      block.querySelector('.checklist-list-completed') :
-      block.querySelector('.checklist-list');
+  const li = document.createElement('li');
+  li.className = 'checklist-item';
+  li.draggable = true;
 
-    targetList.appendChild(li);
-    addChecklistDnDHandlers(li);
+  li.innerHTML = `
+    <div class="checklist-label">
+      <input type="checkbox" class="checklist-checkbox" ${checklistChecked ? 'checked' : ''}>
+      <span class="checklist-text">${checklistText}</span>
+    </div>
+    <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
+  `;
 
-    // Remover item
-    li.querySelector('.remove-checklist-btn').onclick = function () {
-      console.log('[Checklist] Removendo item:', text);
-      li.remove();
-      saveChecklistsToStorage();
-    };
-
-    // Riscar ao marcar e mover para a seção apropriada
-    const checkbox = li.querySelector('.checklist-checkbox');
-    const textSpan = li.querySelector('.checklist-text');
-
-    // Aplicar estilo inicial se estiver marcado
-    if (isChecked) {
-      console.log('[Checklist] Aplicando estilo inicial para item marcado:', text);
-      textSpan.style.textDecoration = 'line-through';
-      textSpan.style.color = '#888';
-    }
-
-    // Atualiza o estilo e move o item quando o checkbox muda
-    checkbox.addEventListener('change', function () {
-      console.log('[Checklist] Checkbox alterado:', { text, checked: checkbox.checked });
-      textSpan.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
-      textSpan.style.color = checkbox.checked ? '#888' : '#1a3c4e';
-
-      // Move o item para a lista apropriada
-      const targetList = checkbox.checked ?
-        block.querySelector('.checklist-list-completed') :
-        block.querySelector('.checklist-list');
-      targetList.appendChild(li);
-
-      saveChecklistsToStorage();
-    });
-
-    console.log('[Checklist] Item adicionado com sucesso');
-  } catch (error) {
-    console.error('[Checklist] Erro ao adicionar item:', error);
-    throw error;
+  // Aplica estilo inicial se estiver marcado
+  if (checklistChecked) {
+    li.style.textDecoration = 'line-through';
+    li.style.opacity = '0.6';
   }
+
+  // Adiciona event listeners
+  const checkbox = li.querySelector('.checklist-checkbox');
+  checkbox.addEventListener('change', function() {
+    console.log('[Checklist] Checkbox alterado:', { checklistText, checked: checkbox.checked });
+    if (checkbox.checked) {
+      li.style.textDecoration = 'line-through';
+      li.style.opacity = '0.6';
+      // Move para a seção de concluídos
+      const completedSection = ul.closest('.checklist-sections').querySelector('[data-section="completed"]');
+      completedSection.appendChild(li);
+    } else {
+      li.style.textDecoration = 'none';
+      li.style.opacity = '1';
+      // Move de volta para a seção de pendentes
+      const pendingSection = ul.closest('.checklist-sections').querySelector('[data-section="pending"]');
+      pendingSection.appendChild(li);
+    }
+    saveChecklistsToStorage();
+  });
+
+  // Remover item
+  li.querySelector('.remove-checklist-btn').onclick = function () {
+    console.log('[Checklist] Removendo item:', checklistText);
+    li.remove();
+    saveChecklistsToStorage();
+  };
+
+  // Adiciona event listeners para o drag-and-drop
+  addChecklistDnDHandlers(li);
 }
 
 export function attachChecklistBlockEvents(block) {
