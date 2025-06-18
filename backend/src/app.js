@@ -13,6 +13,7 @@ const roadmapRoutes = require('./features/roadmap/roadmapRoutes');
 const favoritesRoutes = require('./features/favorites/favoritesRoutes');
 const reviewsRoutes = require('./features/reviews/reviewsRoutes');
 const sitePostsRoutes = require('./features/sitePosts/sitePostsRoutes');
+const usersRoutes = require('./features/users/usersRoutes');
 
 // Servir arquivos estáticos do frontend
 const publicPath = path.resolve(__dirname, '../../frontend/public');
@@ -66,6 +67,7 @@ app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/posts', sitePostsRoutes);
+app.use('/api/users', usersRoutes);
 
 // Middleware para rotas não encontradas
 app.use('*', (req, res) => {
