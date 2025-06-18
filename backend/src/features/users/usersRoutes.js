@@ -7,6 +7,9 @@ const { validate, userProfileUpdateSchema } = require('./usersValidation');
 // Endpoint público para recuperação de senha
 router.post('/auth/forgot-password', usersController.forgotPassword);
 
+// Endpoint para verificar autenticação (sem middleware de autenticação)
+router.get('/auth/verify', usersController.verifyAuth);
+
 // Todas as rotas abaixo requerem autenticação
 router.use(authenticateUser);
 
@@ -18,5 +21,8 @@ router.put('/me', validate(userProfileUpdateSchema), usersController.updateProfi
 
 // Logout do usuário autenticado
 router.post('/logout', usersController.logout);
+
+// Listar usuários órfãos (apenas para admin)
+router.get('/orphan-users', usersController.listOrphanUsers);
 
 module.exports = router; 

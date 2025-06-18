@@ -25,7 +25,8 @@ const tripSchema = Joi.object({
   description: Joi.string().optional().max(500),
   startDate: Joi.date().iso().greater('now').required(),
   endDate: Joi.date().iso().greater(Joi.ref('startDate')).required(),
-  destination: Joi.string().required().min(1).max(100)
+  destination: Joi.string().required().min(1).max(300),
+  photo: Joi.string().optional().allow('', null)
 });
 
 const roadmapDaySchema = Joi.object({

@@ -9,13 +9,18 @@ class UsersService {
       console.log(`[USERSERVICE] Usuário já existe Firestore: ${uid}`);
       return { id: doc.id, ...doc.data() };
     }
+    
+    // Se o documento não existe, verificar se temos dados suficientes para criar
     // Só cria se todos os campos obrigatórios estiverem presentes e não vazios
     const requiredFields = ['firstName', 'lastName', 'cpfCnpj', 'userType', 'email'];
     const missing = requiredFields.filter(f => !userAuthData[f] || userAuthData[f].trim() === '');
+    
     if (missing.length > 0) {
-      console.warn(`[USERSERVICE] Não criar usuário Firestore: campos obrigatórios ausentes: ${missing.join(', ')}`);
-      return null;
+      console.warn(`[USERSERVICE] Usuário não encontrado no Firestore e dados insuficientes para criação: ${uid}, campos ausentes: ${missing.join(', ')}`);
+      return null; // Retorna null para indicar que o usuário não existe
     }
+    
+    // Só chega aqui se todos os campos obrigatórios estiverem presentes
     const newUser = {
       firstName: userAuthData.firstName,
       lastName: userAuthData.lastName,
