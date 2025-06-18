@@ -1,0 +1,267 @@
+const { db } = require('../../config/firebase');
+
+class RoadmapChecklistService {
+  /**
+   * Criar checklist para um roadmap
+   */
+  async createRoadmapChecklist(userId, tripId, roadmapId, checklistData) {
+    try {
+      const checklistRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('userTrips')
+        .doc(tripId)
+        .collection('userRoadmapData')
+        .doc(roadmapId)
+        .collection('roadmapChecklist');
+
+      const checklist = {
+        ...checklistData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const docRef = await checklistRef.add(checklist);
+      
+      return {
+        id: docRef.id,
+        ...checklist
+      };
+    } catch (error) {
+      throw new Error(`Erro ao criar checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Buscar todos os checklists de um roadmap
+   */
+  async getRoadmapChecklists(userId, tripId, roadmapId) {
+    try {
+      const checklistRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('userTrips')
+        .doc(tripId)
+        .collection('userRoadmapData')
+        .doc(roadmapId)
+        .collection('roadmapChecklist');
+
+      const snapshot = await checklistRef.orderBy('createdAt', 'desc').get();
+      
+      const checklists = [];
+      snapshot.forEach(doc => {
+        checklists.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return checklists;
+    } catch (error) {
+      throw new Error(`Erro ao buscar checklists: ${error.message}`);
+    }
+  }
+
+  /**
+   * Buscar checklist específico
+   */
+  async getRoadmapChecklist(userId, tripId, roadmapId, checklistId) {
+    try {
+      const checklistRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('userTrips')
+        .doc(tripId)
+        .collection('userRoadmapData')
+        .doc(roadmapId)
+        .collection('roadmapChecklist')
+        .doc(checklistId);
+
+      const doc = await checklistRef.get();
+      
+      if (!doc.exists) {
+        throw new Error('Checklist não encontrado');
+      }
+      
+      return {
+        id: doc.id,
+        ...doc.data()
+      };
+    } catch (error) {
+      throw new Error(`Erro ao buscar checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Atualizar checklist
+   */
+  async updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData) {
+    try {
+      const checklistRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('userTrips')
+        .doc(tripId)
+        .collection('userRoadmapData')
+        .doc(roadmapId)
+        .collection('roadmapChecklist')
+        .doc(checklistId);
+
+      const update = {
+        ...updateData,
+        updatedAt: new Date()
+      };
+
+      await checklistRef.update(update);
+      
+      return await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+    } catch (error) {
+      throw new Error(`Erro ao atualizar checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deletar checklist
+   */
+  async deleteRoadmapChecklist(userId, tripId, roadmapId, checklistId) {
+    try {
+      const checklistRef = db
+        .collection('users')
+        .doc(userId)
+        .collection('userTrips')
+        .doc(tripId)
+        .collection('userRoadmapData')
+        .doc(roadmapId)
+        .collection('roadmapChecklist')
+        .doc(checklistId);
+
+      const doc = await checklistRef.get();
+      if (!doc.exists) {
+        throw new Error('Checklist não encontrado');
+      }
+
+      await checklistRef.delete();
+      
+      return { success: true, message: 'Checklist deletado com sucesso' };
+    } catch (error) {
+      throw new Error(`Erro ao deletar checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Atualizar status de um item do checklist
+   */
+  async updateChecklistItem(userId, tripId, roadmapId, checklistId, itemIndex, completed) {
+    try {
+      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      
+      if (!checklist.items || !Array.isArray(checklist.items)) {
+        throw new Error('Checklist não possui itens');
+      }
+
+      if (itemIndex < 0 || itemIndex >= checklist.items.length) {
+        throw new Error('Índice do item inválido');
+      }
+
+      // Atualizar o item específico
+      const updatedItems = [...checklist.items];
+      updatedItems[itemIndex] = {
+        ...updatedItems[itemIndex],
+        completed: completed
+      };
+
+      const updateData = {
+        items: updatedItems
+      };
+
+      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+    } catch (error) {
+      throw new Error(`Erro ao atualizar item do checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Adicionar item ao checklist
+   */
+  async addChecklistItem(userId, tripId, roadmapId, checklistId, itemData) {
+    try {
+      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      
+      const currentItems = checklist.items || [];
+      const newItem = {
+        text: itemData.text,
+        completed: false,
+        createdAt: new Date()
+      };
+
+      const updatedItems = [...currentItems, newItem];
+      const updateData = {
+        items: updatedItems
+      };
+
+      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+    } catch (error) {
+      throw new Error(`Erro ao adicionar item ao checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Remover item do checklist
+   */
+  async removeChecklistItem(userId, tripId, roadmapId, checklistId, itemIndex) {
+    try {
+      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      
+      if (!checklist.items || !Array.isArray(checklist.items)) {
+        throw new Error('Checklist não possui itens');
+      }
+
+      if (itemIndex < 0 || itemIndex >= checklist.items.length) {
+        throw new Error('Índice do item inválido');
+      }
+
+      const updatedItems = checklist.items.filter((_, index) => index !== itemIndex);
+      const updateData = {
+        items: updatedItems
+      };
+
+      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+    } catch (error) {
+      throw new Error(`Erro ao remover item do checklist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Buscar estatísticas dos checklists
+   */
+  async getChecklistStats(userId, tripId, roadmapId) {
+    try {
+      const checklists = await this.getRoadmapChecklists(userId, tripId, roadmapId);
+      
+      let totalItems = 0;
+      let completedItems = 0;
+      let totalChecklists = checklists.length;
+
+      checklists.forEach(checklist => {
+        if (checklist.items && Array.isArray(checklist.items)) {
+          totalItems += checklist.items.length;
+          completedItems += checklist.items.filter(item => item.completed).length;
+        }
+      });
+
+      const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
+      return {
+        totalChecklists,
+        totalItems,
+        completedItems,
+        pendingItems: totalItems - completedItems,
+        completionRate: Math.round(completionRate * 100) / 100
+      };
+    } catch (error) {
+      throw new Error(`Erro ao buscar estatísticas dos checklists: ${error.message}`);
+    }
+  }
+}
+
+module.exports = new RoadmapChecklistService(); 
