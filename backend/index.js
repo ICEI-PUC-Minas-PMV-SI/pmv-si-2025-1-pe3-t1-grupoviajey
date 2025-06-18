@@ -5,8 +5,9 @@ const path = require('path');
 const livereload = require('livereload');
 const connectLivereload = require('connect-livereload');
 
-const configRoutes = require('./routes/config');
-const placesRoutes = require('./routes/places');
+const configRoutes = require('./src/service/googleConfigRoutes');
+const placesRoutes = require('./src/service/googlePlacesRoutes');
+const unsplashRoutes = require('./src/service/unsplashRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(connectLivereload());
 // Rotas
 app.use('/api/config', configRoutes);
 app.use('/api/places', placesRoutes);
+app.use('/api/unsplash', unsplashRoutes);
 
 // Servir frontend estático
 app.use(express.static(path.join(__dirname, '../frontend/public')));

@@ -11,11 +11,13 @@ const app = express();
 app.use(cors());
 
 // Importar rotas separadas
-const configRoutes = require('./routes/config');
-const placesRoutes = require('./routes/places');
+const configRoutes = require('./src/service/googleConfigRoutes');
+const placesRoutes = require('./src/service/googlePlacesRoutes');
+const unsplashRoutes = require('./src/service/unsplashRoutes');
 
 app.use('/api', configRoutes);
 app.use('/api', placesRoutes);
+app.use('/api/unsplash', unsplashRoutes);
 
 // Ative o livereload
 const liveReloadServer = livereload.createServer();
