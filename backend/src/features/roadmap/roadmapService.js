@@ -1,5 +1,5 @@
 const { db } = require('../../config/firebase');
-const { calculateExpenseStats } = require('../../utils/budget');
+const { calculateExpenseStats } = require('./budget');
 
 class RoadmapService {
   /**
