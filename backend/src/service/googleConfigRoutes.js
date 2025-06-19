@@ -1,4 +1,3 @@
-// routes/config.js
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
@@ -14,4 +13,4 @@ router.get('/config', (req, res) => {
   res.json({ apiKey: API_KEY });
 });
 
-module.exports = router;
+module.exports = router; 

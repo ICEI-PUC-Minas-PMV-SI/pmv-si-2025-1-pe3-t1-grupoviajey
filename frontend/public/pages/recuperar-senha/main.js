@@ -36,20 +36,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function recuperarSenha(email) {
-    // Simulação de chamada ao backend
+    if (!email) {
+      showModal('Preencha o e-mail.', false);
+      return;
+    }
     try {
-      // Aqui você pode integrar com o backend real futuramente
-      // const response = await fetch('/api/recuperar-senha', { method: 'POST', body: JSON.stringify({ email }) });
-      // if (!response.ok) throw new Error('E-mail não encontrado');
-      // const data = await response.json();
-
-      // Mock: aceita qualquer email preenchido
-      if (!email) {
-        showModal('Preencha o e-mail.', false);
+      const response = await fetch('http://localhost:3001/api/users/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        showModal(data.message || 'Erro ao solicitar recuperação de senha.', false);
         return;
       }
-      // Simula envio de e-mail
-      showModal('Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.', true, function() {
+      showModal(data.message || 'Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.', true, function() {
         window.location.href = '../login-usuario/login.html';
       });
     } catch (err) {

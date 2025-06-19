@@ -1,24 +1,32 @@
 {
-  "name": "viajey",
+  "name": "viajey-backend",
   "version": "1.0.0",
-  "main": "places-proxy.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node places-proxy.js",
-    "dev": "nodemon places-proxy.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "viajey",
+    "travel",
+    "planning",
+    "firebase"
+  ],
+  "author": "Viajey Team",
   "license": "ISC",
-  "description": "",
+  "description": "Backend for Viajey travel planning system",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "firebase-admin": "^12.7.0",
+    "helmet": "^7.1.0",
+    "joi": "^17.11.0",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "connect-livereload": "^0.6.1",
-    "livereload": "^0.9.3",
     "nodemon": "^3.0.2"
   }
 }

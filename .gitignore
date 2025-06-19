@@ -45,3 +45,10 @@ npm-debug.log*
 Thumbs.db 
 .cursor/rules/principais.mdc
 .cursor/rules/.rules.mdc
+
+/backend/src/config/credencialFirebase.json
+/backend/src/config/viajey-db-firebase-adminsdk-fbsvc-fdcc902740.json
+
+node_modules/
+.env
+*.log
