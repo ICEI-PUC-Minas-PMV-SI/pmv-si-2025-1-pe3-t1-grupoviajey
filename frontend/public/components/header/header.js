@@ -1,96 +1,49 @@
-async function getAuthenticatedUser() {
-  // Simule usuário autenticado/deslogado
-  if (window.localStorage.getItem('isAuthenticated') === 'false') return null;
-  const isAuthenticated = true; // Troque para true/false para simular
-  if (!isAuthenticated) return null;
-  return {
-    firstName: 'Rita',
-    lastName: 'Silva',
-    DocNumber: '123.456.789-00',
-    email: 'rita@email.com',
-    password: 'password123',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg'
-  };
-}
+import { onAuthChange, getAuthToken } from '../../js/config/firebase-config.js';
+import { apiService } from '../../services/api/apiService.js';
 
 async function renderUserInfo() {
-  try {
-    const user = await getAuthenticatedUser();
-    const avatar = document.getElementById('user-avatar');
-    const userName = document.getElementById('user-name');
-    const userMenu = document.getElementById('user-menu');
-    const userActions = document.getElementById('user-actions');
-    const userGreeting = document.getElementById('user-greeting');
+  const token = getAuthToken();
+  const avatar = document.getElementById('user-avatar');
+  const userName = document.getElementById('user-name');
+  const userMenu = document.getElementById('user-menu');
+  const userActions = document.getElementById('user-actions');
+  const userGreeting = document.getElementById('user-greeting');
 
-    // Se algum elemento não existe, não faz nada
-    if (!avatar || !userName || !userMenu || !userActions || !userGreeting) return;
+  if (!avatar || !userName || !userMenu || !userActions || !userGreeting) return;
 
-    // Remove event listeners antigos para evitar múltiplos binds
-    avatar.replaceWith(avatar.cloneNode(true));
-    const newAvatar = document.getElementById('user-avatar');
-
-    if (user) {
-      userName.textContent = user.firstName || 'Usuário';
-      newAvatar.src = user.avatarUrl || '../../assets/images/default-avatar.png';
-      newAvatar.style.display = '';
-      userActions.style.display = 'none';
-      userGreeting.style.display = '';
-
-      // Adiciona o listener de clique no avatar
-      newAvatar.onclick = function(e) {
-        e.stopPropagation();
-        userMenu.style.display = (userMenu.style.display === 'none' || userMenu.style.display === '') ? 'flex' : 'none';
-      };
-
-      // Fecha o menu ao clicar fora
-      document.addEventListener('click', function handler(event) {
-        if (!userMenu.contains(event.target) && event.target !== newAvatar) {
-          userMenu.style.display = 'none';
-          document.removeEventListener('click', handler);
-        }
-      });
-
-      // Listeners para os links do menu
-      const profileLink = userMenu.querySelector('.user-menu-link[href*="user_profile"]');
-      if (profileLink) {
-        profileLink.onclick = function(e) {
-          e.preventDefault();
-          window.location.href = '../../pages/user_profile/user-profile.html';
-        };
-      }
-      const dashboardLink = userMenu.querySelector('.user-menu-link[href*="user_dashboard"]');
-      if (dashboardLink) {
-        dashboardLink.onclick = function(e) {
-          e.preventDefault();
-          window.location.href = '../../pages/user_dashboard/user-dashboard.html';
-        };
-      }
-
-    } else {
-      newAvatar.style.display = 'none';
-      userName.textContent = '';
-      userMenu.style.display = 'none';
-      userActions.style.display = 'flex';
-      userGreeting.style.display = 'none';
-    }
-
-    // Exemplo de ação para o botão Sair
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-      logoutBtn.onclick = function(e) {
-        e.preventDefault();
-        window.localStorage.setItem('isAuthenticated', 'false');
-        window.location.href = '../../pages/login-usuario/login.html';
-      };
-    }
-  } catch (error) {
-    const userName = document.getElementById('user-name');
-    if (userName) userName.textContent = 'Usuário';
+  if (!token) {
+    // Usuário não autenticado
+    userName.textContent = '';
+    userMenu.style.display = 'none';
+    userActions.style.display = 'flex';
+    userGreeting.style.display = 'none';
+    return;
   }
+
+  // Buscar dados reais do usuário do backend
+  let userProfile = null;
+  try {
+    const response = await apiService.makeAuthenticatedRequest('/api/users/me');
+    userProfile = response.data;
+  } catch (error) {
+    userName.textContent = '';
+    userMenu.style.display = 'none';
+    userActions.style.display = 'flex';
+    userGreeting.style.display = 'none';
+    return;
+  }
+
+  // Atualize a UI com os dados reais do usuário
+  userName.textContent = userProfile.name || userProfile.email || 'Usuário';
+  avatar.src = userProfile.avatarUrl || '../../assets/images/default-avatar.png';
+  userActions.style.display = 'none';
+  userGreeting.style.display = '';
 }
 
-// Chama sempre que o header é incluído
-renderUserInfo();
+// Atualiza o header sempre que o estado de autenticação mudar
+onAuthChange(renderUserInfo);
+
+document.addEventListener('DOMContentLoaded', renderUserInfo);
 
 function handleAvatarClick(e) {
   e.stopPropagation();
@@ -106,6 +59,34 @@ window.addEventListener('load', function() {
   const avatar = document.getElementById('user-avatar');
   if (avatar) {
     avatar.addEventListener('click', handleAvatarClick);
+  }
+
+  // Listener para logout
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      try {
+        // Chama logout do Firebase (frontend)
+        const { logoutUser } = await import('../../js/config/firebase-config.js');
+        await logoutUser();
+        // Chama logout do backend
+        await fetch('/api/users/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao fazer logout:', err);
+      } finally {
+        // Limpa token local e redireciona
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userUid');
+        window.location.href = '../../pages/login-usuario/login.html';
+      }
+    });
   }
 
   // Fecha o menu ao clicar fora
