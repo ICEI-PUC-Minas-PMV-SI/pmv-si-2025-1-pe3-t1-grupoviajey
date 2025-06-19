@@ -15,6 +15,11 @@ const reviewsRoutes = require('./features/reviews/reviewsRoutes');
 const sitePostsRoutes = require('./features/sitePosts/sitePostsRoutes');
 const usersRoutes = require('./features/users/usersRoutes');
 
+// Rotas de integração externa (Google Places e Unsplash)
+const configRoutes = require('./service/googleConfigRoutes');
+const placesRoutes = require('./service/googlePlacesRoutes');
+const unsplashRoutes = require('./service/unsplashRoutes');
+
 // Servir arquivos estáticos do frontend
 const publicPath = path.resolve(__dirname, '../../frontend/public');
 app.use(express.static(publicPath));
@@ -68,6 +73,11 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
+
+// Rotas de integração externa
+app.use('/api/config', configRoutes);
+app.use('/api/places', placesRoutes);
+app.use('/api/unsplash', unsplashRoutes);
 
 // Rota para fornecer a chave da API do Google Maps ao frontend
 app.get('/api/config', (req, res) => {
