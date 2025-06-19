@@ -4,16 +4,25 @@ class RoadmapChecklistService {
   /**
    * Criar checklist para um roadmap
    */
-  async createRoadmapChecklist(userId, tripId, roadmapId, checklistData) {
+  async createRoadmapChecklist(userId, tripId, checklistData) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
       const checklistRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapChecklist');
+        .collection('tripChecklist');
 
       const checklist = {
         ...checklistData,
@@ -35,16 +44,25 @@ class RoadmapChecklistService {
   /**
    * Buscar todos os checklists de um roadmap
    */
-  async getRoadmapChecklists(userId, tripId, roadmapId) {
+  async getRoadmapChecklists(userId, tripId) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
       const checklistRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapChecklist');
+        .collection('tripChecklist');
 
       const snapshot = await checklistRef.orderBy('createdAt', 'desc').get();
       
@@ -65,16 +83,25 @@ class RoadmapChecklistService {
   /**
    * Buscar checklist específico
    */
-  async getRoadmapChecklist(userId, tripId, roadmapId, checklistId) {
+  async getRoadmapChecklist(userId, tripId, checklistId) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
       const checklistRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapChecklist')
+        .collection('tripChecklist')
         .doc(checklistId);
 
       const doc = await checklistRef.get();
@@ -95,16 +122,25 @@ class RoadmapChecklistService {
   /**
    * Atualizar checklist
    */
-  async updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData) {
+  async updateRoadmapChecklist(userId, tripId, checklistId, updateData) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
+
       const checklistRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapChecklist')
+        .collection('tripChecklist')
         .doc(checklistId);
 
       const update = {
@@ -114,7 +150,7 @@ class RoadmapChecklistService {
 
       await checklistRef.update(update);
       
-      return await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      return await this.getRoadmapChecklist(userId, tripId, checklistId);
     } catch (error) {
       throw new Error(`Erro ao atualizar checklist: ${error.message}`);
     }
@@ -123,16 +159,25 @@ class RoadmapChecklistService {
   /**
    * Deletar checklist
    */
-  async deleteRoadmapChecklist(userId, tripId, roadmapId, checklistId) {
+  async deleteRoadmapChecklist(userId, tripId, checklistId) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
+
       const checklistRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapChecklist')
+        .collection('tripChecklist')
         .doc(checklistId);
 
       const doc = await checklistRef.get();
@@ -151,14 +196,15 @@ class RoadmapChecklistService {
   /**
    * Atualizar status de um item do checklist
    */
-  async updateChecklistItem(userId, tripId, roadmapId, checklistId, itemIndex, completed) {
+  async updateChecklistItem(userId, tripId, checklistId, itemData) {
     try {
-      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      const checklist = await this.getRoadmapChecklist(userId, tripId, checklistId);
       
       if (!checklist.items || !Array.isArray(checklist.items)) {
         throw new Error('Checklist não possui itens');
       }
 
+      const { itemIndex, completed } = itemData;
       if (itemIndex < 0 || itemIndex >= checklist.items.length) {
         throw new Error('Índice do item inválido');
       }
@@ -174,7 +220,7 @@ class RoadmapChecklistService {
         items: updatedItems
       };
 
-      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+      return await this.updateRoadmapChecklist(userId, tripId, checklistId, updateData);
     } catch (error) {
       throw new Error(`Erro ao atualizar item do checklist: ${error.message}`);
     }
@@ -183,9 +229,9 @@ class RoadmapChecklistService {
   /**
    * Adicionar item ao checklist
    */
-  async addChecklistItem(userId, tripId, roadmapId, checklistId, itemData) {
+  async addChecklistItem(userId, tripId, checklistId, itemData) {
     try {
-      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      const checklist = await this.getRoadmapChecklist(userId, tripId, checklistId);
       
       const currentItems = checklist.items || [];
       const newItem = {
@@ -199,7 +245,9 @@ class RoadmapChecklistService {
         items: updatedItems
       };
 
-      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+      await this.updateRoadmapChecklist(userId, tripId, checklistId, updateData);
+      
+      return newItem;
     } catch (error) {
       throw new Error(`Erro ao adicionar item ao checklist: ${error.message}`);
     }
@@ -208,24 +256,28 @@ class RoadmapChecklistService {
   /**
    * Remover item do checklist
    */
-  async removeChecklistItem(userId, tripId, roadmapId, checklistId, itemIndex) {
+  async removeChecklistItem(userId, tripId, checklistId, itemData) {
     try {
-      const checklist = await this.getRoadmapChecklist(userId, tripId, roadmapId, checklistId);
+      const checklist = await this.getRoadmapChecklist(userId, tripId, checklistId);
       
       if (!checklist.items || !Array.isArray(checklist.items)) {
         throw new Error('Checklist não possui itens');
       }
 
+      const { itemIndex } = itemData;
       if (itemIndex < 0 || itemIndex >= checklist.items.length) {
         throw new Error('Índice do item inválido');
       }
 
+      // Remover o item específico
       const updatedItems = checklist.items.filter((_, index) => index !== itemIndex);
       const updateData = {
         items: updatedItems
       };
 
-      return await this.updateRoadmapChecklist(userId, tripId, roadmapId, checklistId, updateData);
+      await this.updateRoadmapChecklist(userId, tripId, checklistId, updateData);
+      
+      return { success: true, message: 'Item removido do checklist com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao remover item do checklist: ${error.message}`);
     }
@@ -234,13 +286,25 @@ class RoadmapChecklistService {
   /**
    * Buscar estatísticas dos checklists
    */
-  async getChecklistStats(userId, tripId, roadmapId) {
+  async getChecklistStats(userId, tripId) {
     try {
-      const checklists = await this.getRoadmapChecklists(userId, tripId, roadmapId);
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
+      const checklists = await this.getRoadmapChecklists(userId, tripId);
       
       let totalItems = 0;
       let completedItems = 0;
-      let totalChecklists = checklists.length;
 
       checklists.forEach(checklist => {
         if (checklist.items && Array.isArray(checklist.items)) {
@@ -252,7 +316,7 @@ class RoadmapChecklistService {
       const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
       return {
-        totalChecklists,
+        totalChecklists: checklists.length,
         totalItems,
         completedItems,
         pendingItems: totalItems - completedItems,

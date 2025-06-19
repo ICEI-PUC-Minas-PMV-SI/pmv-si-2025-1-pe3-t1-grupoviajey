@@ -3,28 +3,35 @@ const { calculateExpenseStats } = require('../../utils/budget');
 
 class RoadmapService {
   /**
-   * Criar roadmap para uma viagem
+   * Criar roadmap para uma viagem (agora os dados ficam diretamente na trip)
    */
   async createRoadmap(userId, tripId, roadmapData) {
     try {
-      const roadmapRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
-        .doc(tripId)
-        .collection('userRoadmapData');
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
 
-      const roadmap = {
+      // Atualizar a trip com os dados do roadmap
+      const update = {
         ...roadmapData,
-        createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      const docRef = await roadmapRef.add(roadmap);
+      await tripRef.update(update);
       
       return {
-        id: docRef.id,
-        ...roadmap
+        id: tripId,
+        ...tripData,
+        ...update
       };
     } catch (error) {
       throw new Error(`Erro ao criar roadmap: ${error.message}`);
@@ -34,25 +41,25 @@ class RoadmapService {
   /**
    * Buscar roadmap de uma viagem
    */
-  async getRoadmap(userId, tripId, roadmapId) {
+  async getRoadmap(userId, tripId) {
     try {
-      const roadmapRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
-        .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId);
-
-      const doc = await roadmapRef.get();
+      const tripRef = db.collection('trips').doc(tripId);
+      const doc = await tripRef.get();
       
       if (!doc.exists) {
-        throw new Error('Roadmap não encontrado');
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = doc.data();
+      
+      // Verificar se o usuário tem acesso à viagem
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
       }
       
       return {
         id: doc.id,
-        ...doc.data()
+        ...tripData
       };
     } catch (error) {
       throw new Error(`Erro ao buscar roadmap: ${error.message}`);
@@ -62,50 +69,56 @@ class RoadmapService {
   /**
    * Atualizar roadmap
    */
-  async updateRoadmap(userId, tripId, roadmapId, updateData) {
+  async updateRoadmap(userId, tripId, updateData) {
     try {
-      const roadmapRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
-        .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId);
+      const tripRef = db.collection('trips').doc(tripId);
+      
+      // Verificar se o usuário tem acesso à viagem
+      const doc = await tripRef.get();
+      if (!doc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = doc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
 
       const update = {
         ...updateData,
         updatedAt: new Date()
       };
 
-      await roadmapRef.update(update);
+      await tripRef.update(update);
       
-      return await this.getRoadmap(userId, tripId, roadmapId);
+      return await this.getRoadmap(userId, tripId);
     } catch (error) {
       throw new Error(`Erro ao atualizar roadmap: ${error.message}`);
     }
   }
 
   /**
-   * Deletar roadmap
+   * Deletar roadmap (não é mais necessário, pois os dados ficam na trip)
    */
-  async deleteRoadmap(userId, tripId, roadmapId) {
+  async deleteRoadmap(userId, tripId) {
     try {
-      const roadmapRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
-        .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId);
-
-      const doc = await roadmapRef.get();
+      // Verificar se o usuário é o owner da trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const doc = await tripRef.get();
+      
       if (!doc.exists) {
-        throw new Error('Roadmap não encontrado');
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = doc.data();
+      if (tripData.ownerId !== userId) {
+        throw new Error('Acesso negado: apenas o proprietário pode deletar a viagem');
       }
 
-      await roadmapRef.delete();
+      // Deletar a trip e todas as subcoleções
+      await tripRef.delete();
       
-      return { success: true, message: 'Roadmap deletado com sucesso' };
+      return { success: true, message: 'Viagem deletada com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao deletar roadmap: ${error.message}`);
     }
@@ -114,19 +127,15 @@ class RoadmapService {
   /**
    * Buscar roadmap com estatísticas de orçamento
    */
-  async getRoadmapWithBudgetStats(userId, tripId, roadmapId) {
+  async getRoadmapWithBudgetStats(userId, tripId) {
     try {
-      const roadmap = await this.getRoadmap(userId, tripId, roadmapId);
+      const roadmap = await this.getRoadmap(userId, tripId);
       
-      // Buscar roadmapBudget
+      // Buscar tripBudget
       const budgetRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapBudget');
+        .collection('tripBudget');
 
       const budgetSnapshot = await budgetRef.get();
       let budget = null;
@@ -139,18 +148,14 @@ class RoadmapService {
         };
       }
 
-      // Buscar roadmapDays
+      // Buscar tripDays
       const daysRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapDays');
+        .collection('tripDays');
 
       const daysSnapshot = await daysRef.orderBy('date').get();
-      const roadmapDays = [];
+      const tripDays = [];
       
       for (const dayDoc of daysSnapshot.docs) {
         const dayData = {
@@ -159,7 +164,7 @@ class RoadmapService {
         };
 
         // Buscar locais do dia
-        const placesRef = dayDoc.ref.collection('places');
+        const placesRef = dayDoc.ref.collection('tripPlaces');
         const placesSnapshot = await placesRef.get();
         const places = [];
         
@@ -171,19 +176,19 @@ class RoadmapService {
         });
 
         dayData.places = places;
-        roadmapDays.push(dayData);
+        tripDays.push(dayData);
       }
 
       // Calcular estatísticas de orçamento
       let budgetStats = null;
       if (budget && budget.totalBudget) {
-        budgetStats = calculateExpenseStats(budget.totalBudget, roadmapDays);
+        budgetStats = calculateExpenseStats(budget.totalBudget, tripDays);
       }
 
       return {
         ...roadmap,
-        roadmapDays,
-        roadmapBudget: budget,
+        tripDays,
+        tripBudget: budget,
         budgetStats
       };
     } catch (error) {

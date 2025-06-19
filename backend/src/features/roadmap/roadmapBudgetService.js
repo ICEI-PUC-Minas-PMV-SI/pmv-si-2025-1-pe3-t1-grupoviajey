@@ -5,21 +5,30 @@ class RoadmapBudgetService {
   /**
    * Criar orçamento para um roadmap
    */
-  async createRoadmapBudget(userId, tripId, roadmapId, budgetData) {
+  async createRoadmapBudget(userId, tripId, budgetData) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
       const budgetRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapBudget');
+        .collection('tripBudget');
 
       // Verificar se já existe um orçamento
       const existingBudget = await budgetRef.get();
       if (!existingBudget.empty) {
-        throw new Error('Orçamento já existe para este roadmap');
+        throw new Error('Orçamento já existe para esta viagem');
       }
 
       const budget = {
@@ -42,16 +51,25 @@ class RoadmapBudgetService {
   /**
    * Buscar orçamento de um roadmap
    */
-  async getRoadmapBudget(userId, tripId, roadmapId) {
+  async getRoadmapBudget(userId, tripId) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
+      }
+
       const budgetRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapBudget');
+        .collection('tripBudget');
 
       const snapshot = await budgetRef.get();
       
@@ -72,16 +90,25 @@ class RoadmapBudgetService {
   /**
    * Atualizar orçamento
    */
-  async updateRoadmapBudget(userId, tripId, roadmapId, updateData) {
+  async updateRoadmapBudget(userId, tripId, updateData) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
+
       const budgetRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapBudget');
+        .collection('tripBudget');
 
       const snapshot = await budgetRef.get();
       
@@ -110,16 +137,25 @@ class RoadmapBudgetService {
   /**
    * Deletar orçamento
    */
-  async deleteRoadmapBudget(userId, tripId, roadmapId) {
+  async deleteRoadmapBudget(userId, tripId) {
     try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
+
       const budgetRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapBudget');
+        .collection('tripBudget');
 
       const snapshot = await budgetRef.get();
       
@@ -139,26 +175,22 @@ class RoadmapBudgetService {
   /**
    * Buscar orçamento com estatísticas calculadas
    */
-  async getRoadmapBudgetWithStats(userId, tripId, roadmapId) {
+  async getRoadmapBudgetWithStats(userId, tripId) {
     try {
-      const budget = await this.getRoadmapBudget(userId, tripId, roadmapId);
+      const budget = await this.getRoadmapBudget(userId, tripId);
       
       if (!budget) {
         return null;
       }
 
-      // Buscar roadmapDays para calcular estatísticas
+      // Buscar tripDays para calcular estatísticas
       const daysRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('userTrips')
+        .collection('trips')
         .doc(tripId)
-        .collection('userRoadmapData')
-        .doc(roadmapId)
-        .collection('roadmapDays');
+        .collection('tripDays');
 
       const daysSnapshot = await daysRef.orderBy('date').get();
-      const roadmapDays = [];
+      const tripDays = [];
       
       for (const dayDoc of daysSnapshot.docs) {
         const dayData = {
@@ -167,7 +199,7 @@ class RoadmapBudgetService {
         };
 
         // Buscar locais do dia
-        const placesRef = dayDoc.ref.collection('places');
+        const placesRef = dayDoc.ref.collection('tripPlaces');
         const placesSnapshot = await placesRef.get();
         const places = [];
         
@@ -179,11 +211,11 @@ class RoadmapBudgetService {
         });
 
         dayData.places = places;
-        roadmapDays.push(dayData);
+        tripDays.push(dayData);
       }
 
       // Calcular estatísticas
-      const budgetStats = calculateExpenseStats(budget.totalBudget, roadmapDays);
+      const budgetStats = calculateExpenseStats(budget.totalBudget, tripDays);
 
       return {
         ...budget,
@@ -197,14 +229,14 @@ class RoadmapBudgetService {
   /**
    * Criar ou atualizar orçamento (upsert)
    */
-  async upsertRoadmapBudget(userId, tripId, roadmapId, budgetData) {
+  async upsertRoadmapBudget(userId, tripId, budgetData) {
     try {
-      const existingBudget = await this.getRoadmapBudget(userId, tripId, roadmapId);
+      const existingBudget = await this.getRoadmapBudget(userId, tripId);
       
       if (existingBudget) {
-        return await this.updateRoadmapBudget(userId, tripId, roadmapId, budgetData);
+        return await this.updateRoadmapBudget(userId, tripId, budgetData);
       } else {
-        return await this.createRoadmapBudget(userId, tripId, roadmapId, budgetData);
+        return await this.createRoadmapBudget(userId, tripId, budgetData);
       }
     } catch (error) {
       throw new Error(`Erro ao criar/atualizar orçamento: ${error.message}`);

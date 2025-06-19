@@ -36,9 +36,9 @@ class RoadmapController {
   async getRoadmapWithStats(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const roadmap = await roadmapService.getRoadmapWithBudgetStats(uid, tripId, roadmapId);
+      const roadmap = await roadmapService.getRoadmapWithBudgetStats(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -58,10 +58,10 @@ class RoadmapController {
   async updateRoadmap(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const updateData = req.body;
       
-      const roadmap = await roadmapService.updateRoadmap(uid, tripId, roadmapId, updateData);
+      const roadmap = await roadmapService.updateRoadmap(uid, tripId, updateData);
       
       res.status(200).json({
         success: true,
@@ -81,9 +81,9 @@ class RoadmapController {
   async deleteRoadmap(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const result = await roadmapService.deleteRoadmap(uid, tripId, roadmapId);
+      const result = await roadmapService.deleteRoadmap(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -105,10 +105,10 @@ class RoadmapController {
   async createRoadmapDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const dayData = req.body;
 
-      const day = await roadmapDayService.createRoadmapDay(uid, tripId, roadmapId, dayData);
+      const day = await roadmapDayService.createRoadmapDay(uid, tripId, dayData);
       
       res.status(201).json({
         success: true,
@@ -128,9 +128,9 @@ class RoadmapController {
   async getRoadmapDays(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const days = await roadmapDayService.getRoadmapDays(uid, tripId, roadmapId);
+      const days = await roadmapDayService.getRoadmapDays(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -150,9 +150,9 @@ class RoadmapController {
   async getRoadmapDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, dayId } = req.params;
+      const { tripId, dayId } = req.params;
       
-      const day = await roadmapDayService.getRoadmapDay(uid, tripId, roadmapId, dayId);
+      const day = await roadmapDayService.getRoadmapDay(uid, tripId, dayId);
       
       res.status(200).json({
         success: true,
@@ -172,10 +172,10 @@ class RoadmapController {
   async updateRoadmapDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, dayId } = req.params;
+      const { tripId, dayId } = req.params;
       const updateData = req.body;
       
-      const day = await roadmapDayService.updateRoadmapDay(uid, tripId, roadmapId, dayId, updateData);
+      const day = await roadmapDayService.updateRoadmapDay(uid, tripId, dayId, updateData);
       
       res.status(200).json({
         success: true,
@@ -195,9 +195,9 @@ class RoadmapController {
   async deleteRoadmapDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, dayId } = req.params;
+      const { tripId, dayId } = req.params;
       
-      const result = await roadmapDayService.deleteRoadmapDay(uid, tripId, roadmapId, dayId);
+      const result = await roadmapDayService.deleteRoadmapDay(uid, tripId, dayId);
       
       res.status(200).json({
         success: true,
@@ -219,35 +219,12 @@ class RoadmapController {
   async addPlaceToDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, dayId } = req.params;
+      const { tripId, dayId } = req.params;
       const placeData = req.body;
 
-      const place = await roadmapDayService.addPlaceToDay(uid, tripId, roadmapId, dayId, placeData);
+      const place = await roadmapDayService.addPlaceToDay(uid, tripId, dayId, placeData);
       
       res.status(201).json({
-        success: true,
-        data: place
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Atualizar local de um dia
-   */
-  async updatePlaceInDay(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, roadmapId, dayId, placeId } = req.params;
-      const updateData = req.body;
-      
-      const place = await roadmapDayService.updatePlaceInDay(uid, tripId, roadmapId, dayId, placeId, updateData);
-      
-      res.status(200).json({
         success: true,
         data: place
       });
@@ -265,9 +242,9 @@ class RoadmapController {
   async removePlaceFromDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, dayId, placeId } = req.params;
+      const { tripId, dayId, placeId } = req.params;
       
-      const result = await roadmapDayService.removePlaceFromDay(uid, tripId, roadmapId, dayId, placeId);
+      const result = await roadmapDayService.removePlaceFromDay(uid, tripId, dayId, placeId);
       
       res.status(200).json({
         success: true,
@@ -289,10 +266,10 @@ class RoadmapController {
   async addUnassignedPlace(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const placeData = req.body;
 
-      const place = await unassignedPlacesService.addUnassignedPlace(uid, tripId, roadmapId, placeData);
+      const place = await unassignedPlacesService.addUnassignedPlace(uid, tripId, placeData);
       
       res.status(201).json({
         success: true,
@@ -312,9 +289,9 @@ class RoadmapController {
   async getUnassignedPlaces(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const places = await unassignedPlacesService.getUnassignedPlaces(uid, tripId, roadmapId);
+      const places = await unassignedPlacesService.getUnassignedPlaces(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -334,15 +311,13 @@ class RoadmapController {
   async moveUnassignedPlaceToDay(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, placeId, dayId } = req.params;
-      const additionalData = req.body;
+      const { tripId, placeId, dayId } = req.params;
       
-      const result = await unassignedPlacesService.moveToDay(uid, tripId, roadmapId, placeId, dayId, additionalData);
+      const result = await unassignedPlacesService.moveUnassignedPlaceToDay(uid, tripId, placeId, dayId);
       
       res.status(200).json({
         success: true,
-        message: result.message,
-        data: result.place
+        message: result.message
       });
     } catch (error) {
       res.status(400).json({
@@ -360,10 +335,10 @@ class RoadmapController {
   async createRoadmapBudget(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const budgetData = req.body;
 
-      const budget = await roadmapBudgetService.createRoadmapBudget(uid, tripId, roadmapId, budgetData);
+      const budget = await roadmapBudgetService.createRoadmapBudget(uid, tripId, budgetData);
       
       res.status(201).json({
         success: true,
@@ -383,16 +358,16 @@ class RoadmapController {
   async getRoadmapBudgetWithStats(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const budget = await roadmapBudgetService.getRoadmapBudgetWithStats(uid, tripId, roadmapId);
+      const budget = await roadmapBudgetService.getRoadmapBudgetWithStats(uid, tripId);
       
       res.status(200).json({
         success: true,
         data: budget
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(404).json({
         success: false,
         message: error.message
       });
@@ -405,10 +380,10 @@ class RoadmapController {
   async updateRoadmapBudget(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const updateData = req.body;
       
-      const budget = await roadmapBudgetService.updateRoadmapBudget(uid, tripId, roadmapId, updateData);
+      const budget = await roadmapBudgetService.updateRoadmapBudget(uid, tripId, updateData);
       
       res.status(200).json({
         success: true,
@@ -430,10 +405,10 @@ class RoadmapController {
   async createRoadmapChecklist(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       const checklistData = req.body;
 
-      const checklist = await roadmapChecklistService.createRoadmapChecklist(uid, tripId, roadmapId, checklistData);
+      const checklist = await roadmapChecklistService.createRoadmapChecklist(uid, tripId, checklistData);
       
       res.status(201).json({
         success: true,
@@ -453,9 +428,9 @@ class RoadmapController {
   async getRoadmapChecklists(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const checklists = await roadmapChecklistService.getRoadmapChecklists(uid, tripId, roadmapId);
+      const checklists = await roadmapChecklistService.getRoadmapChecklists(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -475,14 +450,14 @@ class RoadmapController {
   async updateChecklistItem(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
-      const { itemIndex, completed } = req.body;
+      const { tripId, checklistId } = req.params;
+      const itemData = req.body;
       
-      const checklist = await roadmapChecklistService.updateChecklistItem(uid, tripId, roadmapId, checklistId, itemIndex, completed);
+      const item = await roadmapChecklistService.updateChecklistItem(uid, tripId, checklistId, itemData);
       
       res.status(200).json({
         success: true,
-        data: checklist
+        data: item
       });
     } catch (error) {
       res.status(400).json({
@@ -498,9 +473,9 @@ class RoadmapController {
   async getChecklistStats(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId } = req.params;
+      const { tripId } = req.params;
       
-      const stats = await roadmapChecklistService.getChecklistStats(uid, tripId, roadmapId);
+      const stats = await roadmapChecklistService.getChecklistStats(uid, tripId);
       
       res.status(200).json({
         success: true,
@@ -515,37 +490,14 @@ class RoadmapController {
   }
 
   /**
-   * Atualizar local não atribuído
-   */
-  async updateUnassignedPlace(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, roadmapId, placeId } = req.params;
-      const updateData = req.body;
-      
-      const place = await unassignedPlacesService.updateUnassignedPlace(uid, tripId, roadmapId, placeId, updateData);
-      
-      res.status(200).json({
-        success: true,
-        data: place
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
    * Remover local não atribuído
    */
   async removeUnassignedPlace(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, placeId } = req.params;
+      const { tripId, placeId } = req.params;
       
-      const result = await unassignedPlacesService.removeUnassignedPlace(uid, tripId, roadmapId, placeId);
+      const result = await unassignedPlacesService.removeUnassignedPlace(uid, tripId, placeId);
       
       res.status(200).json({
         success: true,
@@ -565,9 +517,9 @@ class RoadmapController {
   async getRoadmapChecklist(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
+      const { tripId, checklistId } = req.params;
       
-      const checklist = await roadmapChecklistService.getRoadmapChecklist(uid, tripId, roadmapId, checklistId);
+      const checklist = await roadmapChecklistService.getRoadmapChecklist(uid, tripId, checklistId);
       
       res.status(200).json({
         success: true,
@@ -587,10 +539,10 @@ class RoadmapController {
   async updateRoadmapChecklist(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
+      const { tripId, checklistId } = req.params;
       const updateData = req.body;
       
-      const checklist = await roadmapChecklistService.updateRoadmapChecklist(uid, tripId, roadmapId, checklistId, updateData);
+      const checklist = await roadmapChecklistService.updateRoadmapChecklist(uid, tripId, checklistId, updateData);
       
       res.status(200).json({
         success: true,
@@ -610,9 +562,9 @@ class RoadmapController {
   async deleteRoadmapChecklist(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
+      const { tripId, checklistId } = req.params;
       
-      const result = await roadmapChecklistService.deleteRoadmapChecklist(uid, tripId, roadmapId, checklistId);
+      const result = await roadmapChecklistService.deleteRoadmapChecklist(uid, tripId, checklistId);
       
       res.status(200).json({
         success: true,
@@ -632,14 +584,14 @@ class RoadmapController {
   async addChecklistItem(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
+      const { tripId, checklistId } = req.params;
       const itemData = req.body;
       
-      const checklist = await roadmapChecklistService.addChecklistItem(uid, tripId, roadmapId, checklistId, itemData);
+      const item = await roadmapChecklistService.addChecklistItem(uid, tripId, checklistId, itemData);
       
-      res.status(200).json({
+      res.status(201).json({
         success: true,
-        data: checklist
+        data: item
       });
     } catch (error) {
       res.status(400).json({
@@ -655,14 +607,14 @@ class RoadmapController {
   async removeChecklistItem(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, roadmapId, checklistId } = req.params;
-      const { itemIndex } = req.body;
+      const { tripId, checklistId } = req.params;
+      const itemData = req.body;
       
-      const checklist = await roadmapChecklistService.removeChecklistItem(uid, tripId, roadmapId, checklistId, itemIndex);
+      const result = await roadmapChecklistService.removeChecklistItem(uid, tripId, checklistId, itemData);
       
       res.status(200).json({
         success: true,
-        data: checklist
+        message: result.message
       });
     } catch (error) {
       res.status(400).json({
