@@ -69,6 +69,11 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
 
+// Rota para fornecer a chave da API do Google Maps ao frontend
+app.get('/api/config', (req, res) => {
+  res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY });
+});
+
 // Middleware para rotas não encontradas
 app.use('*', (req, res) => {
   res.status(404).json({
