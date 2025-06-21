@@ -17,7 +17,7 @@
   --shadow-color: rgba(0, 0, 0, 0.10);
 
   /* Espaçamento */
-  --spacing-xs: 8px;
+  --spacing-xs: 14px;
   --spacing-sm: 16px;
   --spacing-md: 24px;
   --spacing-lg: 32px;
@@ -36,7 +36,7 @@ html {
 }
 
 body {
-  font-family: 'Poppins', 'Inter', Arial;
+  font-family:'Poppins';
   background: var(--background-color) !important;
   color: var(--text-color);
   line-height: 1.5;
@@ -67,7 +67,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Poppins', 'Inter', Arial;
+  font-family: 'Poppins';
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
