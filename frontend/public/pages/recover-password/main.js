@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       showModal(data.message || 'Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.', true, function() {
-        window.location.href = '../login-usuario/login.html';
+        window.location.href = '../login/login.html';
       });
     } catch (err) {
       showModal('Erro ao solicitar recuperação de senha.', false);
