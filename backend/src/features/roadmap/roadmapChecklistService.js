@@ -204,23 +204,27 @@ class RoadmapChecklistService {
         throw new Error('Checklist não possui itens');
       }
 
-      const { itemIndex, completed } = itemData;
-      if (itemIndex < 0 || itemIndex >= checklist.items.length) {
-        throw new Error('Índice do item inválido');
+      const { itemId, ...updateData } = itemData;
+      
+      // Encontrar o item pelo ID
+      const itemIndex = checklist.items.findIndex(item => item.id === itemId);
+      if (itemIndex === -1) {
+        throw new Error('Item não encontrado');
       }
 
       // Atualizar o item específico
       const updatedItems = [...checklist.items];
       updatedItems[itemIndex] = {
         ...updatedItems[itemIndex],
-        completed: completed
+        ...updateData,
+        updatedAt: new Date()
       };
 
-      const updateData = {
+      const updateDataForChecklist = {
         items: updatedItems
       };
 
-      return await this.updateRoadmapChecklist(userId, tripId, checklistId, updateData);
+      return await this.updateRoadmapChecklist(userId, tripId, checklistId, updateDataForChecklist);
     } catch (error) {
       throw new Error(`Erro ao atualizar item do checklist: ${error.message}`);
     }
@@ -235,9 +239,11 @@ class RoadmapChecklistService {
       
       const currentItems = checklist.items || [];
       const newItem = {
+        id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         text: itemData.text,
         completed: false,
-        createdAt: new Date()
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       const updatedItems = [...currentItems, newItem];
@@ -264,13 +270,16 @@ class RoadmapChecklistService {
         throw new Error('Checklist não possui itens');
       }
 
-      const { itemIndex } = itemData;
-      if (itemIndex < 0 || itemIndex >= checklist.items.length) {
-        throw new Error('Índice do item inválido');
+      const { itemId } = itemData;
+      
+      // Encontrar o item pelo ID
+      const itemIndex = checklist.items.findIndex(item => item.id === itemId);
+      if (itemIndex === -1) {
+        throw new Error('Item não encontrado');
       }
 
       // Remover o item específico
-      const updatedItems = checklist.items.filter((_, index) => index !== itemIndex);
+      const updatedItems = checklist.items.filter(item => item.id !== itemId);
       const updateData = {
         items: updatedItems
       };
@@ -280,50 +289,6 @@ class RoadmapChecklistService {
       return { success: true, message: 'Item removido do checklist com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao remover item do checklist: ${error.message}`);
-    }
-  }
-
-  /**
-   * Buscar estatísticas dos checklists
-   */
-  async getChecklistStats(userId, tripId) {
-    try {
-      // Verificar se o usuário tem acesso à trip
-      const tripRef = db.collection('trips').doc(tripId);
-      const tripDoc = await tripRef.get();
-      
-      if (!tripDoc.exists) {
-        throw new Error('Viagem não encontrada');
-      }
-      
-      const tripData = tripDoc.data();
-      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
-        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
-      }
-
-      const checklists = await this.getRoadmapChecklists(userId, tripId);
-      
-      let totalItems = 0;
-      let completedItems = 0;
-
-      checklists.forEach(checklist => {
-        if (checklist.items && Array.isArray(checklist.items)) {
-          totalItems += checklist.items.length;
-          completedItems += checklist.items.filter(item => item.completed).length;
-        }
-      });
-
-      const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-
-      return {
-        totalChecklists: checklists.length,
-        totalItems,
-        completedItems,
-        pendingItems: totalItems - completedItems,
-        completionRate: Math.round(completionRate * 100) / 100
-      };
-    } catch (error) {
-      throw new Error(`Erro ao buscar estatísticas dos checklists: ${error.message}`);
     }
   }
 }

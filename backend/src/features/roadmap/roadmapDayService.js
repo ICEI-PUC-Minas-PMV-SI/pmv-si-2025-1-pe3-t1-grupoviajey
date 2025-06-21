@@ -160,6 +160,35 @@ class RoadmapDayService {
   }
 
   /**
+   * Buscar locais de um dia específico
+   */
+  async getPlacesInDay(userId, tripId, dayId) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      const placesRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces');
+      
+      const snapshot = await placesRef.orderBy('order').get();
+      const places = [];
+      
+      snapshot.forEach(doc => {
+        places.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return places;
+    } catch (error) {
+      throw new Error(`Erro ao buscar locais do dia: ${error.message}`);
+    }
+  }
+
+  /**
    * Remover local de um dia do roadmap
    */
   async removePlaceFromDay(userId, tripId, dayId, placeId) {
@@ -180,6 +209,270 @@ class RoadmapDayService {
       return { success: true, message: 'Local removido do dia com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao remover local do dia: ${error.message}`);
+    }
+  }
+
+  /**
+   * Adicionar despesa a um local
+   */
+  async addPlaceExpense(userId, tripId, dayId, placeId, expenseData) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const expensesRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceExpenses');
+      
+      const expense = {
+        ...expenseData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const docRef = await expensesRef.add(expense);
+      return {
+        id: docRef.id,
+        ...expense
+      };
+    } catch (error) {
+      throw new Error(`Erro ao adicionar despesa: ${error.message}`);
+    }
+  }
+
+  /**
+   * Buscar despesas de um local
+   */
+  async getPlaceExpenses(userId, tripId, dayId, placeId) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const expensesRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceExpenses');
+      
+      const snapshot = await expensesRef.orderBy('createdAt', 'desc').get();
+      const expenses = [];
+      
+      snapshot.forEach(doc => {
+        expenses.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return expenses;
+    } catch (error) {
+      throw new Error(`Erro ao buscar despesas: ${error.message}`);
+    }
+  }
+
+  /**
+   * Atualizar despesa de um local
+   */
+  async updatePlaceExpense(userId, tripId, dayId, placeId, expenseId, updateData) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const expenseRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceExpenses')
+        .doc(expenseId);
+      
+      const doc = await expenseRef.get();
+      if (!doc.exists) {
+        throw new Error('Despesa não encontrada');
+      }
+      
+      const update = {
+        ...updateData,
+        updatedAt: new Date()
+      };
+      
+      await expenseRef.update(update);
+      
+      return {
+        id: doc.id,
+        ...doc.data(),
+        ...update
+      };
+    } catch (error) {
+      throw new Error(`Erro ao atualizar despesa: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deletar despesa de um local
+   */
+  async deletePlaceExpense(userId, tripId, dayId, placeId, expenseId) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const expenseRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceExpenses')
+        .doc(expenseId);
+      
+      const doc = await expenseRef.get();
+      if (!doc.exists) {
+        throw new Error('Despesa não encontrada');
+      }
+      
+      await expenseRef.delete();
+      return { success: true, message: 'Despesa removida com sucesso' };
+    } catch (error) {
+      throw new Error(`Erro ao deletar despesa: ${error.message}`);
+    }
+  }
+
+  /**
+   * Adicionar nota a um local
+   */
+  async addPlaceNote(userId, tripId, dayId, placeId, noteData) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const notesRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceNotes');
+      
+      const note = {
+        ...noteData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      const docRef = await notesRef.add(note);
+      return {
+        id: docRef.id,
+        ...note
+      };
+    } catch (error) {
+      throw new Error(`Erro ao adicionar nota: ${error.message}`);
+    }
+  }
+
+  /**
+   * Buscar notas de um local
+   */
+  async getPlaceNotes(userId, tripId, dayId, placeId) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const notesRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceNotes');
+      
+      const snapshot = await notesRef.orderBy('createdAt', 'desc').get();
+      const notes = [];
+      
+      snapshot.forEach(doc => {
+        notes.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return notes;
+    } catch (error) {
+      throw new Error(`Erro ao buscar notas: ${error.message}`);
+    }
+  }
+
+  /**
+   * Atualizar nota de um local
+   */
+  async updatePlaceNote(userId, tripId, dayId, placeId, noteId, updateData) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const noteRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceNotes')
+        .doc(noteId);
+      
+      const doc = await noteRef.get();
+      if (!doc.exists) {
+        throw new Error('Nota não encontrada');
+      }
+      
+      const update = {
+        ...updateData,
+        updatedAt: new Date()
+      };
+      
+      await noteRef.update(update);
+      
+      return {
+        id: doc.id,
+        ...doc.data(),
+        ...update
+      };
+    } catch (error) {
+      throw new Error(`Erro ao atualizar nota: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deletar nota de um local
+   */
+  async deletePlaceNote(userId, tripId, dayId, placeId, noteId) {
+    try {
+      await this._checkUserAccess(userId, tripId);
+      
+      const noteRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripDays')
+        .doc(dayId)
+        .collection('tripPlaces')
+        .doc(placeId)
+        .collection('tripPlaceNotes')
+        .doc(noteId);
+      
+      const doc = await noteRef.get();
+      if (!doc.exists) {
+        throw new Error('Nota não encontrada');
+      }
+      
+      await noteRef.delete();
+      return { success: true, message: 'Nota removida com sucesso' };
+    } catch (error) {
+      throw new Error(`Erro ao deletar nota: ${error.message}`);
     }
   }
 }

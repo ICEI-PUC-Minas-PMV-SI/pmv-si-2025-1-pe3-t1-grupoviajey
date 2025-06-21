@@ -84,45 +84,6 @@ class UnassignedPlacesService {
   }
 
   /**
-   * Buscar local não atribuído específico
-   */
-  async getUnassignedPlace(userId, tripId, placeId) {
-    try {
-      // Verificar se o usuário tem acesso à trip
-      const tripRef = db.collection('trips').doc(tripId);
-      const tripDoc = await tripRef.get();
-      
-      if (!tripDoc.exists) {
-        throw new Error('Viagem não encontrada');
-      }
-      
-      const tripData = tripDoc.data();
-      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
-        throw new Error('Acesso negado: você não tem permissão para acessar esta viagem');
-      }
-
-      const placeRef = db
-        .collection('trips')
-        .doc(tripId)
-        .collection('unassignedPlaces')
-        .doc(placeId);
-
-      const doc = await placeRef.get();
-      
-      if (!doc.exists) {
-        throw new Error('Local não atribuído não encontrado');
-      }
-      
-      return {
-        id: doc.id,
-        ...doc.data()
-      };
-    } catch (error) {
-      throw new Error(`Erro ao buscar local não atribuído: ${error.message}`);
-    }
-  }
-
-  /**
    * Remover local não atribuído
    */
   async removeUnassignedPlace(userId, tripId, placeId) {
@@ -156,52 +117,6 @@ class UnassignedPlacesService {
       return { success: true, message: 'Local não atribuído removido com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao remover local não atribuído: ${error.message}`);
-    }
-  }
-
-  /**
-   * Mover local não atribuído para um dia específico
-   */
-  async moveUnassignedPlaceToDay(userId, tripId, placeId, dayId) {
-    try {
-      // Verificar se o usuário tem acesso à trip
-      const tripRef = db.collection('trips').doc(tripId);
-      const tripDoc = await tripRef.get();
-      
-      if (!tripDoc.exists) {
-        throw new Error('Viagem não encontrada');
-      }
-      
-      const tripData = tripDoc.data();
-      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
-        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
-      }
-
-      // Buscar o local não atribuído
-      const unassignedPlace = await this.getUnassignedPlace(userId, tripId, placeId);
-      
-      // Preparar dados do local para o dia
-      const placeData = {
-        placeId: unassignedPlace.placeId,
-        name: unassignedPlace.name,
-        address: unassignedPlace.address,
-        location: unassignedPlace.location
-      };
-
-      // Adicionar ao dia usando o service de roadmapDays
-      const roadmapDayService = require('./roadmapDayService');
-      const newPlace = await roadmapDayService.addPlaceToDay(userId, tripId, dayId, placeData);
-      
-      // Remover do unassignedPlaces
-      await this.removeUnassignedPlace(userId, tripId, placeId);
-      
-      return {
-        success: true,
-        message: 'Local movido para o dia com sucesso',
-        place: newPlace
-      };
-    } catch (error) {
-      throw new Error(`Erro ao mover local para o dia: ${error.message}`);
     }
   }
 }

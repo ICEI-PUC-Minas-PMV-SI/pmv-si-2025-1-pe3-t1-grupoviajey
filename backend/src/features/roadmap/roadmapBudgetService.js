@@ -135,6 +135,53 @@ class RoadmapBudgetService {
   }
 
   /**
+   * Atualizar orçamento por ID específico
+   */
+  async updateRoadmapBudgetById(userId, tripId, budgetId, updateData) {
+    try {
+      // Verificar se o usuário tem acesso à trip
+      const tripRef = db.collection('trips').doc(tripId);
+      const tripDoc = await tripRef.get();
+      
+      if (!tripDoc.exists) {
+        throw new Error('Viagem não encontrada');
+      }
+      
+      const tripData = tripDoc.data();
+      if (tripData.ownerId !== userId && !tripData.collaborators.includes(userId)) {
+        throw new Error('Acesso negado: você não tem permissão para editar esta viagem');
+      }
+
+      const budgetRef = db
+        .collection('trips')
+        .doc(tripId)
+        .collection('tripBudget')
+        .doc(budgetId);
+
+      const doc = await budgetRef.get();
+      
+      if (!doc.exists) {
+        throw new Error('Orçamento não encontrado');
+      }
+
+      const update = {
+        ...updateData,
+        updatedAt: new Date()
+      };
+
+      await budgetRef.update(update);
+      
+      return {
+        id: doc.id,
+        ...doc.data(),
+        ...update
+      };
+    } catch (error) {
+      throw new Error(`Erro ao atualizar orçamento: ${error.message}`);
+    }
+  }
+
+  /**
    * Deletar orçamento
    */
   async deleteRoadmapBudget(userId, tripId) {

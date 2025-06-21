@@ -75,14 +75,8 @@ app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
 
 // Rotas de integração externa
-app.use('/api/config', configRoutes);
-app.use('/api/places', placesRoutes);
+app.use('/api/google', placesRoutes);
 app.use('/api/unsplash', unsplashRoutes);
-
-// Rota para fornecer a chave da API do Google Maps ao frontend
-app.get('/api/config', (req, res) => {
-  res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY });
-});
 
 // Middleware para rotas não encontradas
 app.use('*', (req, res) => {
