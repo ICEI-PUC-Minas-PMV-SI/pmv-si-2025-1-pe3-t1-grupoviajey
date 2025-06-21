@@ -4,7 +4,7 @@
 }
 
 .footer {
-  background: #004954;
+  background: var(--primary-color);
   color: #fff;
   display: flex;
   justify-content: space-between;

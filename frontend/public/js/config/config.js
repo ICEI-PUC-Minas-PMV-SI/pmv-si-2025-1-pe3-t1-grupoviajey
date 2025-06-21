@@ -17,7 +17,7 @@ async function updateGoogleMapsScripts() {
         console.error('Não foi possível carregar a API key do Google Maps');
         return;
     }
-    
+
     const scripts = document.querySelectorAll('script[src*="maps.googleapis.com"]');
     scripts.forEach(script => {
         const newSrc = script.src.replace(/key=[^&]+/, `key=${apiKey}`);
