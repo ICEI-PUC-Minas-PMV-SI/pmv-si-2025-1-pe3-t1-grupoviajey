@@ -42,27 +42,55 @@ class ApiService {
     return response.json();
   }
 
-  // Função para requisições públicas
-  async makePublicRequest(endpoint, options = {}) {
-    const defaultOptions = {
+  // Função para fazer requisições autenticadas com FormData
+  async makeAuthenticatedFormDataRequest(endpoint, method = 'POST', formData) {
+    const token = getAuthToken();
+    
+    if (!token) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    const options = {
+      method,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        // 'Content-Type' não é definido, o browser define com o boundary correto
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
     };
 
-    const finalOptions = {
-      ...defaultOptions,
-      ...options,
-      headers: {
-        ...defaultOptions.headers,
-        ...options.headers
-      }
-    };
-
-    const response = await fetch(`${this.baseURL}${endpoint}`, finalOptions);
+    const response = await fetch(`${this.baseURL}/api${endpoint}`, options);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Erro ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Função para requisições públicas
+  async makePublicRequest(endpoint, method = 'GET', body = null) {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(`${this.baseURL}/api${endpoint}`, options);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      if (errorData.errors) {
+        console.error('Erros de validação da API:', errorData.errors);
+        const detailedMessage = `Dados inválidos: ${errorData.errors.join(', ')}`;
+        throw new Error(detailedMessage);
+      }
       throw new Error(errorData.message || `Erro ${response.status}`);
     }
 
@@ -100,6 +128,14 @@ class ApiService {
     return this.makeAuthenticatedRequest('/users/me', 'PUT', profileData);
   }
 
+  async uploadAvatar(formData) {
+    return this.makeAuthenticatedFormDataRequest('/users/me/avatar', 'POST', formData);
+  }
+
+  async changePassword(passwordData) {
+    return this.makeAuthenticatedRequest('/users/change-password', 'PUT', passwordData);
+  }
+
   // Trips
   async getTrips() {
     return this.makeAuthenticatedRequest('/trips');
@@ -132,6 +168,14 @@ class ApiService {
 
   async removeFavorite(favoriteId) {
     return this.makeAuthenticatedRequest(`/favorites/${favoriteId}`, 'DELETE');
+  }
+
+  async removeFavoriteByPlaceId(placeId) {
+    return this.makeAuthenticatedRequest(`/favorites/by-place-id/${placeId}`, 'DELETE');
+  }
+
+  async isFavorite(placeId) {
+    return this.makeAuthenticatedRequest(`/favorites/check/${placeId}`);
   }
 
   // Reviews

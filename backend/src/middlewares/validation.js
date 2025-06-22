@@ -76,7 +76,9 @@ const checklistSchema = Joi.object({
 const favoriteSchema = Joi.object({
   placeId: Joi.string().required(),
   name: Joi.string().required(),
-  address: Joi.string().optional(),
+  address: Joi.string().optional().allow(''),
+  rating: Joi.number().min(0).max(5).optional(),
+  type: Joi.string().optional().allow('', null),
   location: Joi.object({
     lat: Joi.number().required(),
     lng: Joi.number().required()

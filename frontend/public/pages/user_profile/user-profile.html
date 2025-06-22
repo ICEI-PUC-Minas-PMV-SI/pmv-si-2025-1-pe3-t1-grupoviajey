@@ -15,6 +15,9 @@
 <body>
   <div id="header"></div>
 
+  <!-- Loading spinner -->
+  <div id="profile-loading"></div>
+
   <main class="profile-container">
     <section class="profile-header">
       <div class="avatar-container">
@@ -38,7 +41,7 @@
     </section>
     <nav class="profile-tabs">
       <button class="tab-btn active" id="tab-personal-btn" type="button">Informações Pessoais</button>
-      <button class="tab-btn" id="tab-security-btn" type="button">Segurança</button>
+      <!-- <button class="tab-btn" id="tab-security-btn" type="button">Segurança</button> -->
     </nav>
     <section id="tab-personal" class="tab-content active">
       <section class="profile-form-section">
@@ -51,7 +54,7 @@
           <input type="text" id="lastName" name="lastName" placeholder="Sobrenome" required>
 
           <label for="cpfCnpj">CPF ou CNPJ</label>
-          <input type="text" id="cpfCnpj" name="cpfCnpj" placeholder="CPF / CNPJ" required readonly>
+          <input type="text" id="cpfCnpj" name="cpfCnpj" placeholder="CPF / CNPJ" required readonly title="O CPF/CNPJ não pode ser alterado.">
 
           <label for="email">Endereço de e-mail</label>
           <input type="email" id="email" name="email" placeholder="E-mail" required>
@@ -62,7 +65,7 @@
         </form>
       </section>
     </section>
-    <section id="tab-security" class="tab-content" style="display:none">
+    <!-- <section id="tab-security" class="tab-content" style="display:none">
       <section class="profile-form-section">
         <h3>Alterar senha</h3>
         <form id="security-form" autocomplete="off">
@@ -81,17 +84,15 @@
           </div>
         </form>
       </section>
-    </section>
+    </section> -->
   </main>
 
   <div id="footer"></div>
 
-
   <script type="module" src="profile-avatar.js" defer></script>
   <script type="module" src="profile-form.js" defer></script>
-  <script type="module" src="profile-storage.js" defer></script>
   <script type="module" src="profile-events.js" defer></script>
-  <script type="module" src="profile-security.js" defer></script>
+  <!-- <script type="module" src="profile-security.js" defer></script> -->
   <script type="module" src="main.js"></script>
 </body>
 

@@ -26,6 +26,15 @@ const userProfileUpdateSchema = Joi.object({
   password: Joi.string().optional()
 });
 
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/).required()
+    .messages({
+      'string.pattern.base': 'A nova senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial',
+      'string.min': 'A nova senha deve ter pelo menos 8 caracteres'
+    })
+});
+
 const validate = (schema) => {
   return (req, res, next) => {
     const { error } = schema.validate(req.body);
@@ -40,4 +49,4 @@ const validate = (schema) => {
   };
 };
 
-module.exports = { validate, userProfileCreateSchema, userProfileUpdateSchema }; 
+module.exports = { validate, userProfileCreateSchema, userProfileUpdateSchema, changePasswordSchema }; 
