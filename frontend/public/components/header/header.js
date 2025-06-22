@@ -1,31 +1,59 @@
 import { onAuthChange, logoutUser } from '../../js/config/firebase-config.js';
 import { apiService } from '../../services/api/apiService.js';
+import { getUserProfile } from '../../js/utils/auth-protection.js';
 
-// --- Elementos do DOM ---
-const userActions = document.getElementById('user-actions'); // Botões Cadastrar/Entrar
-const userGreeting = document.getElementById('user-greeting');
-const userNameEl = document.getElementById('user-name');
-const userAvatarEl = document.getElementById('user-avatar');
-const userMenu = document.getElementById('user-menu');
-const logoutBtn = document.getElementById('logout-btn');
+// Função para obter elementos do DOM
+function getHeaderElements() {
+  return {
+    userActions: document.getElementById('user-actions'),
+    userGreeting: document.getElementById('user-greeting'),
+    userNameEl: document.getElementById('user-name'),
+    userAvatarEl: document.getElementById('user-avatar'),
+    userMenu: document.getElementById('user-menu'),
+    logoutBtn: document.getElementById('logout-btn')
+  };
+}
 
 // --- Funções de UI ---
 
 /**
  * Atualiza a UI para o estado "logado", mostrando os dados do usuário.
- * @param {object} userData - Dados do usuário (ex: { name, avatarUrl }).
+ * @param {object} userData - Dados do usuário (ex: { firstName, lastName, avatarUrl }).
  */
 function updateUIAfterLogin(userData) {
-  if (userActions) userActions.style.display = 'none';
-
-  if (userGreeting) userGreeting.style.display = 'inline';
-  if (userNameEl) {
-    userNameEl.textContent = userData.name.split(' ')[0] || 'Usuário';
-    userNameEl.style.display = 'inline';
+  console.log('🔄 Atualizando UI para usuário logado:', userData);
+  
+  const elements = getHeaderElements();
+  
+  if (elements.userActions) {
+    elements.userActions.style.display = 'none';
+    console.log('✅ userActions ocultado');
+  } else {
+    console.log('❌ userActions não encontrado');
   }
-  if (userAvatarEl) {
-    userAvatarEl.src = userData.avatarUrl || '/assets/images/default-avatar.png';
-    userAvatarEl.style.display = 'inline-block';
+
+  if (elements.userGreeting) {
+    elements.userGreeting.style.display = 'inline';
+    console.log('✅ userGreeting exibido');
+  } else {
+    console.log('❌ userGreeting não encontrado');
+  }
+  
+  if (elements.userNameEl) {
+    const firstName = userData.firstName || userData.name?.split(' ')[0] || 'Usuário';
+    elements.userNameEl.textContent = firstName;
+    elements.userNameEl.style.display = 'inline';
+    console.log('✅ userName definido como:', firstName);
+  } else {
+    console.log('❌ userNameEl não encontrado');
+  }
+  
+  if (elements.userAvatarEl) {
+    elements.userAvatarEl.src = userData.avatarUrl || '/assets/images/default-avatar.png';
+    elements.userAvatarEl.style.display = 'inline-block';
+    console.log('✅ userAvatar definido');
+  } else {
+    console.log('❌ userAvatarEl não encontrado');
   }
 }
 
@@ -33,12 +61,44 @@ function updateUIAfterLogin(userData) {
  * Atualiza a UI para o estado "deslogado".
  */
 function updateUIAfterLogout() {
-  if (userActions) userActions.style.display = 'flex';
+  console.log('🔄 Atualizando UI para usuário deslogado');
+  
+  const elements = getHeaderElements();
+  
+  if (elements.userActions) {
+    elements.userActions.style.display = 'flex';
+    console.log('✅ userActions exibido');
+  } else {
+    console.log('❌ userActions não encontrado');
+  }
 
-  if (userGreeting) userGreeting.style.display = 'none';
-  if (userNameEl) userNameEl.style.display = 'none';
-  if (userAvatarEl) userAvatarEl.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'none'; // Garante que o menu feche
+  if (elements.userGreeting) {
+    elements.userGreeting.style.display = 'none';
+    console.log('✅ userGreeting ocultado');
+  } else {
+    console.log('❌ userGreeting não encontrado');
+  }
+  
+  if (elements.userNameEl) {
+    elements.userNameEl.style.display = 'none';
+    console.log('✅ userName ocultado');
+  } else {
+    console.log('❌ userNameEl não encontrado');
+  }
+  
+  if (elements.userAvatarEl) {
+    elements.userAvatarEl.style.display = 'none';
+    console.log('✅ userAvatar ocultado');
+  } else {
+    console.log('❌ userAvatarEl não encontrado');
+  }
+  
+  if (elements.userMenu) {
+    elements.userMenu.style.display = 'none';
+    console.log('✅ userMenu ocultado');
+  } else {
+    console.log('❌ userMenu não encontrado');
+  }
 }
 
 // --- Lógica de Autenticação e Dados ---
@@ -48,10 +108,12 @@ function updateUIAfterLogout() {
  */
 async function fetchUserProfile() {
   try {
-    const response = await apiService.makeAuthenticatedRequest('/api/users/me');
+    console.log('🔍 Buscando perfil do usuário no backend...');
+    const response = await apiService.getUserProfile();
+    console.log('✅ Perfil obtido:', response.data);
     return response.data;
   } catch (error) {
-    console.error("Falha ao buscar perfil do usuário:", error);
+    console.error("❌ Falha ao buscar perfil do usuário:", error);
     await handleLogout();
     return null;
   }
@@ -62,10 +124,25 @@ async function fetchUserProfile() {
  * @param {object|null} user - Objeto do usuário do Firebase ou null.
  */
 async function handleAuthStateChange(user) {
+  console.log('🔄 Mudança de estado de autenticação:', user ? 'logado' : 'deslogado');
+  
   if (user) {
-    const userProfile = await fetchUserProfile();
+    // Primeiro tentar buscar do localStorage
+    let userProfile = getUserProfile();
+    
+    if (!userProfile) {
+      // Se não estiver no localStorage, buscar do backend
+      userProfile = await fetchUserProfile();
+      if (userProfile) {
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      }
+    }
+    
     if (userProfile) {
       updateUIAfterLogin(userProfile);
+    } else {
+      console.warn('⚠️ Não foi possível obter perfil do usuário');
+      updateUIAfterLogout();
     }
   } else {
     updateUIAfterLogout();
@@ -77,44 +154,120 @@ async function handleAuthStateChange(user) {
  */
 async function handleLogout() {
   try {
+    console.log('🚪 Iniciando logout...');
     await logoutUser();
-    await apiService.makeAuthenticatedRequest('/api/users/logout', { method: 'POST' });
+    console.log('✅ Logout realizado com sucesso');
   } catch (error) {
-    console.error("Erro durante o logout:", error);
-  } finally {
-    if (apiService.clearToken) apiService.clearToken();
-    window.location.href = '/pages/home/index.html';
+    console.error("❌ Erro durante o logout:", error);
+    // Mesmo com erro, limpar dados locais
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userUid');
+    localStorage.removeItem('userProfile');
+    window.location.href = '/pages/login-usuario/login.html';
   }
 }
 
 // --- Inicialização e Event Listeners ---
 
-function initializeHeader() {
-  onAuthChange(handleAuthStateChange);
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
+function setupEventListeners() {
+  const elements = getHeaderElements();
+  
+  if (elements.logoutBtn) {
+    elements.logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
+      console.log('🖱️ Botão logout clicado');
       handleLogout();
     });
   }
 
-  if (userAvatarEl) {
-    userAvatarEl.addEventListener('click', (e) => {
+  if (elements.userAvatarEl) {
+    elements.userAvatarEl.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (userMenu) {
+      if (elements.userMenu) {
         // Alterna a visibilidade baseado no 'display'
-        const isVisible = userMenu.style.display === 'flex';
-        userMenu.style.display = isVisible ? 'none' : 'flex';
+        const isVisible = elements.userMenu.style.display === 'flex';
+        elements.userMenu.style.display = isVisible ? 'none' : 'flex';
+        console.log('🖱️ Menu do usuário:', isVisible ? 'fechado' : 'aberto');
       }
     });
   }
 
   document.addEventListener('click', (e) => {
-    if (userMenu && !userAvatarEl.contains(e.target) && !userMenu.contains(e.target)) {
-      userMenu.style.display = 'none';
+    const elements = getHeaderElements();
+    if (elements.userMenu && !elements.userAvatarEl?.contains(e.target) && !elements.userMenu.contains(e.target)) {
+      elements.userMenu.style.display = 'none';
     }
   });
 }
 
-document.addEventListener('DOMContentLoaded', initializeHeader); 
+function initializeHeader() {
+  console.log('🚀 Inicializando header...');
+  
+  // Marcar que o header foi inicializado
+  window.headerInitialized = true;
+  
+  // Debug: verificar se os elementos foram encontrados
+  const elements = getHeaderElements();
+  console.log('🔍 Elementos do DOM encontrados:');
+  console.log('userActions:', elements.userActions);
+  console.log('userGreeting:', elements.userGreeting);
+  console.log('userNameEl:', elements.userNameEl);
+  console.log('userAvatarEl:', elements.userAvatarEl);
+  console.log('userMenu:', elements.userMenu);
+  console.log('logoutBtn:', elements.logoutBtn);
+  
+  // Verificar se há usuário logado no carregamento da página
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    console.log('🔑 Token encontrado, verificando perfil...');
+    const userProfile = getUserProfile();
+    if (userProfile) {
+      console.log('👤 Perfil encontrado no localStorage:', userProfile);
+      updateUIAfterLogin(userProfile);
+    } else {
+      console.log('⚠️ Token existe mas perfil não encontrado, buscando no backend...');
+      // Buscar perfil do backend
+      fetchUserProfile().then(profile => {
+        if (profile) {
+          updateUIAfterLogin(profile);
+        }
+      });
+    }
+  } else {
+    console.log('🔓 Nenhum token encontrado, usuário deslogado');
+    updateUIAfterLogout();
+  }
+
+  // Configurar listener para mudanças de autenticação
+  onAuthChange(handleAuthStateChange);
+
+  // Configurar event listeners
+  setupEventListeners();
+  
+  console.log('✅ Header inicializado');
+}
+
+// Função para tentar inicializar novamente se os elementos não foram encontrados
+function retryInitialization() {
+  const elements = getHeaderElements();
+  const hasAllElements = elements.userActions && elements.userGreeting && elements.userNameEl && elements.userAvatarEl;
+  
+  if (!hasAllElements) {
+    console.log('🔄 Elementos não encontrados, tentando novamente em 500ms...');
+    setTimeout(() => {
+      if (!window.headerInitialized) {
+        initializeHeader();
+      }
+    }, 500);
+  } else {
+    initializeHeader();
+  }
+}
+
+// Aguardar o DOM estar pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', retryInitialization);
+} else {
+  // DOM já está pronto
+  retryInitialization();
+} 

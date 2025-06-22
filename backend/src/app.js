@@ -14,6 +14,7 @@ const favoritesRoutes = require('./features/favorites/favoritesRoutes');
 const reviewsRoutes = require('./features/reviews/reviewsRoutes');
 const sitePostsRoutes = require('./features/sitePosts/sitePostsRoutes');
 const usersRoutes = require('./features/users/usersRoutes');
+const authRoutes = require('./features/auth/authRoutes');
 
 // Rotas de integração externa (Google Places e Unsplash)
 const configRoutes = require('./service/googleConfigRoutes');
@@ -73,6 +74,7 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rotas de integração externa
 app.use('/api/config', configRoutes);

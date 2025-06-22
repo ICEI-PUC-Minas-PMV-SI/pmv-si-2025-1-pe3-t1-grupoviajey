@@ -27,92 +27,6 @@ class UsersController {
     }
   }
 
-  // Recuperação de senha
-  async forgotPassword(req, res) {
-    const { email } = req.body;
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: 'Email é obrigatório e deve ser uma string válida.'
-      });
-    }
-    try {
-      // Gera o link de redefinição de senha
-      const actionCodeSettings = {
-        url: 'http://localhost:3001/pages/recuperar-senha/recuperar-senha.html',
-        handleCodeInApp: false
-      };
-      const link = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
-      // Aqui, o Firebase já envia o email automaticamente
-      console.log(`[FORGOT_PASSWORD] Link de redefinição gerado para: ${email}`);
-      console.log(`[FORGOT_PASSWORD] Link de redefinição: ${link}`);
-      return res.status(200).json({
-        success: true,
-        message: 'Se o email estiver cadastrado, um link de redefinição foi enviado.'
-      });
-    } catch (error) {
-      console.error('[FORGOT_PASSWORD] Erro ao enviar email de redefinição:', error, error.code, error.message);
-      if (error.code === 'auth/user-not-found') {
-        return res.status(404).json({
-          success: false,
-          message: 'Email não encontrado.'
-        });
-      }
-      if (error.code === 'auth/invalid-email') {
-        return res.status(400).json({
-          success: false,
-          message: 'Formato de email inválido.'
-        });
-      }
-      return res.status(500).json({
-        success: false,
-        message: 'Erro ao enviar email de redefinição de senha. Tente novamente mais tarde.'
-      });
-    }
-  }
-
-  // Verificar autenticação e perfil do usuário
-  async verifyAuth(req, res) {
-    try {
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Token de autenticação não fornecido'
-        });
-      }
-
-      const token = authHeader.split('Bearer ')[1];
-      
-      // Verificar token no Firebase Auth
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      
-      // Verificar se o usuário existe no Firestore
-      const userRef = require('../../config/firebase').db.collection('users').doc(decodedToken.uid);
-      const doc = await userRef.get();
-      
-      if (!doc.exists) {
-        return res.status(404).json({
-          success: false,
-          message: 'Usuário não encontrado no sistema. Por favor, faça o cadastro primeiro.'
-        });
-      }
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Usuário autenticado e perfil válido',
-        data: { uid: decodedToken.uid, email: decodedToken.email }
-      });
-    } catch (error) {
-      console.error('[VERIFY_AUTH] Erro na verificação:', error);
-      return res.status(401).json({
-        success: false,
-        message: 'Token inválido ou expirado'
-      });
-    }
-  }
-
   // Atualizar perfil do usuário autenticado
   async updateProfile(req, res) {
     try {
@@ -152,20 +66,6 @@ class UsersController {
     }
   }
 
-  // Logout do usuário autenticado
-  async logout(req, res) {
-    const { uid } = req.user;
-    try {
-      console.log(`[LOGOUT] Revogando refresh tokens para UID: ${uid}`);
-      await admin.auth().revokeRefreshTokens(uid);
-      console.log(`[LOGOUT] Tokens revogados com sucesso para UID: ${uid}`);
-      return res.status(200).json({ message: 'Logout realizado com sucesso' });
-    } catch (error) {
-      console.error(`[LOGOUT] Erro ao revogar tokens para UID: ${uid}`, error);
-      return res.status(500).json({ message: 'Erro ao realizar logout', error: error.message });
-    }
-  }
-
   // Listar usuários órfãos (existem no Auth mas não no Firestore) - APENAS PARA ADMIN
   async listOrphanUsers(req, res) {
     try {
@@ -198,27 +98,23 @@ class UsersController {
             email: authUser.email,
             displayName: authUser.displayName,
             createdAt: authUser.metadata.creationTime,
-            lastSignInTime: authUser.metadata.lastSignInTime
+            lastSignIn: authUser.metadata.lastSignInTime
           });
         }
       }
       
       console.log(`[ORPHAN_USERS] Usuários órfãos encontrados: ${orphanUsers.length}`);
       
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
-        data: {
-          totalAuthUsers: authUsers.length,
-          orphanUsers: orphanUsers,
-          orphanCount: orphanUsers.length
-        }
+        data: orphanUsers,
+        count: orphanUsers.length
       });
     } catch (error) {
       console.error('[ORPHAN_USERS] Erro ao listar usuários órfãos:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
-        message: 'Erro ao listar usuários órfãos',
-        error: error.message
+        message: 'Erro ao listar usuários órfãos'
       });
     }
   }

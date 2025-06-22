@@ -46,11 +46,25 @@ export function includeSearchBar(callback) {
 // Funções para incluir header/footer/modal, se quiser padronizar
 export function includeHeader() {
   includeHTML('header', '/components/header/header.html', function () {
-    const script = document.createElement('script');
-    script.src = '/components/header/header.js';
-    script.type = 'module';
-    script.defer = true;
-    document.body.appendChild(script);
+    // Aguardar um pouco para garantir que o HTML foi carregado
+    setTimeout(() => {
+      const script = document.createElement('script');
+      script.src = '/components/header/header.js';
+      script.type = 'module';
+      // Remover defer para garantir execução imediata
+      document.body.appendChild(script);
+      
+      // Fallback: se o script não carregar em 2 segundos, tentar novamente
+      setTimeout(() => {
+        if (!window.headerInitialized) {
+          console.log('🔄 Tentando carregar header novamente...');
+          const script2 = document.createElement('script');
+          script2.src = '/components/header/header.js';
+          script2.type = 'module';
+          document.body.appendChild(script2);
+        }
+      }, 2000);
+    }, 100);
   });
 }
 

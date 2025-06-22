@@ -57,13 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Primeiro verificar se o usuário tem perfil válido
+      // Verificar se o token é válido no backend
       try {
-        console.log('Verificando perfil do usuário...');
-        const verifyResult = await apiService.makeAuthenticatedRequest('/api/users/auth/verify');
-        console.log('Verificação do usuário:', verifyResult);
+        console.log('Verificando token no backend...');
+        const verifyResult = await apiService.verifyToken();
+        console.log('Verificação do token:', verifyResult);
       } catch (error) {
-        console.warn('Erro na verificação do usuário:', error.message);
+        console.error('Erro na verificação do token:', error);
         
         // Se o erro for 404, significa que o usuário não tem perfil no Firestore
         if (error.message.includes('404') || error.message.includes('não encontrado')) {
@@ -77,22 +77,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Para outros erros, mostrar mensagem genérica
-        alert('Erro ao verificar perfil do usuário. Tente novamente.');
+        alert('Erro ao verificar autenticação. Tente novamente.');
         hideLoading();
         return;
       }
 
-      // Se chegou até aqui, o usuário tem perfil válido
+      // Buscar perfil completo do usuário
       let userProfile = null;
       try {
         console.log('Buscando perfil completo do usuário...');
-        userProfile = await apiService.makeAuthenticatedRequest('/api/users/me');
+        const profileResult = await apiService.getUserProfile();
+        userProfile = profileResult.data;
         console.log('Perfil do usuário:', userProfile);
+        
+        // Salvar perfil no localStorage
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
       } catch (error) {
         console.warn('Não foi possível buscar perfil completo do usuário:', error.message);
         // Não bloquear o login se não conseguir buscar o perfil completo
       }
 
+      console.log('Login realizado com sucesso!');
       window.location.href = '../user_dashboard/user-dashboard.html';
     } catch (error) {
       console.error('Erro no login:', error);

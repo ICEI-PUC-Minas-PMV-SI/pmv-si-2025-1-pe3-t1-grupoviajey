@@ -73,6 +73,43 @@ class ApiService {
     return this.makePublicRequest('/health');
   }
 
+  // Auth endpoints
+  async signup(userData) {
+    return this.makePublicRequest('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }
+
+  async verifyToken() {
+    return this.makeAuthenticatedRequest('/api/auth/verify');
+  }
+
+  async forgotPassword(email) {
+    return this.makePublicRequest('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  }
+
+  async logout() {
+    return this.makeAuthenticatedRequest('/api/auth/logout', {
+      method: 'POST'
+    });
+  }
+
+  // User profile endpoints
+  async getUserProfile() {
+    return this.makeAuthenticatedRequest('/api/users/me');
+  }
+
+  async updateUserProfile(profileData) {
+    return this.makeAuthenticatedRequest('/api/users/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
+  }
+
   // Trips
   async getTrips() {
     return this.makeAuthenticatedRequest('/api/trips');

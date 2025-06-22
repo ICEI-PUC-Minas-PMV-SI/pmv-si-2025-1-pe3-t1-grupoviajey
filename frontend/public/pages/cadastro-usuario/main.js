@@ -1,5 +1,4 @@
 import { includeHeader, includeFooter } from '../../js/utils/include.js';
-import { createUser } from '../../js/config/firebase-config.js';
 import { apiService } from '../../services/api/apiService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,34 +15,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function cadastrarUsuario(dados) {
     try {
-      // Cria o usuário no Firebase Auth
-      const result = await createUser(dados.email, dados.password);
+      console.log('Iniciando cadastro de usuário:', dados.email);
+      
+      // Chamar o endpoint de signup que cria usuário no Auth e perfil no Firestore
+      const result = await apiService.signup({
+        firstName: dados.firstName,
+        lastName: dados.lastName,
+        email: dados.email,
+        password: dados.password,
+        cpfCnpj: dados.cpfCnpj,
+        userType: dados.userType
+      });
+
       if (!result.success) {
-        alert('Erro ao criar conta: ' + result.error);
+        alert('Erro ao criar conta: ' + result.message);
         return;
       }
 
-      // Chama o backend para criar o perfil no Firestore (deve ser feito imediatamente após o cadastro no Auth, antes de qualquer GET /me)
-      await apiService.makeAuthenticatedRequest('/api/users/me', {
-        method: 'PUT',
-        body: JSON.stringify({
-          firstName: dados.firstName,
-          lastName: dados.lastName,
-          email: dados.email,
-          cpfCnpj: dados.cpfCnpj,
-          userType: dados.userType,
-          avatarUrl: "",
-          isActive: true
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log('Usuário criado com sucesso:', result.data);
+      
+      // Salvar token no localStorage (o backend retorna um customToken)
+      if (result.data.customToken) {
+        // Para customToken, precisamos trocar por idToken
+        const { auth } = await import('../../js/config/firebase-config.js');
+        const { signInWithCustomToken } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        
+        const userCredential = await signInWithCustomToken(auth, result.data.customToken);
+        const idToken = await userCredential.user.getIdToken();
+        
+        localStorage.setItem('authToken', idToken);
+        localStorage.setItem('userUid', result.data.uid);
+      }
 
+      // Buscar perfil do usuário
+      try {
+        const userProfile = await apiService.getUserProfile();
+        localStorage.setItem('userProfile', JSON.stringify(userProfile.data));
+      } catch (error) {
+        console.warn('Não foi possível buscar perfil do usuário:', error);
+      }
+
+      alert('Conta criada com sucesso!');
       window.location.href = '../user_dashboard/user-dashboard.html';
     } catch (err) {
-      alert('Erro ao cadastrar usuário.');
-      console.error(err);
+      console.error('Erro ao cadastrar usuário:', err);
+      
+      if (err.message.includes('Email já está em uso')) {
+        alert('Este email já está cadastrado. Tente fazer login ou use outro email.');
+      } else if (err.message.includes('Senha muito fraca')) {
+        alert('A senha deve ter pelo menos 6 caracteres.');
+      } else if (err.message.includes('Email inválido')) {
+        alert('Por favor, informe um email válido.');
+      } else {
+        alert('Erro ao cadastrar usuário. Tente novamente.');
+      }
     }
   }
 
@@ -58,6 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
         password: passwordInput.value.trim(),
         userType: tipoViajante.checked ? 'traveler' : 'partner'
       };
+
+      // Validações básicas
+      if (!dados.firstName || !dados.lastName || !dados.email || !dados.password || !dados.cpfCnpj) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+      }
+
+      if (dados.password.length < 6) {
+        alert('A senha deve ter pelo menos 6 caracteres.');
+        passwordInput.focus();
+        return;
+      }
 
       // Validação de CPF/CNPJ (apenas números, 11 ou 14 dígitos)
       const cpfCnpjLimpo = dados.cpfCnpj.replace(/\D/g, '');
