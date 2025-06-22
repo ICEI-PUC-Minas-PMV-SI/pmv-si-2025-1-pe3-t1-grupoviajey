@@ -86,7 +86,7 @@ export function startAuthMonitoring(intervalMs = 30000) { // 30 segundos
         console.log('Token do usuário se tornou inválido durante a sessão');
         await logoutUser();
         alert('Sua sessão expirou ou foi invalidada. Por favor, faça login novamente.');
-        window.location.href = '/pages/login-usuario/login.html';
+        window.location.href = '/pages/login/login.html';
       }
     }
   }, intervalMs);

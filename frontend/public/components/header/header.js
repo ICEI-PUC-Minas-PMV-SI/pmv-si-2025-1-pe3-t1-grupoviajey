@@ -49,9 +49,9 @@ function updateUIAfterLogin(userData) {
   }
   
   if (elements.userAvatarEl) {
-    elements.userAvatarEl.src = userData.avatarUrl || '/assets/images/default-avatar.png';
-    elements.userAvatarEl.style.display = 'inline-block';
-    console.log('✅ userAvatar definido');
+    elements.userAvatarEl.src = userData.avatarUrl || '/assets/images/Default_pfp.svg';
+    elements.userAvatarEl.style.display = 'block';
+    console.log('✅ Avatar atualizado');
   } else {
     console.log('❌ userAvatarEl não encontrado');
   }
@@ -163,7 +163,7 @@ async function handleLogout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userUid');
     localStorage.removeItem('userProfile');
-    window.location.href = '/pages/login-usuario/login.html';
+    window.location.href = '/pages/login/login.html';
   }
 }
 
