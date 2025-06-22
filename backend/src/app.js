@@ -75,6 +75,7 @@ app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
 
 // Rotas de integração externa
+app.use('/api/config', configRoutes);
 app.use('/api/google', placesRoutes);
 app.use('/api/unsplash', unsplashRoutes);
 
