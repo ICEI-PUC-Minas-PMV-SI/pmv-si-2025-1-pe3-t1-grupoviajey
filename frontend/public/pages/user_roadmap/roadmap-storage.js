@@ -1,5 +1,6 @@
 import { createLocalCard, attachLocalCardActions } from './roadmap-utils.js';
 import { showPlacesMovedAlert } from './roadmap-modals.js';
+import { apiService } from '../../services/api/apiService.js';
 
 // =============================================
 // STORAGE DE ROTEIRO
@@ -294,35 +295,28 @@ export function saveTripData(tripData) {
   }
 }
 
-// Função para carregar os dados da viagem atual
-export function loadCurrentTripData() {
+// Função para carregar os dados da viagem atual via API
+export async function loadCurrentTripData() {
   try {
     const selectedTripId = localStorage.getItem('selectedTripId');
-    if (!selectedTripId) return null;
-
-    const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-    const trip = trips.find(t => String(t.id) === String(selectedTripId));
-
-    if (!trip) return null;
-
-    // Atualiza os dados do roadmap com os dados da viagem
-    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData') || '{}');
-    roadmap.tripName = trip.tripName || trip.title;
-    roadmap.tripDestination = trip.tripDestination || trip.destination;
-    roadmap.tripDescription = trip.tripDescription || trip.description || '';
-    roadmap.tripStartDate = trip.tripStartDate || trip.startDate;
-    roadmap.tripEndDate = trip.tripEndDate || trip.endDate;
-
-    // Mantém os dados existentes dos dias
-    if (!roadmap.days) {
-      roadmap.days = [];
+    if (!selectedTripId) {
+      console.error("Nenhum ID de viagem selecionado.");
+      return null;
     }
 
-    localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
+    // Busca os dados da viagem da API
+    const trip = await apiService.getTrip(selectedTripId);
 
-    return trip;
+    if (!trip || !trip.success) {
+      console.error("Não foi possível carregar os dados da viagem da API.", trip);
+      return null;
+    }
+
+    // Retorna apenas os dados da viagem
+    return trip.data;
+    
   } catch (error) {
-    console.error('Erro ao carregar dados da viagem:', error);
+    console.error('Erro ao carregar dados da viagem da API:', error);
     return null;
   }
 }

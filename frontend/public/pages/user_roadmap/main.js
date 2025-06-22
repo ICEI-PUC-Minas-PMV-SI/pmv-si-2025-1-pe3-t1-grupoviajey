@@ -44,9 +44,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(attachHoverEvents, 500);
     });
 
-    // 2. Carrega dados da viagem atual
-    const trip = loadCurrentTripData();
+    // 2. Carrega dados da viagem atual da API
+    const trip = await loadCurrentTripData();
     if (!trip) {
+      console.error("Falha ao carregar dados da viagem. Redirecionando para o dashboard.");
       window.location.href = '/pages/user_dashboard/user-dashboard.html';
       return;
     }

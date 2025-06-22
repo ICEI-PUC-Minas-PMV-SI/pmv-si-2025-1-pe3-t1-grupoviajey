@@ -5,35 +5,57 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 if (!UNSPLASH_ACCESS_KEY) {
-  console.error('UNSPLASH_ACCESS_KEY não está definida nas variáveis de ambiente');
-  // Não faz o processo parar, mas avisa
+  console.error('Atenção: A chave da API do Unsplash (UNSPLASH_ACCESS_KEY) não está configurada no backend.');
+}
+
+/**
+ * Remove acentos e caracteres especiais de uma string.
+ * @param {string} str A string para normalizar.
+ * @returns {string} A string normalizada.
+ */
+const normalizeString = (str) => {
+  if (!str) return '';
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 // Endpoint para buscar imagens do Unsplash de forma segura
-router.get('/unsplash/search', async (req, res) => {
+router.get('/search', async (req, res) => {
   const { destination } = req.query;
   if (!destination) {
-    return res.status(400).json({ error: 'Destino obrigatório' });
+    return res.status(400).json({ success: false, message: 'O destino é obrigatório.' });
   }
+
   try {
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(destination)}&orientation=landscape&per_page=10`;
-    const response = await fetch(url, {
+    const searchTerm = normalizeString(destination);
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchTerm)}&orientation=landscape&per_page=10`;
+    
+    const unsplashResponse = await fetch(url, {
       headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` }
     });
-    if (!response.ok) {
-      return res.status(response.status).json({ error: 'Erro ao buscar imagem do Unsplash' });
+
+    if (!unsplashResponse.ok) {
+      console.error('Erro na resposta do Unsplash:', await unsplashResponse.text());
+      return res.status(unsplashResponse.status).json({ success: false, message: 'Erro ao comunicar com o serviço de imagens.' });
     }
-    const text = await response.text();
-    console.log('Resposta bruta do Unsplash:', text);
-    try {
-      const data = JSON.parse(text);
-      res.json(data);
-    } catch (e) {
-      res.status(500).json({ error: 'Resposta inesperada do Unsplash', details: text });
+
+    const data = await unsplashResponse.json();
+
+    if (data.results && data.results.length > 0) {
+      const formattedResults = data.results
+        .filter(img => img.width / img.height >= 1.2) // Garante que a imagem seja paisagem
+        .map(img => ({
+          url: img.urls.regular,
+          thumb: img.urls.thumb,
+          photographer: img.user.name,
+          photographerLink: img.user.links.html
+        }));
+      res.status(200).json({ success: true, data: formattedResults });
+    } else {
+      res.status(200).json({ success: true, data: [] }); // Retorna sucesso com array vazio se não houver resultados
     }
   } catch (err) {
-    console.error('Erro no proxy Unsplash:', err);
-    res.status(500).json({ error: 'Erro ao buscar imagem do Unsplash', details: err.message });
+    console.error('Erro no proxy do Unsplash:', err);
+    res.status(500).json({ success: false, message: 'Erro interno do servidor ao buscar imagens.' });
   }
 });
 

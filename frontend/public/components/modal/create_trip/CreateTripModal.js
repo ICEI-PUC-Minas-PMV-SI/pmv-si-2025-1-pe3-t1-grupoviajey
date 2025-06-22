@@ -1,6 +1,8 @@
 import { includeSearchBar } from '../../../js/utils/include.js';
 import { loadGoogleMapsScript } from '../../../js/core/map/loader.js';
 import { searchDestinationImage } from '../../../services/api/unsplash.js';
+import { apiService } from '../../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../../js/utils/ui-utils.js';
 
 let modalInitialized = false;
 let datePicker = null;
@@ -55,20 +57,14 @@ function initDatePicker() {
     if (!input) return;
 
     try {
+        // Lógica simplificada: Apenas inicializa o calendário.
+        // A leitura das datas será feita no momento do envio do formulário.
         datePicker = flatpickr(input, {
             mode: 'range',
             minDate: 'today',
-            dateFormat: 'd/m/Y',
+            dateFormat: 'd/m/Y', // Formato para exibição no campo
             locale: 'pt',
-            showMonths: 2,
-            position: 'auto',
-            onChange: function (selectedDates) {
-                if (selectedDates.length === 2) {
-                    const start = selectedDates[0];
-                    const end = selectedDates[1];
-                    input.value = `${start.getDate()}/${start.getMonth() + 1}/${start.getFullYear()} - ${end.getDate()}/${end.getMonth() + 1}/${end.getFullYear()}`;
-                }
-            }
+            allowInput: true
         });
     } catch (error) {
         console.error('Erro ao inicializar date picker:', error);
@@ -144,21 +140,22 @@ function handlePhotoUpload(event) {
 }
 
 async function handleDestinationPhotoSearch() {
-    console.log('Cliquei no botão!');
     const destination = document.getElementById('trip-destination').value;
     if (!destination) {
-        alert('Por favor, selecione um destino primeiro.');
+        alert('Por favor, digite um destino primeiro.');
         return;
     }
 
     const searchButton = document.getElementById('search-destination-photo');
     const originalText = searchButton.innerHTML;
-    searchButton.disabled = false;
+    
+    searchButton.disabled = true;
     searchButton.innerHTML = '<span>Buscando...</span>';
 
     try {
+        console.log(`Buscando imagem para: "${destination}"`);
         const imageData = await searchDestinationImage(destination);
-        console.log(imageData);
+        
         if (imageData && imageData.length > 0) {
             const photoPreview = document.getElementById('photo-preview');
             photoPreview.innerHTML = `
@@ -176,16 +173,17 @@ async function handleDestinationPhotoSearch() {
                 </div>
             `;
             photoPreview.classList.add('active');
-            // Seleciona a primeira por padrão
+            
+            // Seleciona a primeira imagem por padrão
             document.querySelector('input[name="photo_url"]').value = imageData[0].url;
-            // Adiciona evento de clique para cada thumb
+
+            // Adiciona evento de clique para cada miniatura
             document.querySelectorAll('.unsplash-thumb').forEach(img => {
                 img.addEventListener('click', function () {
-                    // Remove seleção anterior
+                    // Remove seleção anterior e seleciona a nova
                     document.querySelectorAll('.unsplash-thumb').forEach(i => i.style.border = '2px solid transparent');
                     this.style.border = '2px solid #004954';
                     document.querySelector('input[name="photo_url"]').value = this.dataset.url;
-                    // Atualize créditos, preview, etc, se quiser
                 });
             });
         } else {
@@ -205,57 +203,50 @@ async function handleFormSubmit(e) {
 
     const form = e.target;
     const formData = new FormData(form);
-
-    // Pega as datas do flatpickr
-    const input = document.getElementById('trip-dates');
-    const fp = input && input._flatpickr;
+    
     let startDate = '', endDate = '';
-    if (fp && fp.selectedDates.length === 2) {
-        startDate = fp.selectedDates[0].toISOString().split('T')[0];
-        endDate = fp.selectedDates[1].toISOString().split('T')[0];
-    }
 
-    // Pega a foto (pode ser upload ou URL do Unsplash)
-    const photoFile = formData.get('photo');
-    const photoUrl = formData.get('photo_url');
-    let photoData = null;
-
-    if (photoFile && photoFile.size > 0) {
-        // Upload do usuário
-        photoData = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(photoFile);
-        });
-    } else if (photoUrl) {
-        // Foto do Unsplash
-        photoData = String(photoUrl); // Garante que é string
+    // Lógica definitiva: Lê as datas diretamente da instância do calendário.
+    // Esta é a fonte de verdade, imune a bugs visuais do campo de texto.
+    if (datePicker && datePicker.selectedDates.length > 0) {
+        const selectedDates = datePicker.selectedDates;
+        
+        if (selectedDates.length === 1) {
+            // Caso 1: Se apenas uma data está selecionada, trata como viagem de um dia.
+            startDate = selectedDates[0].toISOString();
+            endDate = selectedDates[0].toISOString();
+        } else {
+            // Caso 2: Se um intervalo foi selecionado.
+            startDate = selectedDates[0].toISOString();
+            endDate = selectedDates[1].toISOString();
+        }
     }
 
     const tripData = {
         title: formData.get('title'),
         destination: formData.get('destination'),
         description: formData.get('description'),
-        id: Date.now(),
         startDate,
         endDate,
-        photo: photoData
+        photo: formData.get('photo_url') || null
     };
 
     try {
-        const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-        trips.push(tripData);
-        localStorage.setItem('userTrips', JSON.stringify(trips));
-
+        showLoading('Criando viagem...');
+        
+        const newTrip = await apiService.createTrip(tripData);
+        
+        showSuccessToast('Viagem criada com sucesso!');
         closeModal();
+        
         if (typeof window.renderTrips === 'function') {
-            window.renderTrips();
-        } else {
-            window.dispatchEvent(new Event('trips-updated'));
+            await window.renderTrips();
         }
     } catch (error) {
         console.error('Erro ao salvar viagem:', error);
-        alert('Erro ao salvar viagem. Tente novamente.');
+        showErrorToast(`Erro ao criar viagem: ${error.message}`);
+    } finally {
+        hideLoading();
     }
 }
 

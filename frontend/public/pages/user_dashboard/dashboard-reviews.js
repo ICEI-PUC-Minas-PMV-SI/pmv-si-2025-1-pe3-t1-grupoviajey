@@ -1,4 +1,6 @@
 import { openReviewModal } from '../../components/modal/review_modal/ReviewModal.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -6,40 +8,54 @@ export async function renderReviews(page = 1) {
   const el = document.getElementById('dashboard-reviews');
   if (!el) return;
 
-  // Busca avaliações do localStorage
-  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-  const totalReviews = reviews.length;
-  const totalPages = Math.ceil(totalReviews / ITEMS_PER_PAGE);
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-  const pageReviews = reviews.slice(start, end);
+  try {
+    showLoading('Carregando avaliações...');
+    
+    // Busca avaliações do backend
+    const response = await apiService.getUserReviews(page, ITEMS_PER_PAGE);
+    
+    // Garante que 'reviews' seja sempre um array
+    const reviews = response?.data?.reviews || [];
+    const total = response?.data?.total || 0;
+    
+    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  // Limpa o container e cria a estrutura
-  el.innerHTML = `
-    <div class="reviews-container">
-      <div class="reviews-list"></div>
-      <div class="reviews-pagination"></div>
-    </div>
-  `;
+    // Limpa o container e cria a estrutura
+    el.innerHTML = `
+      <div class="reviews-container">
+        <div class="reviews-list"></div>
+        <div class="reviews-pagination"></div>
+        <button id="btn-create-review" class="action-btn">Nova avaliação</button>
+      </div>
+    `;
 
-  const list = el.querySelector('.reviews-list');
-  const paginationContainer = el.querySelector('.reviews-pagination');
+    const list = el.querySelector('.reviews-list');
+    const paginationContainer = el.querySelector('.reviews-pagination');
+    const createBtn = el.querySelector('#btn-create-review');
 
-  if (!reviews.length) {
-    list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
-    return;
-  }
+    if (!reviews.length) {
+      list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
+    } else {
+      list.innerHTML = '';
+      reviews.forEach(review => {
+        const card = createReviewCard(review);
+        list.appendChild(card);
+      });
+    }
 
-  // Renderiza apenas as reviews da página atual
-  list.innerHTML = ''; // Limpa a lista antes de adicionar os novos cards
-  pageReviews.forEach(review => {
-    const card = createReviewCard(review);
-    list.appendChild(card);
-  });
+    // Paginação
+    if (totalPages > 1) {
+      renderReviewsPagination(paginationContainer, page, total, ITEMS_PER_PAGE);
+    }
 
-  // Renderiza a paginação
-  if (totalPages > 1) {
-    renderReviewsPagination(paginationContainer, page, totalReviews, ITEMS_PER_PAGE);
+    // Botão de nova avaliação
+    createBtn.onclick = () => openReviewForm();
+  } catch (error) {
+    console.error('Erro ao carregar avaliações:', error);
+    showErrorToast('Erro ao carregar avaliações. Tente novamente.');
+    el.innerHTML = '<p>Erro ao carregar avaliações. Tente novamente.</p>';
+  } finally {
+    hideLoading();
   }
 }
 
@@ -47,9 +63,9 @@ function openReviewForm() {
   const el = document.getElementById('dashboard-reviews');
   el.innerHTML = `
     <div class="review-form">
-      <h3>Nova avaliação (mock)</h3>
+      <h3>Nova avaliação</h3>
       <form id="form-review">
-        <label>Nome do lugar:<input type="text" name="place" required></label><br>
+        <label>Nome do lugar:<input type="text" name="placeId" required></label><br>
         <label>Nota:<input type="number" name="rating" min="1" max="5" required></label><br>
         <label>Comentário:<textarea name="comment"></textarea></label><br>
         <button type="submit" class="action-btn">Salvar</button>
@@ -57,26 +73,24 @@ function openReviewForm() {
       </form>
     </div>
   `;
-  document.getElementById('cancel-review').onclick = renderReviews;
-  document.getElementById('form-review').onsubmit = function (e) {
+  document.getElementById('cancel-review').onclick = () => renderReviews();
+  document.getElementById('form-review').onsubmit = async function (e) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(this));
-    addReview(data);
-    renderReviews();
+    try {
+      showLoading('Salvando avaliação...');
+      await apiService.createReview(data.placeId, {
+        rating: data.rating,
+        comment: data.comment
+      });
+      showSuccessToast('Avaliação criada com sucesso!');
+      renderReviews();
+    } catch (error) {
+      showErrorToast('Erro ao criar avaliação. Tente novamente.');
+    } finally {
+      hideLoading();
+    }
   };
-}
-
-function addReview(review) {
-  const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-  const reviewData = {
-    reviewId: Date.now(),
-    reviewRating: review.rating,
-    reviewComment: review.comment,
-    placeName: review.place,
-    createdAt: new Date().toISOString()
-  };
-  reviews.push(reviewData);
-  localStorage.setItem('userReviews', JSON.stringify(reviews));
 }
 
 function createReviewCard(review) {
@@ -84,43 +98,58 @@ function createReviewCard(review) {
   card.className = 'review-card';
   card.innerHTML = `
     <div class="review-info">
-      <div class="review-place">${review.placeName}</div>
-      <div class="review-rating">${'★'.repeat(Number(review.reviewRating))}${'☆'.repeat(5 - Number(review.reviewRating))}</div>
-      <div class="review-comment">${review.reviewComment || ''}</div>
+      <div class="review-place">${review.placeName || review.place || ''}</div>
+      <div class="review-rating">${'★'.repeat(Number(review.rating))}${'☆'.repeat(5 - Number(review.rating))}</div>
+      <div class="review-comment">${review.comment || ''}</div>
+      <button class="edit-btn">Editar</button>
+      <button class="delete-btn">Excluir</button>
     </div>
   `;
 
-  // Adiciona evento de clique para abrir o modal
-  card.addEventListener('click', () => {
+  // Editar avaliação
+  card.querySelector('.edit-btn').onclick = () => openEditReviewForm(review);
+  // Excluir avaliação
+  card.querySelector('.delete-btn').onclick = async () => {
+    if (confirm('Tem certeza que deseja excluir esta avaliação?')) {
+      try {
+        showLoading('Excluindo avaliação...');
+        await apiService.deleteReview(review.placeId, review.id);
+        showSuccessToast('Avaliação excluída com sucesso!');
+        renderReviews();
+      } catch (error) {
+        showErrorToast('Erro ao excluir avaliação. Tente novamente.');
+      } finally {
+        hideLoading();
+      }
+    }
+  };
+
+  // Modal de detalhes
+  card.addEventListener('click', (e) => {
+    if (e.target.classList.contains('edit-btn') || e.target.classList.contains('delete-btn')) return;
     openReviewModal({
       local: {
         name: review.placeName,
         address: review.address || ''
       },
       userReview: {
-        rating: review.reviewRating,
-        comment: review.reviewComment
+        rating: review.rating,
+        comment: review.comment
       },
-      otherReviews: [
-        {
-          user: 'João Silva',
-          rating: 4.5,
-          comment: 'Lugar incrível! Vale muito a pena visitar.'
-        },
-        {
-          user: 'Maria Santos',
-          rating: 5,
-          comment: 'Experiência única, superou minhas expectativas!'
-        }
-      ],
+      otherReviews: [],
       onSave: async (data) => {
-        // Atualiza a avaliação no localStorage
-        const reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-        const index = reviews.findIndex(r => r.reviewId === data.reviewId);
-        if (index !== -1) {
-          reviews[index] = { ...reviews[index], ...data };
-          localStorage.setItem('userReviews', JSON.stringify(reviews));
-          renderReviews(); // Atualiza a lista
+        try {
+          showLoading('Atualizando avaliação...');
+          await apiService.updateReview(review.placeId, review.id, {
+            rating: data.rating,
+            comment: data.comment
+          });
+          showSuccessToast('Avaliação atualizada!');
+          renderReviews();
+        } catch (error) {
+          showErrorToast('Erro ao atualizar avaliação.');
+        } finally {
+          hideLoading();
         }
       }
     });
@@ -129,32 +158,36 @@ function createReviewCard(review) {
   return card;
 }
 
-function deleteReview(reviewId) {
-  let reviews = JSON.parse(localStorage.getItem('userReviews') || '[]');
-  reviews = reviews.filter(review => review.reviewId !== reviewId);
-  localStorage.setItem('userReviews', JSON.stringify(reviews));
-  renderReviews();
-}
-
-async function fetchUserReviews(page = 1, perPage = 4) {
-  // Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
-  // return fetch(`/api/avaliacoes?page=${page}&perPage=${perPage}`).then(res => res.json());
-  const total = 10;
-  const reviews = Array.from({ length: total }, (_, i) => ({
-    id: i + 1,
-    name: '[Nome do local avaliado]',
-    rating: 4.5,
-    comment: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-    avatar: '',
-    highlight: i === 2
-  }));
-  const start = (page - 1) * perPage;
-  const end = start + perPage;
-  return {
-    reviews: reviews.slice(start, end),
-    total,
-    page,
-    perPage
+function openEditReviewForm(review) {
+  const el = document.getElementById('dashboard-reviews');
+  el.innerHTML = `
+    <div class="review-form">
+      <h3>Editar avaliação</h3>
+      <form id="form-edit-review">
+        <label>Nota:<input type="number" name="rating" min="1" max="5" value="${review.rating}" required></label><br>
+        <label>Comentário:<textarea name="comment">${review.comment || ''}</textarea></label><br>
+        <button type="submit" class="action-btn">Salvar</button>
+        <button type="button" id="cancel-edit-review" class="action-btn">Cancelar</button>
+      </form>
+    </div>
+  `;
+  document.getElementById('cancel-edit-review').onclick = () => renderReviews();
+  document.getElementById('form-edit-review').onsubmit = async function (e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(this));
+    try {
+      showLoading('Atualizando avaliação...');
+      await apiService.updateReview(review.placeId, review.id, {
+        rating: data.rating,
+        comment: data.comment
+      });
+      showSuccessToast('Avaliação atualizada!');
+      renderReviews();
+    } catch (error) {
+      showErrorToast('Erro ao atualizar avaliação.');
+    } finally {
+      hideLoading();
+    }
   };
 }
 
@@ -162,7 +195,7 @@ function renderReviewsPagination(container, page, total, perPage) {
   const totalPages = Math.ceil(total / perPage);
   if (totalPages <= 1) return;
 
-  container.innerHTML = ''; // Limpa a paginação existente
+  container.innerHTML = '';
 
   function createPageBtn(p, label = null) {
     const btn = document.createElement('button');

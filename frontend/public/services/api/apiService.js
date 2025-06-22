@@ -35,6 +35,11 @@ class ApiService {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (errorData.errors) {
+        console.error('Erros de validação da API:', errorData.errors);
+        const detailedMessage = `Dados inválidos: ${errorData.errors.join(', ')}`;
+        throw new Error(detailedMessage);
+      }
       throw new Error(errorData.message || `Erro ${response.status}`);
     }
 
@@ -178,6 +183,24 @@ class ApiService {
     return this.makeAuthenticatedRequest('/api/posts', {
       method: 'POST',
       body: JSON.stringify(postData)
+    });
+  }
+
+  // User Reviews
+  async getUserReviews(page = 1, perPage = 5) {
+    return this.makeAuthenticatedRequest(`/api/reviews/user?page=${page}&perPage=${perPage}`);
+  }
+
+  async updateReview(placeId, reviewId, reviewData) {
+    return this.makeAuthenticatedRequest(`/api/reviews/places/${placeId}/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify(reviewData)
+    });
+  }
+
+  async deleteReview(placeId, reviewId) {
+    return this.makeAuthenticatedRequest(`/api/reviews/places/${placeId}/reviews/${reviewId}`, {
+      method: 'DELETE'
     });
   }
 }
