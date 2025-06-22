@@ -225,10 +225,45 @@ Authorization: Bearer <token>
 - `DELETE /api/roadmap/trips/:tripId/tripDays/:dayId` - Deletar dia
 
 ### Trip Places (Locais do roteiro)
-- `POST /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces` - Adicionar local ao dia
 - `DELETE /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces/:placeId` - Remover local
 - **Não existe endpoint de atualização (PUT/PATCH) para locais do roteiro.**
 - **Atenção:** Os dados dos locais (nome, endereço, etc.) não são atualizados pelo backend. Apenas dados personalizados do usuário podem ser armazenados (ex: notas, gastos, ordem, horários).
+
+#### POST /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces
+Adiciona um novo local a um dia específico do roteiro.
+
+**Payload:**
+```json
+{
+  "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+  "name": "Sydney Opera House",
+  "address": "Bennelong Point, Sydney NSW 2000, Australia",
+  "latitude": -33.8567844,
+  "longitude": 151.2152967,
+  "rating": 4.7,
+  "photo": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=...",
+  "types": ["point_of_interest", "establishment"],
+  "order": 0
+}
+```
+
+**Resposta (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "generatedPlaceId",
+    "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "name": "Sydney Opera House",
+    // ... todos os outros campos do payload
+    "createdAt": "2024-05-22T18:00:00.000Z",
+    "updatedAt": "2024-05-22T18:00:00.000Z"
+  }
+}
+```
+
+#### DELETE /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces/:placeId
+Remove um local de um dia específico do roteiro.
 
 ### Unassigned Places (Locais não atribuídos)
 - `GET /api/roadmap/trips/:tripId/unassignedPlaces` - Listar locais não atribuídos

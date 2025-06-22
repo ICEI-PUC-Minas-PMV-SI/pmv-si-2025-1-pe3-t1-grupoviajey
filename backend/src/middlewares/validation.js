@@ -52,14 +52,13 @@ const roadmapDaySchema = Joi.object({
 const placeSchema = Joi.object({
   placeId: Joi.string().required(),
   name: Joi.string().required(),
-  address: Joi.string().optional(),
-  location: Joi.object({
-    lat: Joi.number().required(),
-    lng: Joi.number().required()
-  }).optional(),
-  notes: Joi.string().optional().max(1000),
-  expenses: Joi.number().positive().optional()
-});
+  address: Joi.string().required(),
+  latitude: Joi.number().required(),
+  longitude: Joi.number().required(),
+  rating: Joi.number().min(0).max(5).optional().allow(null),
+  types: Joi.array().items(Joi.string()).optional(),
+  order: Joi.number().integer().min(0).optional()
+}).options({ stripUnknown: false });
 
 const roadmapBudgetSchema = Joi.object({
   totalBudget: Joi.number().positive().required(),

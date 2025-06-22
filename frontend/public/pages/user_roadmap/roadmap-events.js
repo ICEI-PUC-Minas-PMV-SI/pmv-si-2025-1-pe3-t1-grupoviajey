@@ -1,9 +1,6 @@
-import { renderSavedPlacesTab } from './roadmap-storage.js';
 import { formatCurrencyInput, formatCurrency } from './roadmap-utils.js';
-import { budgetStorage } from './roadmap-storage.js';
 import { updateFinanceSummary, saveBudget } from './roadmap-finance.js';
 import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
-import { saveRoadmapToStorage } from './roadmap-core.js';
 
 // =============================================
 // EVENTOS DE DRAG AND DROP
@@ -48,7 +45,7 @@ export function handleLocalCardDrop(e) {
       if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
     }
     afterLocalChange();
-    if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
+    // TODO: Implementar salvamento via API
   }
 }
 
@@ -105,7 +102,7 @@ export function handleDayContentDrop(e) {
     if (el.classList.contains('local-card') && typeof attachLocalCardActions === 'function') attachLocalCardActions(el);
   }
   afterLocalChange();
-  if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
+  // TODO: Implementar salvamento via API
 }
 
 export function handleDayContentDragLeave(e) {
@@ -172,7 +169,7 @@ export function handleDayHeaderDrop(e) {
     }
   }
   afterLocalChange();
-  if (typeof saveRoadmapToStorage === 'function') saveRoadmapToStorage();
+  // TODO: Implementar salvamento via API
 }
 
 // =============================================
@@ -257,7 +254,7 @@ function handleTabClick(e) {
     }
   } else if (tab.textContent.trim() === 'Locais salvos') {
     document.getElementById('tab-saved-places').style.display = 'block';
-    renderSavedPlacesTab();
+    // TODO: Implementar renderização via API
   }
 }
 
@@ -420,13 +417,8 @@ export function initLocalCardDnD() {
 
 // Função para salvar alterações após drag and drop
 export function afterLocalChange() {
-  if (typeof saveRoadmapToStorage === 'function') {
-    const success = saveRoadmapToStorage();
-    if (!success) {
-      console.error('Failed to save roadmap after local change');
-    }
-  }
-  if (typeof saveSavedPlacesToStorage === 'function') saveSavedPlacesToStorage();
+  // TODO: Implementar salvamento via API
+  console.log('Alterações locais detectadas - salvamento via API será implementado');
 }
 
 // Variável global para armazenar o orçamento atual

@@ -1,41 +1,51 @@
 import { formatShortDateRange } from '../../js/utils/date.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 import { updateFinanceSummary, parseCurrencyToNumber } from './roadmap-finance.js';
-import { saveRoadmapToStorage } from './roadmap-core.js';
 import { setupCardHoverEvents } from './roadmap-map.js';
 
 // =============================================
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
 
-export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
-  // rating pode ser string ("★★★☆☆") ou número
-  let ratingHtml = '';
-  // Prioriza rating numérico
-  const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
-  if (ratingNumber) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${getStarsHtml(ratingNumber)}</span></div>`;
-  } else if (rating) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${rating}</span></div>`;
+export function createLocalCard(place) {
+  if (!place || !place.placeId) {
+    console.error('createLocalCard: place or place.placeId is missing.', place);
+    return document.createDocumentFragment(); // Retorna um fragmento vazio para não quebrar a UI
   }
+
+  let ratingHtml = '';
+  if (place.rating) {
+    ratingHtml = `
+      <div class="local-rating">
+        <span class="stars">${getStarsHtml(place.rating)}</span>
+      </div>
+    `;
+  }
+  
+  const photoHtml = ''; // O campo de foto não é mais utilizado.
+
   const card = document.createElement('div');
   card.className = 'local-card';
+  card.setAttribute('data-place-id', place.placeId); // CORREÇÃO: Usar data-place-id
+
   card.innerHTML = `
     ${getDragHandleSVG()}
     <button class="remove-place-btn" title="Remover local">
       ${getTrashSVG()}
     </button>
-    <div class="local-img">${img ? `<img src="${img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
     <div class="local-info">
-      <div class="local-title">${name || placeName || ''}</div>
-      <div class="local-address">${address || placeAddress || ''}</div>
+      <div class="local-title">${place.name || ''}</div>
+      <div class="local-address">${place.address || ''}</div>
       ${ratingHtml}
       <div class="local-actions">
-        <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-        <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
+        <button class="local-card-actions" title="Mais opções">
+          ${getActionDotsSVG()}
+        </button>
       </div>
     </div>
   `;
-  card.dataset.key = key || name || address || (lat + ',' + lng);
+
   return card;
 }
 
@@ -127,22 +137,10 @@ export function createExpenseDiv(expenseName, value, currency) {
 
 export function formatCurrencyInput(value, currency) {
   if (!value) return '';
-
-  // Converte o valor para string e remove todos os caracteres não numéricos
   let numericValue = String(value).replace(/\D/g, '');
-
-  // Converte para número e divide por 100 para considerar os centavos
   let number = Number(numericValue) / 100;
-
-  // Obtém o locale apropriado para a moeda
   let locale = getCurrencyLocale(currency);
-
-  // Formata o número como moeda
-  return number.toLocaleString(locale, {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2
-  });
+  return number.toLocaleString(locale, { style: 'currency', currency: currency, minimumFractionDigits: 2 });
 }
 
 export function formatCurrency(value, currency) {
@@ -206,55 +204,62 @@ function adjustTimelineHeight(timeline) {
 }
 
 export function attachLocalCardActions(card) {
-  // Botão de remover
+  const placeId = card.dataset.placeId; // CORREÇÃO: Ler de data-place-id
+  if (!placeId) {
+    console.error("Não foi possível anexar ações: placeId não encontrado no card.", card);
+    return;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get('tripId');
+
+  // Adiciona o botão de remover, se não existir
+  if (!card.querySelector('.remove-place-btn')) {
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-place-btn';
+    removeBtn.title = 'Remover local';
+    removeBtn.innerHTML = getTrashSVG();
+    card.prepend(removeBtn); // Adiciona no início do card
+  }
+
   const removeBtn = card.querySelector('.remove-place-btn');
-  if (removeBtn) {
-    removeBtn.onclick = function () {
-      // Remove o card do DOM
-      card.remove();
-
-      // Remove o local do storage explicitamente
-      const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
-      if (roadmap && Array.isArray(roadmap.days)) {
-        for (const day of roadmap.days) {
-          const idx = day.places.findIndex(
-            p => (p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || ''))) === card.dataset.key
-          );
-          if (idx !== -1) {
-            day.places.splice(idx, 1);
-            break;
-          }
-        }
-        localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
-        // LOG para depuração
-        console.log('Storage após remoção:', JSON.parse(localStorage.getItem('userRoadmapData')));
+  removeBtn.onclick = async () => {
+    if (!confirm('Tem certeza que deseja remover este local do roteiro?')) return;
+    
+    showLoading('Removendo local...');
+    try {
+      let response;
+      if (dayId) {
+        // É um local dentro de um dia
+        response = await apiService.removePlaceFromDay(tripId, dayId, placeId);
+      } else {
+        // É um local não atribuído
+        response = await apiService.removeUnassignedPlace(tripId, placeId);
       }
 
-      // Atualiza o mapa com os dados atualizados do storage
-      if (roadmap && Array.isArray(roadmap.days)) {
-        const allPlaces = roadmap.days
-          .flatMap(day => day.places)
-          .filter(p => p.lat && p.lng)
-          .map(p => ({
-            ...p,
-            lat: Number(p.lat),
-            lng: Number(p.lng),
-            key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
-            types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-          }));
-        // LOG para depuração
-        console.log('Array passado para updateMap:', allPlaces);
-        if (typeof window.updateMap === 'function') {
-          window.updateMap(allPlaces);
-        }
+      if (response && response.success) {
+        card.remove();
+        showSuccessToast('Local removido!');
+        // Idealmente, o mapa seria atualizado aqui sem recarregar a página.
+        // window.dispatchEvent(new CustomEvent('roadmapUpdated'));
+      } else {
+        throw new Error(response.message || 'Falha ao remover o local.');
       }
+    } catch (error) {
+      console.error('Erro ao remover local:', error);
+      showErrorToast(error.message || 'Não foi possível remover o local.');
+    } finally {
+      hideLoading();
+    }
+  };
 
-      // Ajusta a altura da timeline
-      const timeline = card.closest('.day-timeline');
-      if (timeline) {
-        adjustTimelineHeight(timeline);
-      }
-    };
+  // Adiciona o drag handle, se não existir
+  if (!card.querySelector('.drag-handle')) {
+      const dragHandle = document.createElement('span');
+      dragHandle.className = 'drag-handle';
+      dragHandle.title = 'Arraste para reordenar';
+      dragHandle.innerHTML = getDragHandleSVG();
+      card.prepend(dragHandle);
   }
 
   // Botão de anotação
@@ -517,15 +522,20 @@ export function attachExpenseActions(expenseDiv, card) {
 // =============================================
 
 export function getTrashSVG() {
-  return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`;
+  return `<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 export function getDragHandleSVG() {
-  return `<span class="drag-handle" title="Arraste para mover">&#9776;</span>`;
+  return `<svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 6h8M8 12h8M8 18h8" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+
+export function getActionDotsSVG() {
+  return `<svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12m-1 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm0 5a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm0-10a1 1 0 1 0-2 0 1 1 0 0 0 2 0z" fill="#555"/></svg>`;
+}
+
+function getStarsHtml(rating) {
+  const fullStars = Math.round(rating || 0);
+  if (fullStars <= 0) return '';
+  const emptyStars = 5 - fullStars;
+  return `<span class="star-icon">${'★'.repeat(fullStars)}${'☆'.repeat(emptyStars)}</span>`;
 }

@@ -203,14 +203,14 @@ async function handleFormSubmit(e) {
 
     const form = e.target;
     const formData = new FormData(form);
-    
+
     let startDate = '', endDate = '';
 
     // Lógica definitiva: Lê as datas diretamente da instância do calendário.
     // Esta é a fonte de verdade, imune a bugs visuais do campo de texto.
     if (datePicker && datePicker.selectedDates.length > 0) {
         const selectedDates = datePicker.selectedDates;
-        
+
         if (selectedDates.length === 1) {
             // Caso 1: Se apenas uma data está selecionada, trata como viagem de um dia.
             startDate = selectedDates[0].toISOString();

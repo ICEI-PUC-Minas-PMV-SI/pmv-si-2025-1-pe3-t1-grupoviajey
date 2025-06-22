@@ -1,20 +1,34 @@
-import { createLocalCard, attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
-import { initNearbyAutocomplete } from '../../js/utils/nearby-autocomplete.js';
-import { roadmapStorage, saveTripData } from './roadmap-storage.js';
-import { saveRoadmapToStorage, createDaysFromStorage, createTimeline, loadRoadmapFromStorage } from './roadmap-core.js';
-import { initializeGoogleMapsAutocomplete, getLastSelectedPlace, clearLastSelectedPlace, updateMap } from './roadmap-map.js';
-import { handleAddToTimeline, getPlaceData } from './roadmap-core.js';
-import { handleAddToSavedPlaces, loadSavedPlacesFromStorage, renderSavedPlacesTab } from './roadmap-storage.js';
-import { searchDestinationImage } from '../../services/api/unsplash.js';
-import { updateFinanceSummary } from './roadmap-finance.js';
-import { initEventListeners, attachRoadmapEventListeners, initLocalCardDnD } from './roadmap-events.js';
-
+import {
+  createLocalCard,
+  attachLocalCardActions,
+  formatTripPeriod,
+} from "./roadmap-utils.js";
+import {
+  initializeGoogleMapsAutocomplete,
+  getLastSelectedPlace,
+  clearLastSelectedPlace,
+} from "./roadmap-map.js";
+import { getPlaceData } from "./roadmap-core.js";
+import { searchDestinationImage } from "../../services/api/unsplash.js";
+import { updateFinanceSummary } from "./roadmap-finance.js";
+import {
+  initEventListeners,
+  attachRoadmapEventListeners,
+  initLocalCardDnD,
+} from "./roadmap-events.js";
+import { apiService } from "../../services/api/apiService.js";
+import {
+  showLoading,
+  hideLoading,
+  showErrorToast,
+  showSuccessToast,
+} from "../../js/utils/ui-utils.js";
 
 // Estado dos modais
 const modalState = {
   targetDayContent: null,
-  isAddingToSavedPlaces: true,
-  lastSelectedPlace: null
+  targetDayId: null,
+  isAddingToSavedPlaces: false,
 };
 
 // Funções de utilidade
@@ -27,25 +41,25 @@ function getRandomPlaceImage() {
 // MODAL DE EDIÇÃO DE VIAGEM
 // =============================================
 
-// Funções de abertura/fechamento
 export function openEditTripModal() {
-  const modal = document.getElementById('editTripModal');
+  const modal = document.getElementById("editTripModal");
   if (!modal) return;
 
-  // Garante que o popup de recomendações está fechado
-  const popup = document.getElementById('edit-photo-requirements-popup');
-  if (popup) popup.classList.remove('active');
-  const overlay = document.getElementById('edit-photo-requirements-overlay');
-  if (overlay) overlay.style.display = 'none';
+  const popup = document.getElementById("edit-photo-requirements-popup");
+  if (popup) popup.classList.remove("active");
+  const overlay = document.getElementById("edit-photo-requirements-overlay");
+  if (overlay) overlay.style.display = "none";
 
-  // Preenche os campos com dados atuais
-  const tripNameInput = document.getElementById('tripName');
-  const tripDestinationInput = document.getElementById('tripDestination');
-  const tripNameBanner = document.getElementById('tripNameBanner');
-  const tripDestinationBanner = document.getElementById('tripDestinationBanner');
-  const tripDateBanner = document.getElementById('tripDateBanner');
-  const tripDescriptionInput = document.getElementById('edit-trip-description');
-  const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
+  const tripNameInput = document.getElementById("tripName");
+  const tripDestinationInput = document.getElementById("tripDestination");
+  const tripNameBanner = document.getElementById("tripNameBanner");
+  const tripDestinationBanner =
+    document.getElementById("tripDestinationBanner");
+  const tripDateBanner = document.getElementById("tripDateBanner");
+  const tripDescriptionInput = document.getElementById("edit-trip-description");
+  const tripDescriptionBanner = document.getElementById(
+    "tripDescriptionBanner"
+  );
 
   if (tripNameInput && tripNameBanner) {
     tripNameInput.value = tripNameBanner.textContent;
@@ -59,17 +73,34 @@ export function openEditTripModal() {
     tripDescriptionInput.value = tripDescriptionBanner.textContent;
   }
 
-  // Configura datas
-  const tripDateInput = document.getElementById('editTripDateRange');
+  const tripDateInput = document.getElementById("editTripDateRange");
   if (tripDateInput && window.flatpickr) {
-    let start = null, end = null;
-    if (tripDateBanner && tripDateBanner.textContent && tripDateBanner.textContent.includes('-')) {
-      const parts = tripDateBanner.textContent.split('-').map(p => p.trim());
+    let start = null,
+      end = null;
+    if (
+      tripDateBanner &&
+      tripDateBanner.textContent &&
+      tripDateBanner.textContent.includes("-")
+    ) {
+      const parts = tripDateBanner.textContent.split("-").map((p) => p.trim());
       if (parts.length === 2) {
         const parseDate = (str) => {
-          const [dia, mes, ano] = str.split(' ');
-          const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-          const idx = meses.findIndex(m => mes.toLowerCase().startsWith(m));
+          const [dia, mes, ano] = str.split(" ");
+          const meses = [
+            "jan",
+            "fev",
+            "mar",
+            "abr",
+            "mai",
+            "jun",
+            "jul",
+            "ago",
+            "set",
+            "out",
+            "nov",
+            "dez",
+          ];
+          const idx = meses.findIndex((m) => mes.toLowerCase().startsWith(m));
           if (idx !== -1) {
             return new Date(Number(ano), idx, parseInt(dia));
           }
@@ -81,108 +112,90 @@ export function openEditTripModal() {
     }
 
     if (tripDateInput._flatpickr) {
-      tripDateInput._flatpickr.set('minDate', 'today');
+      tripDateInput._flatpickr.set("minDate", "today");
       tripDateInput._flatpickr.setDate([start, end].filter(Boolean), true);
-      tripDateInput._flatpickr.set('position', 'below');
+      tripDateInput._flatpickr.set("position", "below");
     } else {
       window.flatpickr(tripDateInput, {
-        mode: 'range',
-        dateFormat: 'd M Y',
-        locale: 'pt',
-        minDate: 'today',
+        mode: "range",
+        dateFormat: "d M Y",
+        locale: "pt",
+        minDate: "today",
         defaultDate: [start, end].filter(Boolean),
-        position: 'below'
+        position: "below",
       });
     }
   }
 
-  // Configura autocomplete do destino
-  let selectedPlace = null;
-  if (window.google?.maps?.places) {
-    if (!tripDestinationInput._autocompleteInitialized) {
-      const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
-        types: ['(cities)'],
-      });
-      autocomplete.addListener('place_changed', () => {
-        selectedPlace = autocomplete.getPlace();
-      });
-      tripDestinationInput._autocompleteInitialized = true;
-    }
-  } else {
-    let tries = 0;
-    const maxTries = 20;
-    const tryInit = () => {
-      if (window.google?.maps?.places) {
-        if (!tripDestinationInput._autocompleteInitialized) {
-          const autocomplete = new google.maps.places.Autocomplete(tripDestinationInput, {
-            types: ['(cities)'],
-          });
-          autocomplete.addListener('place_changed', () => {
-            selectedPlace = autocomplete.getPlace();
-          });
-          tripDestinationInput._autocompleteInitialized = true;
-        }
-      } else if (tries < maxTries) {
-        tries++;
-        setTimeout(tryInit, 300);
-      }
-    };
-    tryInit();
+  const destInput = document.getElementById("tripDestination");
+  if (destInput && !destInput._autocompleteInitialized) {
+    initializeGoogleMapsAutocomplete(null, "#tripDestination");
+    destInput._autocompleteInitialized = true;
   }
 
-  // Configura o botão de busca de foto
-  const searchPhotoBtn = document.getElementById('edit-search-destination-photo');
+  const searchPhotoBtn = document.getElementById(
+    "edit-search-destination-photo"
+  );
   if (searchPhotoBtn) {
     searchPhotoBtn.onclick = async function () {
-      const destination = document.getElementById('tripDestination').value;
+      const destination = document.getElementById("tripDestination").value;
       if (!destination) {
-        alert('Por favor, selecione um destino primeiro.');
+        alert("Por favor, selecione um destino primeiro.");
         return;
       }
 
       const searchButton = this;
       const originalText = searchButton.innerHTML;
       searchButton.disabled = true;
-      searchButton.innerHTML = '<span>Buscando...</span>';
+      searchButton.innerHTML = "<span>Buscando...</span>";
 
       try {
         const imageData = await searchDestinationImage(destination);
         if (imageData && imageData.length > 0) {
-          const photoPreview = document.getElementById('edit-photo-preview');
+          const photoPreview = document.getElementById("edit-photo-preview");
           photoPreview.innerHTML = `
                         <div class="unsplash-gallery">
-                            ${imageData.map((img, idx) => `
+                            ${imageData
+                              .map(
+                                (img, idx) => `
                                 <img src="${img.thumb}"
                                      data-url="${img.url}"
                                      data-photographer="${img.photographer}"
                                      data-photographer-link="${img.photographerLink}"
                                      class="unsplash-thumb"
                                      style="cursor:pointer; border-radius:8px; margin:4px; border:2px solid transparent;"
-                                     ${idx === 0 ? 'data-selected="true" style="border:2px solid #004954;"' : ''}
+                                     ${
+                                       idx === 0
+                                         ? 'data-selected="true" style="border:2px solid #004954;"'
+                                         : ""
+                                     }
                                 />
-                            `).join('')}
+                            `
+                              )
+                              .join("")}
                         </div>
                     `;
-          photoPreview.classList.add('active');
+          photoPreview.classList.add("active");
 
-          // Seleciona a primeira por padrão
-          document.getElementById('edit-photo-url-hidden').value = imageData[0].url;
+          document.getElementById("edit-photo-url-hidden").value =
+            imageData[0].url;
 
-          // Adiciona evento de clique para cada thumb
-          document.querySelectorAll('.unsplash-thumb').forEach(img => {
-            img.addEventListener('click', function () {
-              // Remove seleção anterior
-              document.querySelectorAll('.unsplash-thumb').forEach(i => i.style.border = '2px solid transparent');
-              this.style.border = '2px solid #004954';
-              document.getElementById('edit-photo-url-hidden').value = this.dataset.url;
+          document.querySelectorAll(".unsplash-thumb").forEach((img) => {
+            img.addEventListener("click", function () {
+              document
+                .querySelectorAll(".unsplash-thumb")
+                .forEach((i) => (i.style.border = "2px solid transparent"));
+              this.style.border = "2px solid #004954";
+              document.getElementById("edit-photo-url-hidden").value =
+                this.dataset.url;
             });
           });
         } else {
-          alert('Não foi possível encontrar uma imagem para este destino.');
+          alert("Não foi possível encontrar uma imagem para este destino.");
         }
       } catch (error) {
-        console.error('Erro ao buscar imagem:', error);
-        alert('Erro ao buscar imagem do destino. Tente novamente.');
+        console.error("Erro ao buscar imagem:", error);
+        alert("Erro ao buscar imagem do destino. Tente novamente.");
       } finally {
         searchButton.disabled = false;
         searchButton.innerHTML = originalText;
@@ -190,113 +203,70 @@ export function openEditTripModal() {
     };
   }
 
-  modal.style.display = 'flex';
+  modal.style.display = "flex";
 }
 
 export function closeEditTripModal() {
-  const modal = document.getElementById('editTripModal');
-  if (modal) modal.style.display = 'none';
+  const modal = document.getElementById("editTripModal");
+  if (modal) modal.style.display = "none";
 }
 
-// Manipulação do formulário
-function handleEditTripFormSubmit(event) {
+async function handleEditTripFormSubmit(event) {
   event.preventDefault();
 
+  showLoading("Salvando alterações...");
   try {
-    const name = document.getElementById('tripName')?.value;
-    const dest = document.getElementById('tripDestination')?.value;
-    const dateInput = document.getElementById('editTripDateRange');
-    const tripNameBanner = document.getElementById('tripNameBanner');
-    const tripDestinationBanner = document.getElementById('tripDestinationBanner');
-    const tripDateBanner = document.getElementById('tripDateBanner');
-    const tripDescriptionInput = document.getElementById('edit-trip-description');
-    const tripDescriptionBanner = document.getElementById('tripDescriptionBanner');
-    const photoUrl = document.getElementById('edit-photo-url-hidden')?.value;
-
-    if (!name || !dest) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const tripId = urlParams.get("tripId");
+    if (!tripId) {
+      throw new Error("ID da viagem não encontrado.");
     }
 
-    // Atualiza na tela
-    if (tripNameBanner) tripNameBanner.textContent = name;
-    if (tripDestinationBanner) tripDestinationBanner.textContent = dest;
-    if (tripDescriptionBanner && tripDescriptionInput) tripDescriptionBanner.textContent = tripDescriptionInput.value;
+    const dateInput = document.getElementById("editTripDateRange");
 
-    // Prepara os dados da viagem
-    const tripId = localStorage.getItem('selectedTripId');
-    if (tripId) {
-      const tripData = {
-        id: tripId,
-        tripName: name,
-        tripDestination: dest,
-        tripDescription: tripDescriptionInput?.value || ''
-      };
+    const tripData = {
+      title: document.getElementById("tripName")?.value,
+      destination: document.getElementById("tripDestination")?.value,
+      description: document.getElementById("edit-trip-description")?.value,
+      photo: document.getElementById("edit-photo-url-hidden")?.value,
+    };
 
-      // Atualiza as datas se houver seleção
-      if (dateInput?._flatpickr?.selectedDates?.length === 2) {
-        const startDate = dateInput._flatpickr.selectedDates[0];
-        const endDate = dateInput._flatpickr.selectedDates[1];
-        tripData.startDate = startDate.toISOString();
-        tripData.endDate = endDate.toISOString();
-
-        // Atualiza o banner de datas
-        if (tripDateBanner) {
-          tripDateBanner.textContent = formatTripPeriod(startDate, endDate);
-        }
-
-        // Recria os dias com as novas datas
-        createDaysFromStorage(startDate.toISOString(), endDate.toISOString());
-      }
-
-      // Atualiza a foto se houver uma nova
-      if (photoUrl) {
-        tripData.photo = photoUrl;
-        const coverImg = document.getElementById('cover-img');
-        if (coverImg) coverImg.src = photoUrl;
-      }
-
-      // Salva os dados
-      if (saveTripData(tripData)) {
-        // Fecha o modal
-        closeEditTripModal();
-
-        // Restaura o conteúdo da tab ativa
-        const activeTab = document.querySelector('.tab.active');
-        if (activeTab) {
-          const tabText = activeTab.textContent.trim();
-          if (tabText === 'Roteiro') {
-            document.getElementById('tab-itinerary').style.display = 'block';
-          } else if (tabText === 'Check-list') {
-            document.getElementById('tab-checklist').style.display = 'block';
-          } else if (tabText === 'Locais salvos') {
-            document.getElementById('tab-saved-places').style.display = 'block';
-          }
-        }
-      } else {
-        throw new Error('Falha ao salvar dados da viagem');
-      }
+    if (dateInput?._flatpickr?.selectedDates?.length === 2) {
+      tripData.startDate = dateInput._flatpickr.selectedDates[0]
+        .toISOString()
+        .split("T")[0];
+      tripData.endDate = dateInput._flatpickr.selectedDates[1]
+        .toISOString()
+        .split("T")[0];
     }
 
+    const response = await apiService.updateTrip(tripId, tripData);
+    if (response.success) {
+      showSuccessToast("Viagem atualizada!");
+      window.location.reload();
+    } else {
+      throw new Error(response.message || "Falha ao atualizar a viagem.");
+    }
   } catch (error) {
-    console.error('Erro ao salvar edição da viagem:', error);
-    alert('Erro ao salvar edição da viagem. Por favor, tente novamente.');
+    console.error("Erro ao atualizar viagem:", error);
+    showErrorToast(error.message || "Não foi possível salvar as alterações.");
+  } finally {
+    hideLoading();
   }
 }
 
-// Upload e preview de foto
 function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = function (e) {
-    const photoPreview = document.getElementById('edit-photo-preview');
+    const photoPreview = document.getElementById("edit-photo-preview");
     if (photoPreview) {
       photoPreview.innerHTML = `<img src="${e.target.result}" style="max-width: 100%; border-radius: 8px;">`;
-      photoPreview.classList.add('active');
+      photoPreview.classList.add("active");
     }
-    document.getElementById('edit-photo-url-hidden').value = e.target.result;
+    document.getElementById("edit-photo-url-hidden").value = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -306,25 +276,21 @@ function handlePhotoUpload(event) {
 // =============================================
 
 export function openShareModal() {
-  const modal = document.getElementById('shareModal');
-  const input = document.getElementById('shareLinkInput');
-  const copyBtn = document.getElementById('copyShareLinkBtn');
+  const modal = document.getElementById("shareModal");
+  const input = document.getElementById("shareLinkInput");
+  const copyBtn = document.getElementById("copyShareLinkBtn");
 
   if (modal && input && copyBtn) {
     input.value = window.location.href;
-    modal.style.display = 'flex';
-    copyBtn.textContent = 'Copiar link';
+    modal.style.display = "flex";
+    copyBtn.textContent = "Copiar link";
     input.select();
   }
 }
 
 export function closeShareModal() {
-  const modal = document.getElementById('shareModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleCopyShareLink() {
-  // ... existing code ...
+  const modal = document.getElementById("shareModal");
+  if (modal) modal.style.display = "none";
 }
 
 // =============================================
@@ -332,195 +298,188 @@ function handleCopyShareLink() {
 // =============================================
 
 export function openCollabModal() {
-  const modal = document.getElementById('collabModal');
-  const input = document.getElementById('collabLinkInput');
-  const copyBtn = document.getElementById('copyCollabLinkBtn');
+  const modal = document.getElementById("collabModal");
+  const input = document.getElementById("collabLinkInput");
+  const copyBtn = document.getElementById("copyCollabLinkBtn");
 
   if (modal && input && copyBtn) {
     input.value = window.location.href;
-    modal.style.display = 'flex';
-    copyBtn.textContent = 'Copiar';
+    modal.style.display = "flex";
+    copyBtn.textContent = "Copiar";
     input.select();
-    renderCollabList();
   }
 }
 
 export function closeCollabModal() {
-  const modal = document.getElementById('collabModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleCopyCollabLink() {
-  // ... existing code ...
+  const modal = document.getElementById("collabModal");
+  if (modal) modal.style.display = "none";
 }
 
 // =============================================
 // MODAL DE ADIÇÃO DE LOCAL
 // =============================================
 
-export function openAddPlaceModal(targetDayContent = null, isAddingToSavedPlaces = false) {
-  const modal = document.getElementById('addPlaceModal');
-  const container = document.getElementById('modalSearchBarContainer');
-  if (!modal || !container) {
-    console.error('Required modal elements not found');
-    return;
-  }
+export function openAddPlaceModal(
+  targetDayContent = null,
+  isAddingToSavedPlaces = false
+) {
+  const modal = document.getElementById("addPlaceModal");
+  if (!modal) return;
 
-  // Atualiza estado
   modalState.targetDayContent = targetDayContent;
   modalState.isAddingToSavedPlaces = isAddingToSavedPlaces;
-  clearLastSelectedPlace();
 
-  // Limpa conteúdo anterior
-  container.innerHTML = '';
-
-  // Carrega search bar
-  loadSearchBar(container)
-    .then(() => {
-      // Remove elementos desnecessários
-      const calendarBtn = container.querySelector('.calendar-btn');
-      const searchBtn = container.querySelector('.search-btn');
-      if (calendarBtn) calendarBtn.style.display = 'none';
-      if (searchBtn) searchBtn.style.display = 'none';
-
-      // Inicializa autocomplete restrito à cidade de destino, aguardando input existir
-      const city = document.querySelector('#tripDestinationBanner')?.textContent?.trim() || '';
-      let tries = 0;
-      const maxTries = 20;
-      const tryInitAutocomplete = () => {
-        const input = container.querySelector('input');
-        if (input && window.google && window.google.maps && window.google.maps.places) {
-          initializeGoogleMapsAutocomplete(city, '#modalSearchBarContainer input');
-        } else if (tries < maxTries) {
-          tries++;
-          setTimeout(tryInitAutocomplete, 50);
-        } else {
-          console.error('Erro ao inicializar autocomplete: Input não encontrado para autocomplete após várias tentativas');
-        }
-      };
-      tryInitAutocomplete();
-    })
-    .catch(error => {
-      console.error('Error loading search bar:', error);
-    });
-
-  // Mostra modal
-  modal.style.display = 'flex';
-
-  // Adiciona event listener ao botão Adicionar
-  const confirmBtn = document.getElementById('confirmAddPlaceModal');
-  if (confirmBtn) {
-    confirmBtn.onclick = function (e) {
-      e.preventDefault();
-      handleAddPlaceConfirm();
-    };
-  }
-}
-
-async function loadSearchBar(container) {
-  try {
-    const response = await fetch('/components/search-bar/search-bar.html');
-    if (!response.ok) throw new Error('Failed to load search bar');
-
-    const html = await response.text();
-    container.innerHTML = html;
-
-    // Garante CSS
-    if (!document.querySelector('link[href*="search-bar/search-bar.css"]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = '/components/search-bar/search-bar.css';
-      document.head.appendChild(link);
+  if (targetDayContent) {
+    const daySection = targetDayContent.closest(".day-section");
+    if (daySection) {
+      modalState.targetDayId = daySection.dataset.dayId;
     }
-  } catch (error) {
-    console.error('Error loading search bar:', error);
-    throw error;
+  } else {
+    modalState.targetDayId = null;
   }
+
+  clearLastSelectedPlace();
+  const input = document.getElementById("autocomplete");
+  if (input) input.value = "";
+
+  const destination = document.getElementById("tripDestinationBanner")
+    ?.innerText;
+
+  if (input && !input._autocompleteInitialized) {
+    initializeGoogleMapsAutocomplete(destination, "#autocomplete");
+    input._autocompleteInitialized = true;
+  }
+
+  modal.style.display = "flex";
+  if (input) input.focus();
 }
 
 export function closeAddPlaceModal() {
-  const modal = document.getElementById('addPlaceModal');
-  if (modal) {
-    modal.style.display = 'none';
-    // Limpa estado
-    clearLastSelectedPlace();
-    modalState.targetDayContent = null;
-    modalState.isAddingToSavedPlaces = false;
-  }
+  const modal = document.getElementById("addPlaceModal");
+  if (modal) modal.style.display = "none";
 }
 
-function handleAddPlaceConfirm() {
-  const place = getLastSelectedPlace();
-  console.log('[DEBUG] getLastSelectedPlace', place);
-  let placeData;
-
-  if (place) {
-    placeData = getPlaceData(null, place);
-  } else {
-    const input = document.querySelector('#modalSearchBarContainer input');
-    placeData = getPlaceData(input, null);
+async function handleAddPlaceConfirm() {
+  const confirmButton = document.getElementById("confirmAddPlaceModal");
+  if (confirmButton) {
+    confirmButton.disabled = true;
+    confirmButton.textContent = 'Adicionando...';
   }
 
-  if (!placeData || !placeData.name) {
-    alert('Selecione ou digite um local válido.');
+  const tripId = new URLSearchParams(window.location.search).get("tripId");
+  const selectedPlace = getLastSelectedPlace();
+  
+  if (!tripId || !selectedPlace || !selectedPlace.placeId) {
+    alert("Erro: Dados da viagem ou do local estão incompletos.");
+    if (confirmButton) {
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Adicionar';
+    }
     return;
   }
 
+  // Cria uma cópia do objeto do local e remove a propriedade 'photo'
+  // para alinhar com a validação do backend que não permite mais este campo.
+  const payload = { ...selectedPlace };
+  delete payload.photo;
+
+  // Se o destino for a lista de "locais não atribuídos"
   if (modalState.isAddingToSavedPlaces) {
-    handleAddToSavedPlaces(placeData);
-    const savedPlaces = loadSavedPlacesFromStorage() || [];
-    updateMap(savedPlaces);
-  } else {
-    const dayContent = modalState.targetDayContent;
-    if (!dayContent || !(dayContent instanceof Element)) {
-      console.error('targetDayContent não é um elemento DOM válido:', dayContent);
-      return;
+    try {
+      const addedPlace = await apiService.addUnassignedPlace(tripId, payload);
+      if (addedPlace && addedPlace.placeId) {
+        const unassignedContainer = document.getElementById("unassigned-places-container");
+        if (unassignedContainer) {
+          const card = createLocalCard(addedPlace);
+          unassignedContainer.appendChild(card);
+          attachLocalCardActions(card);
+        }
+        showSuccessToast("Local salvo!");
+        closeAddPlaceModal();
+      } else {
+        throw new Error('A API não retornou um local salvo válido.');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar local:', error);
+      showErrorToast(`Não foi possível salvar o local. Motivo: ${error.message}`);
+    } finally {
+      confirmButton.disabled = false;
+      confirmButton.textContent = 'Adicionar';
+      clearLastSelectedPlace();
     }
-    console.log('Adicionando ao dayContent:', dayContent);
-    handleAddToTimeline(placeData, dayContent);
+    return;
   }
 
-  closeAddPlaceModal();
+  // Se o destino for um dia específico
+  const dayId = modalState.targetDayId;
+  if (!dayId) {
+    alert("Erro: O dia de destino não foi especificado.");
+    if (confirmButton) {
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Adicionar';
+    }
+    return;
+  }
+
+  try {
+    const addedPlace = await apiService.addPlaceToDay(tripId, dayId, payload);
+    if (addedPlace && addedPlace.placeId) {
+      const dayContainer = document.querySelector(`[data-day-id="${dayId}"]`);
+      if (dayContainer) {
+        const dayTimeline = dayContainer.querySelector('.day-timeline');
+        if (dayTimeline) {
+          const card = createLocalCard(addedPlace);
+          dayTimeline.appendChild(card);
+          attachLocalCardActions(card);
+          showSuccessToast("Local adicionado ao dia!");
+          closeAddPlaceModal();
+        } else {
+          console.error(`Container .day-timeline não encontrado dentro de [data-day-id="${dayId}"]`);
+          showErrorToast("Erro ao exibir o local. Recarregando a página...");
+          setTimeout(() => window.location.reload(), 2000);
+        }
+      } else {
+        console.error(`Container do dia [data-day-id="${dayId}"] não encontrado.`);
+        showErrorToast("Erro ao exibir o local. Recarregando a página...");
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    } else {
+      throw new Error('A API não retornou um local adicionado válido.');
+    }
+  } catch (error) {
+    console.error('Erro ao adicionar local ao dia:', error);
+    showErrorToast(`Não foi possível adicionar o local. Motivo: ${error.message}`);
+  } finally {
+    confirmButton.disabled = false;
+    confirmButton.textContent = 'Adicionar';
+    clearLastSelectedPlace();
+  }
 }
 
 // =============================================
 // MODAL DE ALERTA DE LOCAIS MOVIDOS
 // =============================================
-
 export function showPlacesMovedAlert() {
-  const modal = document.getElementById('placesMovedAlertModal');
-  if (!modal) return;
-
-  modal.style.display = 'flex';
+  const modal = document.getElementById("placesMovedAlertModal");
+  if (modal) modal.style.display = "flex";
 }
 
 export function closePlacesMovedAlert() {
-  const modal = document.getElementById('placesMovedAlertModal');
-  if (!modal) return;
-
-  modal.style.display = 'none';
+  const modal = document.getElementById("placesMovedAlertModal");
+  if (modal) modal.style.display = "none";
 }
 
 function initPlacesMovedAlertModal() {
-  const closeBtn = document.getElementById('closePlacesMovedAlertModal');
-  const confirmBtn = document.getElementById('confirmPlacesMovedAlert');
-  const modal = document.getElementById('placesMovedAlertModal');
+  const closeBtn = document.getElementById("closePlacesMovedAlertModal");
+  const confirmBtn = document.getElementById("confirmPlacesMovedAlert");
+  const modal = document.getElementById("placesMovedAlertModal");
 
-  if (closeBtn) {
-    closeBtn.onclick = closePlacesMovedAlert;
-  }
-
-  if (confirmBtn) {
-    confirmBtn.onclick = closePlacesMovedAlert;
-  }
-
-  if (modal) {
+  if (closeBtn) closeBtn.onclick = closePlacesMovedAlert;
+  if (confirmBtn) confirmBtn.onclick = closePlacesMovedAlert;
+  if (modal)
     modal.onclick = (e) => {
-      if (e.target === modal) {
-        closePlacesMovedAlert();
-      }
+      if (e.target === modal) closePlacesMovedAlert();
     };
-  }
 }
 
 // =============================================
@@ -528,195 +487,134 @@ function initPlacesMovedAlertModal() {
 // =============================================
 
 export function initModals() {
-  // Configura handlers de fechamento para todos os modais
-  const modals = {
-    'addPlaceModal': closeAddPlaceModal,
-    'editTripModal': closeEditTripModal,
-    'shareModal': closeShareModal,
-    'collabModal': closeCollabModal
-  };
-
-  // Fecha ao clicar fora
-  window.addEventListener('click', (e) => {
-    Object.entries(modals).forEach(([id, closeFn]) => {
-      const modal = document.getElementById(id);
-      if (modal && e.target === modal) {
-        closeFn();
-      }
-    });
+  // Eventos de clique para fechar modais (fora do conteúdo)
+  window.addEventListener("click", (e) => {
+    if (e.target.classList.contains("modal-add-place")) closeAddPlaceModal();
+    if (e.target.classList.contains("modal-edit-trip")) closeEditTripModal();
+    if (e.target.classList.contains("modal-share")) closeShareModal();
+    if (e.target.classList.contains("modal-collab")) closeCollabModal();
   });
 
-  // Fecha com ESC
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      Object.entries(modals).forEach(([id, closeFn]) => {
-        const modal = document.getElementById(id);
-        if (modal && modal.style.display === 'flex') {
-          closeFn();
-        }
-      });
+  // Eventos de teclado para fechar modais (ESC)
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeAddPlaceModal();
+      closeEditTripModal();
+      closeShareModal();
+      closeCollabModal();
     }
   });
 
-  // Configura botões de fechar
-  Object.entries(modals).forEach(([id, closeFn]) => {
-    const closeBtn = document.getElementById(`close${id.charAt(0).toUpperCase() + id.slice(1)}`);
-    if (closeBtn) {
-      closeBtn.onclick = closeFn;
-    }
-  });
+  // Botões de Fechar
+  document
+    .getElementById("closeAddPlaceModal")
+    ?.addEventListener("click", closeAddPlaceModal);
+  document
+    .getElementById("closeEditTripModal")
+    ?.addEventListener("click", closeEditTripModal);
+  document
+    .getElementById("closeShareModal")
+    ?.addEventListener("click", closeShareModal);
+  document
+    .getElementById("closeCollabModal")
+    ?.addEventListener("click", closeCollabModal);
 
-  document.querySelectorAll('.add-place-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const dayContent = this.closest('.day-content');
-      if (!dayContent) {
-        console.error('dayContent não encontrado');
-        return;
-      }
-      console.log('dayContent encontrado:', dayContent);
-      modalState.targetDayContent = dayContent;
-      openAddPlaceModal(dayContent);
+  // Botões de Abrir
+  document
+    .querySelector('.cover-action-btn[title="Configurações"]')
+    ?.addEventListener("click", openEditTripModal);
+  document
+    .querySelector('.cover-action-btn[title="Compartilhar"]')
+    ?.addEventListener("click", openShareModal);
+  document
+    .querySelector('.cover-action-btn[title="Adicionar pessoa"]')
+    ?.addEventListener("click", openCollabModal);
+
+  // Botões para adicionar local (em cada dia e nos locais salvos)
+  document.querySelectorAll(".add-place-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const dayContent = this.closest(".day-content");
+      openAddPlaceModal(dayContent, false);
     });
   });
 
-  // Configura os botões de abrir modais
-  const settingsBtn = document.querySelector('.cover-action-btn[title="Configurações"]');
-  if (settingsBtn) {
-    settingsBtn.addEventListener('click', openEditTripModal);
-  }
+  document.getElementById("addSavedPlaceBtn")?.addEventListener("click", () => {
+    openAddPlaceModal(null, true);
+  });
 
-  const shareBtn = document.querySelector('.cover-action-btn[title="Compartilhar"]');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', openShareModal);
-  }
+  // Botões de Confirmação e Ação
+  document
+    .getElementById("confirmAddPlaceModal")
+    ?.addEventListener("click", handleAddPlaceConfirm);
+  document
+    .getElementById("editTripForm")
+    ?.addEventListener("submit", handleEditTripFormSubmit);
 
-  const collabBtn = document.querySelector('.cover-action-btn[title="Adicionar pessoa"]');
-  if (collabBtn) {
-    collabBtn.addEventListener('click', openCollabModal);
-  }
-
-  // Configura os botões de fechar modais
-  const closeEditBtn = document.getElementById('closeEditTripModal');
-  if (closeEditBtn) {
-    closeEditBtn.onclick = closeEditTripModal;
-  }
-
-  const closeShareBtn = document.getElementById('closeShareModal');
-  if (closeShareBtn) {
-    closeShareBtn.onclick = closeShareModal;
-  }
-
-  const closeCollabBtn = document.getElementById('closeCollabModal');
-  if (closeCollabBtn) {
-    closeCollabBtn.onclick = closeCollabModal;
-  }
-
-  // Configura os botões de copiar link
-  const copyBtn = document.getElementById('copyShareLinkBtn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function () {
-      const shareInput = document.getElementById('shareLinkInput');
-      if (shareInput) {
-        shareInput.select();
-        document.execCommand('copy');
-        copyBtn.textContent = 'Link copiado!';
-        setTimeout(() => copyBtn.textContent = 'Copiar link', 1800);
-      }
+  // Lógica de Copiar Link
+  const copyShareBtn = document.getElementById("copyShareLinkBtn");
+  if (copyShareBtn) {
+    copyShareBtn.addEventListener("click", function () {
+      const shareInput = document.getElementById("shareLinkInput");
+      shareInput.select();
+      document.execCommand("copy");
+      copyShareBtn.textContent = "Link copiado!";
+      setTimeout(() => (copyShareBtn.textContent = "Copiar link"), 1800);
     });
   }
 
-  const copyCollabBtn = document.getElementById('copyCollabLinkBtn');
+  const copyCollabBtn = document.getElementById("copyCollabLinkBtn");
   if (copyCollabBtn) {
-    copyCollabBtn.addEventListener('click', function () {
-      const collabInput = document.getElementById('collabLinkInput');
-      if (collabInput) {
-        collabInput.select();
-        document.execCommand('copy');
-        copyCollabBtn.textContent = 'Link copiado!';
-        setTimeout(() => copyCollabBtn.textContent = 'Copiar', 1800);
-      }
+    copyCollabBtn.addEventListener("click", function () {
+      const collabInput = document.getElementById("collabLinkInput");
+      collabInput.select();
+      document.execCommand("copy");
+      copyCollabBtn.textContent = "Link copiado!";
+      setTimeout(() => (copyCollabBtn.textContent = "Copiar"), 1800);
     });
   }
 
-  // Configura o fechamento dos modais ao clicar fora
-  window.addEventListener('click', function (e) {
-    const editModal = document.getElementById('editTripModal');
-    const shareModal = document.getElementById('shareModal');
-    const collabModal = document.getElementById('collabModal');
-    const addPlaceModal = document.getElementById('addPlaceModal');
+  // Upload de foto
+  document
+    .getElementById("edit-trip-photo")
+    ?.addEventListener("change", handlePhotoUpload);
 
-    if (editModal && e.target === editModal) closeEditTripModal();
-    if (shareModal && e.target === shareModal) closeShareModal();
-    if (collabModal && e.target === collabModal) closeCollabModal();
-    if (addPlaceModal && e.target === addPlaceModal) closeAddPlaceModal();
-  });
-
-  // Configura o fechamento dos modais com ESC
-  window.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-      const editModal = document.getElementById('editTripModal');
-      const shareModal = document.getElementById('shareModal');
-      const collabModal = document.getElementById('collabModal');
-      const addPlaceModal = document.getElementById('addPlaceModal');
-
-      if (editModal && editModal.style.display === 'flex') closeEditTripModal();
-      if (shareModal && shareModal.style.display === 'flex') closeShareModal();
-      if (collabModal && collabModal.style.display === 'flex') closeCollabModal();
-      if (addPlaceModal && addPlaceModal.style.display === 'flex') closeAddPlaceModal();
-    }
-  });
-
-  // Configura o formulário de edição da viagem
-  const editTripForm = document.getElementById('editTripForm');
-  if (editTripForm) {
-    editTripForm.addEventListener('submit', handleEditTripFormSubmit);
-  }
-
-  // Configura o upload de foto
-  const photoInput = document.getElementById('edit-trip-photo');
-  if (photoInput) {
-    photoInput.addEventListener('change', handlePhotoUpload);
-  }
-
-  // Configura o popup de requisitos da foto
+  // Popups
   setupEditPhotoRequirementsPopup();
-
   initPlacesMovedAlertModal();
 }
 
-// Função para configurar o popup de requisitos da foto
 function setupEditPhotoRequirementsPopup() {
-  const uploadLabel = document.querySelector('.photo-upload-label');
-  const popup = document.getElementById('edit-photo-requirements-popup');
-  const closeBtn = popup?.querySelector('.close-popup');
-  const fileInput = document.getElementById('edit-trip-photo');
-  const overlay = document.getElementById('edit-photo-requirements-overlay');
+  const uploadLabel = document.querySelector(".photo-upload-label");
+  const popup = document.getElementById("edit-photo-requirements-popup");
+  const closeBtn = popup?.querySelector(".close-popup");
+  const fileInput = document.getElementById("edit-trip-photo");
+  const overlay = document.getElementById("edit-photo-requirements-overlay");
 
   if (uploadLabel && popup && closeBtn && fileInput) {
-    uploadLabel.addEventListener('click', (e) => {
+    uploadLabel.addEventListener("click", (e) => {
       e.preventDefault();
-      popup.classList.add('active');
-      popup.style.display = 'block';
+      popup.classList.add("active");
+      popup.style.display = "block";
       if (overlay) {
-        overlay.style.display = 'block';
-        overlay.style.pointerEvents = 'none';
+        overlay.style.display = "block";
+        overlay.style.pointerEvents = "none";
       }
     });
 
-    closeBtn.addEventListener('click', () => {
-      popup.classList.remove('active');
+    closeBtn.addEventListener("click", () => {
+      popup.classList.remove("active");
       if (overlay) {
-        overlay.style.display = 'none';
-        overlay.style.pointerEvents = 'none';
+        overlay.style.display = "none";
+        overlay.style.pointerEvents = "none";
       }
       setTimeout(() => fileInput.click(), 50);
     });
 
     if (overlay) {
-      overlay.addEventListener('click', () => {
-        popup.classList.remove('active');
-        overlay.style.display = 'none';
-        overlay.style.pointerEvents = 'none';
+      overlay.addEventListener("click", () => {
+        popup.classList.remove("active");
+        overlay.style.display = "none";
+        overlay.style.pointerEvents = "none";
       });
     }
   }

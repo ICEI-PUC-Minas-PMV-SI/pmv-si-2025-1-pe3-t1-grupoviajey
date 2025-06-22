@@ -1,4 +1,18 @@
 const { db } = require('../../config/firebase');
+const Joi = require('joi');
+const admin = require('firebase-admin');
+
+const tripPlaceSchema = Joi.object({
+  placeId: Joi.string().required(),
+  name: Joi.string().required(),
+  address: Joi.string().required(),
+  latitude: Joi.number().required(),
+  longitude: Joi.number().required(),
+  rating: Joi.number().required(),
+  photo: Joi.string().uri().allow(null, ''),
+  types: Joi.array().items(Joi.string()).required(),
+  order: Joi.number().integer().min(0).optional(),
+});
 
 class RoadmapDayService {
   /**
@@ -128,31 +142,24 @@ class RoadmapDayService {
   async addPlaceToDay(userId, tripId, dayId, placeData) {
     try {
       await this._checkUserAccess(userId, tripId);
-      // Validação dos campos obrigatórios
-      if (!placeData.name || !placeData.address || !placeData.placeId || typeof placeData.order !== 'number') {
-        throw new Error('Campos obrigatórios ausentes para o local: name, address, placeId, order');
-      }
+      
       const placesRef = db
         .collection('trips')
         .doc(tripId)
         .collection('tripDays')
         .doc(dayId)
         .collection('tripPlaces');
+      
       const place = {
-        name: placeData.name,
-        address: placeData.address,
-        placeId: placeData.placeId,
-        order: placeData.order,
-        startTime: placeData.startTime || null,
-        endTime: placeData.endTime || null,
-        notes: placeData.notes || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...placeData,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
+
       const docRef = await placesRef.add(place);
       return {
         id: docRef.id,
-        ...place
+        ...place,
       };
     } catch (error) {
       throw new Error(`Erro ao adicionar local ao dia: ${error.message}`);

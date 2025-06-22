@@ -1,98 +1,38 @@
 // Importações
-import { roadmapStorage } from './roadmap-storage.js';
 import { updateFinanceSummary } from './roadmap-finance.js';
 import { attachRoadmapEventListeners } from './roadmap-events.js';
 import { attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
 import { updateMap, clearMap } from './roadmap-map.js';
+import { apiService } from '../../services/api/apiService.js';
 
 // =============================================
 // CRIAÇÃO E GESTÃO DE DIAS
 // =============================================
 
-export function createDaysFromStorage(tripStartDate, tripEndDate) {
-  console.log('[DEBUG] createDaysFromStorage tripStartDate:', tripStartDate, 'tripEndDate:', tripEndDate);
-  
-  const daysContainer = document.getElementById('daysContainer');
-  if (!daysContainer) {
-    console.error('Container de dias não encontrado');
-    return;
-  }
-
-  // Limpa o container
-  daysContainer.innerHTML = '';
-
-  // Valida as datas
-  if (!tripStartDate || !tripEndDate) return;
-
-  const startDate = tripStartDate instanceof Date ? tripStartDate : new Date(tripStartDate);
-  const endDate = tripEndDate instanceof Date ? tripEndDate : new Date(tripEndDate);
-
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    console.error('Datas inválidas:', { tripStartDate, tripEndDate, startDate, endDate });
-    return;
-  }
-
-  console.log('[DEBUG] startDate:', startDate, 'endDate:', endDate);
-
+export function createDaySection(date, isoDate, dayId) {
   const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-  const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-  // Ajusta as datas para o início do dia
-  let current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+  const diaSemana = dias[date.getDay()];
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = meses[date.getMonth()];
 
-  let count = 0;
-
-  while (current <= end) {
-    const diaSemana = dias[current.getDay()];
-    const dia = String(current.getDate()).padStart(2, '0');
-    const mes = meses[current.getMonth()];
-    const ano = current.getFullYear();
-
-    const section = createDaySection(diaSemana, dia, mes, ano);
-    daysContainer.appendChild(section);
-
-    // Garante que o conteúdo do dia está visível e o accordion está expandido
-    const content = section.querySelector('.day-content');
-    const arrow = section.querySelector('.day-arrow svg');
-    if (content) {
-      content.style.display = 'block';
-      content.classList.add('active');
-      content.style.maxHeight = content.scrollHeight + 'px';
-    }
-    if (arrow) {
-      arrow.style.transform = 'rotate(180deg)';
-    }
-
-    count++;
-    current.setDate(current.getDate() + 1);
-  }
-
-  console.log('[DEBUG] Dias criados:', count);
-  moveFinanceSummaryAfterDays();
-
-  // Força a atualização do DOM
-  setTimeout(() => {
-    attachRoadmapEventListeners();
-  }, 0);
-}
-
-function createDaySection(diaSemana, dia, mes, ano) {
   const section = document.createElement('div');
   section.className = 'day-section';
+  section.dataset.dayId = dayId;
+
   section.innerHTML = `
     <div class="day-header">
-      <h3>${diaSemana}, ${dia} de ${mes} de ${ano}</h3>
+      <h3>${diaSemana}, ${dia} de ${mes}</h3>
       <span class="day-arrow"><svg width="20" height="20" viewBox="0 0 20 24"><path d="M6 8l4 4 4-4" stroke="#1a3c4e" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>
     </div>
-    <div class="day-content">
+    <div class="day-content" data-date="${isoDate}">
       <div class="day-timeline">
         <div class="timeline-line"></div>
       </div>
       <button class="add-place-btn btn btn-small outlined">+ Adicionar local</button>
     </div>
   `;
-
   return section;
 }
 
@@ -113,7 +53,7 @@ export function handleAddToTimeline(placeData, dayContent) {
     (placeData.address || placeData.placeAddress || '') + '|' +
     (placeData.rating || placeData.placeRating || '');
 
-  const card = createLocalCard({ ...placeData, key });
+  const card = createLocalCard(placeData);
   if (!card) {
     console.error('Falha ao criar card do local:', placeData);
     return;
@@ -136,43 +76,10 @@ export function handleAddToTimeline(placeData, dayContent) {
   timeline.appendChild(card);
   attachLocalCardActions(card);
 
-  const placeToSave = {
-    placeId: placeData.placeId || placeData.id,
-    placeName: placeData.name || placeData.placeName,
-    placeAddress: placeData.address || placeData.placeAddress,
-    placeRating: placeData.rating || placeData.placeRating,
-    placeLatitude: placeData.lat || placeData.latitude,
-    placeLongitude: placeData.lng || placeData.longitude,
-    placeKey: key,
-    placeTypes: placeData.types || [],
-    placeData: placeData
-  };
+  // TODO: Implementar salvamento via API
+  console.log('Local adicionado à timeline:', placeData);
 
-  saveRoadmapToStorage();
   adjustTimelineHeight();
-
-  const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
-  if (roadmap && Array.isArray(roadmap.days)) {
-    const allPlaces = roadmap.days
-      .flatMap(day => day.places)
-      .filter(p => p.lat && p.lng)
-      .map(p => {
-        const lat = Number(p.lat);
-        const lng = Number(p.lng);
-        console.log('Convertendo coordenadas:', { original: p, converted: { lat, lng } });
-        return {
-          ...p,
-          lat,
-          lng,
-          key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + lat + '|' + lng),
-          types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-        };
-      })
-      .filter(p => !isNaN(p.lat) && !isNaN(p.lng));
-
-    console.log('Places para atualizar mapa:', allPlaces);
-    updateMap(allPlaces);
-  }
 
   dayContent.classList.add('active');
   dayContent.style.maxHeight = dayContent.scrollHeight + 'px';
@@ -194,24 +101,35 @@ export function createTimeline(dayContent) {
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
 
-export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
+export function createLocalCard(place) {
+  // place é o objeto tripPlace da API
+  const { id, placeDetails } = place;
+
   const card = document.createElement('div');
   card.className = 'local-card';
   card.draggable = true;
+  card.dataset.placeId = id; // ID do TripPlace, não do Google Place
+  if (placeDetails && placeDetails.place_id) {
+    card.dataset.googlePlaceId = placeDetails.place_id;
+  }
 
-  const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
-  const stars = ratingNumber ? '★'.repeat(Math.floor(ratingNumber)) + '☆'.repeat(5 - Math.floor(ratingNumber)) : '';
+  const name = placeDetails?.name || 'Local desconhecido';
+  const address = placeDetails?.formatted_address || 'Endereço não disponível';
+  const ratingNumber = placeDetails?.rating;
+  
+  const stars = ratingNumber ? '★'.repeat(Math.round(ratingNumber)) + '☆'.repeat(5 - Math.round(ratingNumber)) : 'Sem avaliação';
   const ratingText = ratingNumber ? ratingNumber.toFixed(1) : 'N/A';
 
-  const imageUrl = img || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
+  // Usa a primeira foto disponível ou uma imagem padrão
+  const imageUrl = placeDetails?.photos?.[0]?.getUrl?.() || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
 
   card.innerHTML = `
     <div class="local-img">
-      <img src="${imageUrl}" alt="${name || placeName || 'Local'}" onerror="this.src='https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80'">
+      <img src="${imageUrl}" alt="${name}" onerror="this.style.display='none';">
     </div>
     <div class="local-info">
-      <div class="local-title">${name || placeName || ''}</div>
-      <div class="local-address">${address || placeAddress || ''}</div>
+      <div class="local-title">${name}</div>
+      <div class="local-address">${address}</div>
       <div class="local-rating">
         <span class="stars">${stars}</span>
         <span class="rating-value">${ratingText}</span>
@@ -251,42 +169,6 @@ export function createExpenseDiv(expenseName, value, currency) {
     <button class="delete-expense-btn" title="Excluir gasto">${getTrashSVG()}</button>
   `;
   return expenseDiv;
-}
-
-// =============================================
-// STORAGE
-// =============================================
-
-export function saveRoadmapToStorage() {
-  try {
-    const data = collectRoadmapData();
-    return roadmapStorage.save(data);
-  } catch (error) {
-    console.error('Error saving roadmap:', error);
-    return false;
-  }
-}
-
-export function loadRoadmapFromStorage() {
-  const roadmap = roadmapStorage.load();
-  if (!roadmap) return;
-
-  // Atualiza os elementos da UI
-  document.getElementById('tripNameBanner').textContent = roadmap.tripName;
-  document.getElementById('tripDestinationBanner').textContent = roadmap.tripDestination;
-  document.getElementById('tripDescriptionBanner').textContent = roadmap.tripDescription || '';
-
-  // Sempre cria os dias com as datas atuais
-  const startDate = new Date(roadmap.tripStartDate);
-  const endDate = new Date(roadmap.tripEndDate);
-
-  if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-    document.getElementById('tripDateBanner').textContent = formatTripPeriod(startDate, endDate);
-    createDaysFromStorage(startDate.toISOString(), endDate.toISOString());
-
-    // Carrega os dados dos locais após criar os dias
-    updateUIWithLoadedData(roadmap);
-  }
 }
 
 // =============================================
@@ -490,28 +372,23 @@ function getRandomPlaceImage() {
 }
 
 function adjustTimelineHeight() {
-  const dayContents = document.querySelectorAll('.day-content');
-  dayContents.forEach(content => {
-    const timeline = content.querySelector('.day-timeline');
-    if (timeline) {
-      // Calcula a altura total dos cards e elementos dentro da timeline
-      const cards = timeline.querySelectorAll('.local-card, .timeline-note, .timeline-expense');
-      let totalHeight = 0;
-
-      cards.forEach(card => {
-        const cardHeight = card.offsetHeight;
-        const cardMargin = parseInt(window.getComputedStyle(card).marginBottom);
-        totalHeight += cardHeight + cardMargin;
-      });
+    const timelines = document.querySelectorAll('.day-timeline');
+    timelines.forEach(timeline => {
+        const line = timeline.querySelector('.timeline-line');
+        if (line) {
+            const lastChild = timeline.lastElementChild;
+            if (lastChild && lastChild !== line) {
+                const height = lastChild.offsetTop + lastChild.offsetHeight / 2;
+                line.style.height = `${height}px`;
+            } else {
+                line.style.height = '0px';
+            }
     }
   });
 }
 
 export function getTrashSVG() {
-  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 6h18"></path>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>`;
+  return `<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 export function getDragHandleSVG() {
