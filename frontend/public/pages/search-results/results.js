@@ -9,6 +9,37 @@ let floatingDropdown = null;
 let allResults = [];
 
 /**
+ * Converts Google Places types to user-friendly Portuguese labels
+ * @param {string} type - The Google Places type
+ * @returns {string} The user-friendly label
+ */
+function getTypeLabel(type) {
+  const typeLabels = {
+    'lodging': 'Hotel',
+    'restaurant': 'Restaurante',
+    'tourist_attraction': 'Atração',
+    'museum': 'Museu',
+    'park': 'Parque',
+    'shopping_mall': 'Shopping',
+    'amusement_park': 'Parque de Diversões',
+    'aquarium': 'Aquário',
+    'art_gallery': 'Galeria de Arte',
+    'bar': 'Bar',
+    'cafe': 'Café',
+    'church': 'Igreja',
+    'library': 'Biblioteca',
+    'movie_theater': 'Cinema',
+    'night_club': 'Casa Noturna',
+    'stadium': 'Estádio',
+    'zoo': 'Zoológico',
+    'establishment': 'Estabelecimento',
+    'point_of_interest': 'Ponto de Interesse'
+  };
+  
+  return typeLabels[type] || type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+/**
  * Gets the persisted search data from localStorage
  * @returns {Object} The search data
  */
@@ -155,6 +186,10 @@ function renderResults(results) {
   }
 
   filtered.forEach((place, index) => {
+    // Extract the primary type from place.types
+    const primaryType = place.types && place.types.length > 0 ? place.types[0] : '';
+    const typeLabel = getTypeLabel(primaryType);
+    
     const card = createResultCard({
       id: place.place_id,
       image: '',
@@ -162,7 +197,8 @@ function renderResults(results) {
       rating: place.rating || 0,
       tags: place.types ? place.types.slice(0, 2) : [],
       address: place.vicinity || '',
-      price_level: place.price_level
+      price_level: place.price_level,
+      type: typeLabel
     });
 
     card.classList.add('result-card');

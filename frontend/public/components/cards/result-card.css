@@ -64,6 +64,19 @@
   min-height: 2.7em;
 }
 
+.result-type {
+  background: #0d353a;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 4px;
+}
+
 .result-rating {
   color: #f5b50a;
   font-size: 1rem;

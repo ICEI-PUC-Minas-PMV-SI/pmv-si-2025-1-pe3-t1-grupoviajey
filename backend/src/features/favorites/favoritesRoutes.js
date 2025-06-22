@@ -14,5 +14,6 @@ router.get('/', favoritesController.getUserFavorites);
 router.get('/check/:placeId', favoritesController.isFavorite);
 router.get('/stats', favoritesController.getFavoritesStats);
 router.delete('/:favoriteId', favoritesController.removeFavorite);
+router.delete('/by-place-id/:placeId', favoritesController.removeFavoriteByPlaceId);
 
 module.exports = router; 
