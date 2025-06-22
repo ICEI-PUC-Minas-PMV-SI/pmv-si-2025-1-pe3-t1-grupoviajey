@@ -4,14 +4,225 @@
 
 //Lógica dos checklists e drag-and-drop
 import { getTrashSVG } from './roadmap-utils.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast } from '../../js/utils/ui-utils.js';
 
-// Funções auxiliares de drag-and-drop
+let currentTripId = null;
+
+// =============================================
+// CRIAÇÃO E RENDERIZAÇÃO
+// =============================================
+
+function createChecklistBlock(checklist = {}) {
+  const { id, title = 'Novo Checklist', items = [] } = checklist;
+  
+  const block = document.createElement('div');
+  block.className = 'checklist-block';
+  block.dataset.checklistId = id;
+
+  block.innerHTML = `
+    <div class="checklist-title-row">
+      <h3 class="checklist-title">${title}</h3>
+      <button class="edit-checklist-title-btn" title="Editar título">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </button>
+      <button class="remove-checklist-block-btn" title="Remover checklist">${getTrashSVG()}</button>
+    </div>
+    <ul class="checklist-list"></ul>
+    <form class="add-checklist-form">
+      <input type="text" class="new-checklist-input" placeholder="+ Novo item">
+      <button type="submit">Adicionar</button>
+    </form>
+  `;
+
+  const ul = block.querySelector('.checklist-list');
+  if (items && items.length > 0) {
+    // Ordena os itens para que os concluídos fiquem no final
+    items.sort((a, b) => a.isCompleted - b.isCompleted).forEach(item => {
+      const li = createChecklistItemElement(item);
+      ul.appendChild(li);
+      // Os eventos devem ser anexados DEPOIS que o 'li' está no DOM
+      attachChecklistItemEvents(li);
+    });
+  }
+
+  attachChecklistBlockEvents(block);
+  return block;
+}
+
+function createChecklistItemElement(item = {}) {
+  const { id, text, isCompleted = false } = item;
+
+  const li = document.createElement('li');
+  li.className = 'checklist-item';
+  li.dataset.itemId = id;
+  li.draggable = true; // Habilitar drag
+  if (isCompleted) {
+    li.classList.add('completed');
+  }
+
+  li.innerHTML = `
+    <div class="checklist-label">
+      <input type="checkbox" class="checklist-checkbox" ${isCompleted ? 'checked' : ''}>
+      <span class="checklist-text">${text}</span>
+    </div>
+    <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
+  `;
+
+  return li;
+}
+
+// =============================================
+// LÓGICA DE EVENTOS
+// =============================================
+
+function attachChecklistBlockEvents(block) {
+  const checklistId = block.dataset.checklistId;
+
+  // Remover checklist
+  block.querySelector('.remove-checklist-block-btn').addEventListener('click', async () => {
+    if (confirm('Tem certeza que deseja remover este checklist?')) {
+      showLoading('Removendo checklist...');
+      try {
+        await apiService.deleteRoadmapChecklist(currentTripId, checklistId);
+        block.remove();
+      } catch (error) {
+        showErrorToast('Erro ao remover checklist.');
+        console.error(error);
+      } finally {
+        hideLoading();
+      }
+    }
+  });
+
+  // Adicionar item
+  const form = block.querySelector('.add-checklist-form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = form.querySelector('.new-checklist-input');
+    const text = input.value.trim();
+    if (text) {
+      showLoading('Adicionando item...');
+      try {
+        const newItemResponse = await apiService.addChecklistItem(currentTripId, checklistId, { text });
+        if (newItemResponse.success) {
+          const ul = block.querySelector('.checklist-list');
+          const li = createChecklistItemElement(newItemResponse.data);
+          ul.appendChild(li);
+          attachChecklistItemEvents(li);
+          input.value = '';
+          input.focus();
+        } else {
+            throw new Error(newItemResponse.message || 'Falha ao adicionar item.');
+        }
+      } catch (error) {
+        showErrorToast('Erro ao adicionar item.');
+        console.error(error);
+      } finally {
+        hideLoading();
+      }
+    }
+  });
+  
+  // Editar título
+  block.querySelector('.edit-checklist-title-btn').addEventListener('click', () => {
+    const titleEl = block.querySelector('.checklist-title');
+    const currentTitle = titleEl.textContent;
+    
+    // Evita múltiplos inputs
+    if (block.querySelector('.edit-title-input')) return;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentTitle;
+    input.className = 'edit-title-input';
+    
+    const save = async () => {
+        const newTitle = input.value.trim();
+        if (newTitle && newTitle !== currentTitle) {
+            await updateChecklistTitle(checklistId, newTitle, titleEl);
+        }
+        // Sempre restaura o h3, mesmo que não salve
+        input.replaceWith(titleEl);
+    };
+
+    input.onblur = save;
+    input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+    
+    titleEl.replaceWith(input);
+    input.focus();
+  });
+}
+
+function attachChecklistItemEvents(li) {
+    const itemId = li.dataset.itemId;
+    const checklistId = li.closest('.checklist-block').dataset.checklistId;
+
+    // Marcar/desmarcar item
+    li.querySelector('.checklist-checkbox').addEventListener('change', async function() {
+        const isCompleted = this.checked;
+        showLoading();
+        try {
+            await apiService.updateChecklistItem(currentTripId, checklistId, itemId, { isCompleted });
+            li.classList.toggle('completed', isCompleted);
+            
+            // Move para o final da lista se completado
+            const list = li.parentNode;
+            if(isCompleted) {
+                list.appendChild(li);
+            } else {
+                list.insertBefore(li, list.querySelector('.checklist-item.completed'));
+            }
+
+        } catch (error) {
+            showErrorToast('Erro ao atualizar item.');
+            console.error(error);
+            this.checked = !isCompleted; // Reverte a mudança visual
+        } finally {
+            hideLoading();
+        }
+    });
+
+    // Remover item
+    li.querySelector('.remove-checklist-btn').addEventListener('click', async () => {
+        showLoading();
+        try {
+            await apiService.deleteChecklistItem(currentTripId, checklistId, itemId);
+            li.remove();
+        } catch (error) {
+            showErrorToast('Erro ao remover item.');
+            console.error(error);
+        } finally {
+            hideLoading();
+        }
+    });
+
+    // Eventos de Drag and Drop
+    addChecklistDnDHandlers(li);
+}
+
+async function updateChecklistTitle(checklistId, newTitle, titleEl) {
+    showLoading('Salvando...');
+    try {
+        await apiService.updateRoadmapChecklist(currentTripId, checklistId, { title: newTitle });
+        titleEl.textContent = newTitle;
+    } catch (error) {
+        showErrorToast('Erro ao salvar o título.');
+        console.error(error);
+    } finally {
+        hideLoading();
+    }
+}
+
+// =============================================
+// DRAG AND DROP (VISUAL ONLY FOR NOW)
+// =============================================
 let dragSrcEl = null;
 
 function handleDragStart(e) {
   dragSrcEl = this;
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.outerHTML);
+  e.dataTransfer.setData('text/html', this.innerHTML);
   this.classList.add('dragElem');
 }
 
@@ -29,11 +240,24 @@ function handleDragLeave(e) {
 function handleDrop(e) {
   if (e.stopPropagation) e.stopPropagation();
   if (dragSrcEl !== this) {
-    this.parentNode.removeChild(dragSrcEl);
-    let dropHTML = e.dataTransfer.getData('text/html');
-    this.insertAdjacentHTML('beforebegin', dropHTML);
-    let dropped = this.previousSibling;
-    addChecklistDnDHandlers(dropped);
+    dragSrcEl.innerHTML = this.innerHTML;
+    this.innerHTML = e.dataTransfer.getData('text/html');
+
+    // Troca os data-attributes e estado do checkbox
+    const oldData = {
+        id: dragSrcEl.dataset.itemId,
+        completed: dragSrcEl.classList.contains('completed'),
+        checked: dragSrcEl.querySelector('.checklist-checkbox').checked
+    };
+    dragSrcEl.dataset.itemId = this.dataset.itemId;
+    dragSrcEl.classList.toggle('completed', this.classList.contains('completed'));
+    dragSrcEl.querySelector('.checklist-checkbox').checked = this.querySelector('.checklist-checkbox').checked;
+
+    this.dataset.itemId = oldData.id;
+    this.classList.toggle('completed', oldData.completed);
+    this.querySelector('.checklist-checkbox').checked = oldData.checked;
+
+    // TODO: Adicionar chamada à API para salvar a nova ordem quando o endpoint existir
   }
   this.classList.remove('over');
   return false;
@@ -42,6 +266,9 @@ function handleDrop(e) {
 function handleDragEnd(e) {
   this.classList.remove('over');
   this.classList.remove('dragElem');
+  
+  const items = this.closest('.checklist-list').querySelectorAll('.checklist-item');
+  items.forEach(item => item.classList.remove('over'));
 }
 
 function addChecklistDnDHandlers(elem) {
@@ -52,258 +279,76 @@ function addChecklistDnDHandlers(elem) {
   elem.addEventListener('dragend', handleDragEnd, false);
 }
 
-// MULTI CHECKLISTS - NOVA LÓGICA
-export function createChecklistBlock(checklistTitle = 'Check-list de Viagem', checklistItems = [
-  'Passagem comprada',
-  'Reserva de hotel',
-  'Documentos separados',
-  'Roupas adequadas',
-  'Carregador de celular',
-  'Medicamentos necessários',
-  'Seguro viagem',
-  'Dinheiro/cartões',
-  'Mapas e guias',
-  'Adaptador de tomada'
-]) {
-  const checklistId = `checklist-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  console.log('[Checklist] Criando bloco:', { checklistTitle, checklistItems });
+// =============================================
+// INICIALIZAÇÃO
+// =============================================
 
-  const block = document.createElement('div');
-  block.className = 'checklist-block';
-  block.dataset.checklistId = checklistId;
-
-  block.innerHTML = `
-    <div class="checklist-title-row">
-      <h3 class="checklist-title">${checklistTitle}</h3>
-      <button class="edit-checklist-title-btn" title="Editar título" style="background:none;border:none;cursor:pointer;margin-left:8px;vertical-align:middle;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-      </button>
-      <button class="remove-checklist-block-btn" title="Remover checklist" style="background:none;border:none;cursor:pointer;margin-left:auto;vertical-align:middle;padding:0 0 0 8px;display:flex;align-items:center;">${getTrashSVG()}</button>
-    </div>
-    <div class="checklist-sections">
-      <div class="checklist-section">
-        <h4 class="checklist-section-title">Pendentes</h4>
-        <ul class="checklist-list" data-section="pending"></ul>
-      </div>
-      <div class="checklist-section completed">
-        <h4 class="checklist-section-title">Concluídos</h4>
-        <ul class="checklist-list-completed" data-section="completed"></ul>
-      </div>
-    </div>
-  `;
-
-  // Adiciona os itens iniciais
-  const ul = block.querySelector('[data-section="pending"]');
-  checklistItems.forEach(checklistText => addChecklistItemToBlock(ul, checklistText));
-
-  attachChecklistBlockEvents(block);
-  return block;
-}
-
-export function addChecklistItemToBlock(ul, checklistText, checklistChecked = false) {
-  console.log('[Checklist] Adicionando item:', { checklistText, checklistChecked });
-
-  const li = document.createElement('li');
-  li.className = 'checklist-item';
-  li.draggable = true;
-
-  li.innerHTML = `
-    <div class="checklist-label">
-      <input type="checkbox" class="checklist-checkbox" ${checklistChecked ? 'checked' : ''}>
-      <span class="checklist-text">${checklistText}</span>
-    </div>
-    <button class="remove-checklist-btn" title="Remover item">${getTrashSVG()}</button>
-  `;
-
-  // Aplica estilo inicial se estiver marcado
-  if (checklistChecked) {
-    li.style.textDecoration = 'line-through';
-    li.style.opacity = '0.6';
-  }
-
-  // Adiciona event listeners
-  const checkbox = li.querySelector('.checklist-checkbox');
-  checkbox.addEventListener('change', function() {
-    console.log('[Checklist] Checkbox alterado:', { checklistText, checked: checkbox.checked });
-    if (checkbox.checked) {
-      li.style.textDecoration = 'line-through';
-      li.style.opacity = '0.6';
-      // Move para a seção de concluídos
-      const completedSection = ul.closest('.checklist-sections').querySelector('[data-section="completed"]');
-      completedSection.appendChild(li);
-    } else {
-      li.style.textDecoration = 'none';
-      li.style.opacity = '1';
-      // Move de volta para a seção de pendentes
-      const pendingSection = ul.closest('.checklist-sections').querySelector('[data-section="pending"]');
-      pendingSection.appendChild(li);
-    }
-    saveChecklistsToStorage();
-  });
-
-  // Remover item
-  li.querySelector('.remove-checklist-btn').onclick = function () {
-    console.log('[Checklist] Removendo item:', checklistText);
-    li.remove();
-    saveChecklistsToStorage();
-  };
-
-  // Adiciona event listeners para o drag-and-drop
-  addChecklistDnDHandlers(li);
-}
-
-export function attachChecklistBlockEvents(block) {
-  console.log('[Checklist] Anexando eventos ao bloco');
-  try {
-    // Delegação para editar título
-    block.addEventListener('click', function (e) {
-      if (e.target.closest('.edit-checklist-title-btn')) {
-        console.log('[Checklist] Editando título do bloco');
-        const titleEl = block.querySelector('.checklist-title');
-        if (!titleEl) return;
-        // Evita múltiplos inputs
-        if (block.querySelector('.edit-title-input')) return;
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = titleEl.textContent;
-        input.className = 'edit-title-input';
-        input.style.fontSize = '1.1rem';
-        input.style.fontWeight = '600';
-        input.style.marginRight = '8px';
-        titleEl.replaceWith(input);
-        input.focus();
-        input.onblur = save;
-        input.onkeydown = function (e) { if (e.key === 'Enter') save(); };
-        function save() {
-          const newTitle = input.value.trim() || 'Checklist';
-          console.log('[Checklist] Salvando novo título:', newTitle);
-          const h3 = document.createElement('h3');
-          h3.className = 'checklist-title';
-          h3.textContent = newTitle;
-          input.replaceWith(h3);
-          saveChecklistsToStorage();
-        }
-      }
-    });
-
-    // Adicionar item
-    const form = block.querySelector('.add-checklist-form');
-    const input = form.querySelector('.newChecklistInput');
-    const ul = block.querySelector('.checklist-list');
-    form.onsubmit = function (e) {
-      e.preventDefault();
-      const value = input.value.trim();
-      if (value) {
-        console.log('[Checklist] Adicionando novo item:', value);
-        addChecklistItemToBlock(ul, value);
-        input.value = '';
-        input.focus();
-        saveChecklistsToStorage();
-      }
-    };
-
-    // Drag and drop para novos itens
-    ul.querySelectorAll('.checklist-item').forEach(addChecklistDnDHandlers);
-
-    console.log('[Checklist] Eventos anexados com sucesso');
-  } catch (error) {
-    console.error('[Checklist] Erro ao anexar eventos:', error);
-    throw error;
-  }
-}
-
-// Modal de confirmação de remoção de checklist
-function ensureRemoveChecklistModal() {
-  if (document.getElementById('removeChecklistModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'removeChecklistModal';
-  modal.className = 'modal-add-place';
-  modal.style.display = 'none';
-  modal.innerHTML = `
-      <div class="modal-content" style="max-width:340px;align-items:center;">
-        <h2 class="modal-title" style="margin-bottom:18px;">Remover checklist</h2>
-        <p style="font-size:1.05rem;margin-bottom:18px;text-align:center;">Tem certeza que deseja remover este checklist? Esta ação é <b>irreversível</b> e todos os itens serão apagados.</p>
-        <div class="modal-actions" style="justify-content:center;">
-          <button id="cancelRemoveChecklistBtn" class="modal-cancel-btn">Cancelar</button>
-          <button id="confirmRemoveChecklistBtn" class="modal-confirm-btn" style="background:#e05a47;border-color:#e05a47;">Remover</button>
-        </div>
-      </div>
-    `;
-  document.body.appendChild(modal);
-}
-
-let _checklistBlockToRemove = null;
-function showRemoveChecklistModal(block) {
-  ensureRemoveChecklistModal();
-  const modal = document.getElementById('removeChecklistModal');
-  _checklistBlockToRemove = block;
-  modal.style.display = 'flex';
-  // Botões
-  const cancelBtn = document.getElementById('cancelRemoveChecklistBtn');
-  const confirmBtn = document.getElementById('confirmRemoveChecklistBtn');
-  if (cancelBtn) {
-    cancelBtn.onclick = function () {
-      modal.style.display = 'none';
-      _checklistBlockToRemove = null;
-    };
-  }
-  if (confirmBtn) {
-    confirmBtn.onclick = function () {
-      if (_checklistBlockToRemove) {
-        _checklistBlockToRemove.remove();
-      }
-      modal.style.display = 'none';
-      _checklistBlockToRemove = null;
-    };
-  }
-  // Fecha ao clicar fora
-  window.addEventListener('click', function handler(e) {
-    if (e.target === modal) {
-      modal.style.display = 'none';
-      _checklistBlockToRemove = null;
-      window.removeEventListener('click', handler);
-    }
-  });
-}
-
-// Inicialização dos checklists
-export function initMultiChecklists() {
-  console.log('[Checklist] Iniciando inicialização dos checklists');
-  try {
+export async function initMultiChecklists() {
     const container = document.getElementById('checklistsContainer');
     if (!container) {
       console.error('[Checklist] Container não encontrado');
       return;
     }
 
-    console.log('[Checklist] Container encontrado, tentando carregar dados salvos');
-    const loaded = loadChecklistsFromStorage();
+  const urlParams = new URLSearchParams(window.location.search);
+  currentTripId = urlParams.get('tripId');
 
-    if (!loaded) {
-      console.log('[Checklist] Nenhum dado salvo encontrado, criando checklist padrão');
-      const defaultBlock = createChecklistBlock('Checklist');
-      if (defaultBlock) {
-        container.appendChild(defaultBlock);
-        console.log('[Checklist] Checklist padrão criado');
-        saveChecklistsToStorage(); // Salva o checklist padrão
-      }
+  if (!currentTripId) {
+    container.innerHTML = '<p>ID da viagem não encontrado. Verifique a URL.</p>';
+    return;
+  }
+
+  showLoading('Carregando checklists...');
+  container.innerHTML = '';
+  
+  try {
+    const checklistsResponse = await apiService.getRoadmapChecklists(currentTripId);
+
+    if (checklistsResponse.success && checklistsResponse.data.length > 0) {
+      checklistsResponse.data.forEach(checklist => {
+        const block = createChecklistBlock(checklist);
+        container.appendChild(block);
+      });
+    } else if (checklistsResponse.success) {
+      container.innerHTML = '<p>Nenhum checklist criado para esta viagem ainda. Crie o primeiro!</p>';
+    } else {
+        throw new Error(checklistsResponse.message || 'Falha ao buscar checklists.');
     }
-
-    console.log('[Checklist] Inicialização concluída');
   } catch (error) {
-    console.error('[Checklist] Erro ao inicializar checklists:', error);
+    console.error('[Checklist] Erro ao carregar checklists:', error);
+    container.innerHTML = `<p class="error-message">Não foi possível carregar os checklists. ${error.message}</p>`;
+    showErrorToast('Erro ao carregar checklists.');
+  } finally {
+    hideLoading();
   }
 }
 
-// Botão para novo checklist
 export function setupAddChecklistBlockBtn() {
-  const btn = document.getElementById('addChecklistBlockBtn');
-  if (btn) {
-    btn.onclick = function () {
+  const addBtn = document.getElementById('addChecklistBlockBtn');
+  if (!addBtn) return;
+
+  addBtn.addEventListener('click', async () => {
+    showLoading('Criando checklist...');
+    try {
+        const newChecklistResponse = await apiService.createRoadmapChecklist(currentTripId, { title: 'Novo Checklist' });
+        if (newChecklistResponse.success) {
       const container = document.getElementById('checklistsContainer');
-      container.appendChild(createChecklistBlock('Novo checklist', []));
-    };
-  }
+            // Limpa a mensagem "nenhum checklist" se for o primeiro
+            if (container.querySelector('p')) {
+                container.innerHTML = '';
+            }
+            const block = createChecklistBlock(newChecklistResponse.data);
+            container.appendChild(block);
+        } else {
+            throw new Error(newChecklistResponse.message || 'Falha ao criar checklist.');
+        }
+    } catch (error) {
+        showErrorToast('Erro ao criar checklist.');
+        console.error(error);
+    } finally {
+        hideLoading();
+    }
+  });
 }
 
 // =============================================

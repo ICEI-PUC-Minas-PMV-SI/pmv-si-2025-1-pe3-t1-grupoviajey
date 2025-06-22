@@ -8,29 +8,6 @@ class RoadmapController {
   // ===== ROADMAP =====
   
   /**
-   * Criar roadmap
-   */
-  async createRoadmap(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      const roadmapData = req.body;
-
-      const roadmap = await roadmapService.createRoadmap(uid, tripId, roadmapData);
-      
-      res.status(201).json({
-        success: true,
-        data: roadmap
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
    * Buscar roadmap com estatísticas
    */
   async getRoadmapWithStats(req, res) {
@@ -46,165 +23,6 @@ class RoadmapController {
       });
     } catch (error) {
       res.status(404).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Atualizar roadmap
-   */
-  async updateRoadmap(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      const updateData = req.body;
-      
-      const roadmap = await roadmapService.updateRoadmap(uid, tripId, updateData);
-      
-      res.status(200).json({
-        success: true,
-        data: roadmap
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Deletar roadmap
-   */
-  async deleteRoadmap(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      
-      const result = await roadmapService.deleteRoadmap(uid, tripId);
-      
-      res.status(200).json({
-        success: true,
-        message: result.message
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  // ===== ROADMAP DAYS =====
-
-  /**
-   * Criar dia no roadmap
-   */
-  async createRoadmapDay(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      const dayData = req.body;
-
-      const day = await roadmapDayService.createRoadmapDay(uid, tripId, dayData);
-      
-      res.status(201).json({
-        success: true,
-        data: day
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Buscar todos os dias do roadmap
-   */
-  async getRoadmapDays(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      
-      const days = await roadmapDayService.getRoadmapDays(uid, tripId);
-      
-      res.status(200).json({
-        success: true,
-        data: days
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Buscar dia específico
-   */
-  async getRoadmapDay(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, dayId } = req.params;
-      
-      const day = await roadmapDayService.getRoadmapDay(uid, tripId, dayId);
-      
-      res.status(200).json({
-        success: true,
-        data: day
-      });
-    } catch (error) {
-      res.status(404).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Atualizar dia do roadmap
-   */
-  async updateRoadmapDay(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, dayId } = req.params;
-      const updateData = req.body;
-      
-      const day = await roadmapDayService.updateRoadmapDay(uid, tripId, dayId, updateData);
-      
-      res.status(200).json({
-        success: true,
-        data: day
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Deletar dia do roadmap
-   */
-  async deleteRoadmapDay(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, dayId } = req.params;
-      
-      const result = await roadmapDayService.deleteRoadmapDay(uid, tripId, dayId);
-      
-      res.status(200).json({
-        success: true,
-        message: result.message
-      });
-    } catch (error) {
-      res.status(400).json({
         success: false,
         message: error.message
       });
@@ -237,6 +55,28 @@ class RoadmapController {
   }
 
   /**
+   * Buscar locais de um dia
+   */
+  async getPlacesInDay(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId } = req.params;
+      
+      const places = await roadmapDayService.getPlacesInDay(uid, tripId, dayId);
+      
+      res.status(200).json({
+        success: true,
+        data: places
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Remover local de um dia
    */
   async removePlaceFromDay(req, res) {
@@ -258,24 +98,28 @@ class RoadmapController {
     }
   }
 
-  // ===== UNASSIGNED PLACES =====
+  // ===== TRIP PLACE EXPENSES =====
 
   /**
-   * Adicionar local não atribuído
+   * Adicionar despesa a um local
    */
-  async addUnassignedPlace(req, res) {
+  async addPlaceExpense(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId } = req.params;
-      const placeData = req.body;
+      const { tripId, dayId, placeId } = req.params;
+      const expenseData = req.body;
 
-      const place = await unassignedPlacesService.addUnassignedPlace(uid, tripId, placeData);
+      console.log(`[EXPENSE] Adicionando despesa para tripId: ${tripId}, dayId: ${dayId}, placeId: ${placeId}`);
+      console.log(`[EXPENSE] Dados recebidos:`, expenseData);
+
+      const expense = await roadmapDayService.addPlaceExpense(uid, tripId, dayId, placeId, expenseData);
       
       res.status(201).json({
         success: true,
-        data: place
+        data: expense
       });
     } catch (error) {
+      console.error(`[EXPENSE] Erro ao adicionar despesa:`, error);
       res.status(400).json({
         success: false,
         message: error.message
@@ -284,18 +128,18 @@ class RoadmapController {
   }
 
   /**
-   * Buscar locais não atribuídos
+   * Buscar despesas de um local
    */
-  async getUnassignedPlaces(req, res) {
+  async getPlaceExpenses(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId } = req.params;
+      const { tripId, dayId, placeId } = req.params;
       
-      const places = await unassignedPlacesService.getUnassignedPlaces(uid, tripId);
+      const expenses = await roadmapDayService.getPlaceExpenses(uid, tripId, dayId, placeId);
       
       res.status(200).json({
         success: true,
-        data: places
+        data: expenses
       });
     } catch (error) {
       res.status(500).json({
@@ -306,14 +150,129 @@ class RoadmapController {
   }
 
   /**
-   * Mover local não atribuído para um dia
+   * Atualizar despesa de um local
    */
-  async moveUnassignedPlaceToDay(req, res) {
+  async updatePlaceExpense(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, placeId, dayId } = req.params;
+      const { tripId, dayId, placeId, expenseId } = req.params;
+      const updateData = req.body;
       
-      const result = await unassignedPlacesService.moveUnassignedPlaceToDay(uid, tripId, placeId, dayId);
+      const expense = await roadmapDayService.updatePlaceExpense(uid, tripId, dayId, placeId, expenseId, updateData);
+      
+      res.status(200).json({
+        success: true,
+        data: expense
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Deletar despesa de um local
+   */
+  async deletePlaceExpense(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId, placeId, expenseId } = req.params;
+      
+      const result = await roadmapDayService.deletePlaceExpense(uid, tripId, dayId, placeId, expenseId);
+      
+      res.status(200).json({
+        success: true,
+        message: result.message
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  // ===== TRIP PLACE NOTES =====
+
+  /**
+   * Adicionar nota a um local
+   */
+  async addPlaceNote(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId, placeId } = req.params;
+      const noteData = req.body;
+
+      const note = await roadmapDayService.addPlaceNote(uid, tripId, dayId, placeId, noteData);
+      
+      res.status(201).json({
+        success: true,
+        data: note
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Buscar notas de um local
+   */
+  async getPlaceNotes(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId, placeId } = req.params;
+      
+      const notes = await roadmapDayService.getPlaceNotes(uid, tripId, dayId, placeId);
+      
+      res.status(200).json({
+        success: true,
+        data: notes
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Atualizar nota de um local
+   */
+  async updatePlaceNote(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId, placeId, noteId } = req.params;
+      const updateData = req.body;
+      
+      const note = await roadmapDayService.updatePlaceNote(uid, tripId, dayId, placeId, noteId, updateData);
+      
+      res.status(200).json({
+        success: true,
+        data: note
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Deletar nota de um local
+   */
+  async deletePlaceNote(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, dayId, placeId, noteId } = req.params;
+      
+      const result = await roadmapDayService.deletePlaceNote(uid, tripId, dayId, placeId, noteId);
       
       res.status(200).json({
         success: true,
@@ -330,6 +289,33 @@ class RoadmapController {
   // ===== ROADMAP BUDGET =====
 
   /**
+   * Buscar orçamento com estatísticas
+   */
+  async getRoadmapBudgetWithStats(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId } = req.params;
+      
+      console.log(`[ROADMAP BUDGET] Buscando orçamento para tripId: ${tripId}, userId: ${uid}`);
+      
+      const budget = await roadmapBudgetService.getRoadmapBudgetWithStats(uid, tripId);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento encontrado:`, budget ? 'Sim' : 'Não');
+      
+      res.status(200).json({
+        success: true,
+        data: budget
+      });
+    } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao buscar orçamento:`, error.message);
+      res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Criar orçamento
    */
   async createRoadmapBudget(req, res) {
@@ -338,36 +324,25 @@ class RoadmapController {
       const { tripId } = req.params;
       const budgetData = req.body;
 
+      console.log(`[ROADMAP BUDGET] Criando orçamento para tripId: ${tripId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados recebidos:`, budgetData);
+
+      // Validar se totalBudget é um número positivo
+      if (!budgetData.totalBudget || typeof budgetData.totalBudget !== 'number' || budgetData.totalBudget <= 0) {
+        throw new Error('O valor do orçamento deve ser um número positivo');
+      }
+
       const budget = await roadmapBudgetService.createRoadmapBudget(uid, tripId, budgetData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento criado com sucesso, ID: ${budget.id}`);
       
       res.status(201).json({
         success: true,
         data: budget
       });
     } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao criar orçamento:`, error.message);
       res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Buscar orçamento com estatísticas
-   */
-  async getRoadmapBudgetWithStats(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      
-      const budget = await roadmapBudgetService.getRoadmapBudgetWithStats(uid, tripId);
-      
-      res.status(200).json({
-        success: true,
-        data: budget
-      });
-    } catch (error) {
-      res.status(404).json({
         success: false,
         message: error.message
       });
@@ -380,16 +355,63 @@ class RoadmapController {
   async updateRoadmapBudget(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId } = req.params;
+      const { tripId, budgetId } = req.params;
       const updateData = req.body;
       
-      const budget = await roadmapBudgetService.updateRoadmapBudget(uid, tripId, updateData);
+      console.log(`[ROADMAP BUDGET] Atualizando orçamento para tripId: ${tripId}, budgetId: ${budgetId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados de atualização:`, updateData);
+
+      // Validar se totalBudget é um número positivo
+      if (updateData.totalBudget !== undefined) {
+        if (typeof updateData.totalBudget !== 'number' || updateData.totalBudget <= 0) {
+          throw new Error('O valor do orçamento deve ser um número positivo');
+        }
+      }
+      
+      const budget = await roadmapBudgetService.updateRoadmapBudgetById(uid, tripId, budgetId, updateData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento atualizado com sucesso`);
       
       res.status(200).json({
         success: true,
         data: budget
       });
     } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao atualizar orçamento:`, error.message);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Criar ou atualizar orçamento (upsert)
+   */
+  async upsertRoadmapBudget(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId } = req.params;
+      const budgetData = req.body;
+      
+      console.log(`[ROADMAP BUDGET] Upsert orçamento para tripId: ${tripId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados recebidos:`, budgetData);
+
+      // Validar se totalBudget é um número positivo
+      if (!budgetData.totalBudget || typeof budgetData.totalBudget !== 'number' || budgetData.totalBudget <= 0) {
+        throw new Error('O valor do orçamento deve ser um número positivo');
+      }
+
+      const budget = await roadmapBudgetService.upsertRoadmapBudget(uid, tripId, budgetData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento upsert com sucesso, ID: ${budget.id}`);
+      
+      res.status(200).json({
+        success: true,
+        data: budget
+      });
+    } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao fazer upsert do orçamento:`, error.message);
       res.status(400).json({
         success: false,
         message: error.message
@@ -438,95 +460,6 @@ class RoadmapController {
       });
     } catch (error) {
       res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Atualizar item do checklist
-   */
-  async updateChecklistItem(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, checklistId } = req.params;
-      const itemData = req.body;
-      
-      const item = await roadmapChecklistService.updateChecklistItem(uid, tripId, checklistId, itemData);
-      
-      res.status(200).json({
-        success: true,
-        data: item
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Buscar estatísticas dos checklists
-   */
-  async getChecklistStats(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId } = req.params;
-      
-      const stats = await roadmapChecklistService.getChecklistStats(uid, tripId);
-      
-      res.status(200).json({
-        success: true,
-        data: stats
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Remover local não atribuído
-   */
-  async removeUnassignedPlace(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, placeId } = req.params;
-      
-      const result = await unassignedPlacesService.removeUnassignedPlace(uid, tripId, placeId);
-      
-      res.status(200).json({
-        success: true,
-        message: result.message
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * Buscar checklist específico
-   */
-  async getRoadmapChecklist(req, res) {
-    try {
-      const { uid } = req.user;
-      const { tripId, checklistId } = req.params;
-      
-      const checklist = await roadmapChecklistService.getRoadmapChecklist(uid, tripId, checklistId);
-      
-      res.status(200).json({
-        success: true,
-        data: checklist
-      });
-    } catch (error) {
-      res.status(404).json({
         success: false,
         message: error.message
       });
@@ -602,15 +535,106 @@ class RoadmapController {
   }
 
   /**
+   * Atualizar item do checklist
+   */
+  async updateChecklistItem(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, checklistId, itemId } = req.params;
+      const updateData = req.body;
+      
+      const item = await roadmapChecklistService.updateChecklistItem(uid, tripId, checklistId, { itemId, ...updateData });
+      
+      res.status(200).json({
+        success: true,
+        data: item
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Remover item do checklist
    */
   async removeChecklistItem(req, res) {
     try {
       const { uid } = req.user;
-      const { tripId, checklistId } = req.params;
-      const itemData = req.body;
+      const { tripId, checklistId, itemId } = req.params;
       
-      const result = await roadmapChecklistService.removeChecklistItem(uid, tripId, checklistId, itemData);
+      const result = await roadmapChecklistService.removeChecklistItem(uid, tripId, checklistId, { itemId });
+      
+      res.status(200).json({
+        success: true,
+        message: result.message
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  // ===== UNASSIGNED PLACES =====
+
+  /**
+   * Adicionar local não atribuído
+   */
+  async addUnassignedPlace(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId } = req.params;
+      const placeData = req.body;
+
+      const place = await unassignedPlacesService.addUnassignedPlace(uid, tripId, placeData);
+      
+      res.status(201).json({
+        success: true,
+        data: place
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Buscar locais não atribuídos
+   */
+  async getUnassignedPlaces(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId } = req.params;
+      
+      const places = await unassignedPlacesService.getUnassignedPlaces(uid, tripId);
+      
+      res.status(200).json({
+        success: true,
+        data: places
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Remover local não atribuído
+   */
+  async removeUnassignedPlace(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId, placeId } = req.params;
+      
+      const result = await unassignedPlacesService.removeUnassignedPlace(uid, tripId, placeId);
       
       res.status(200).json({
         success: true,

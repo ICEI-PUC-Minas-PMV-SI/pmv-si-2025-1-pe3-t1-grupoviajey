@@ -14,6 +14,7 @@ const favoritesRoutes = require('./features/favorites/favoritesRoutes');
 const reviewsRoutes = require('./features/reviews/reviewsRoutes');
 const sitePostsRoutes = require('./features/sitePosts/sitePostsRoutes');
 const usersRoutes = require('./features/users/usersRoutes');
+const authRoutes = require('./features/auth/authRoutes');
 
 // Rotas de integração externa (Google Places e Unsplash)
 const configRoutes = require('./service/googleConfigRoutes');
@@ -37,7 +38,7 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // limite de 100 requests por IP
+  max: 1000, // Aumentado para 1000 requests por IP
   message: {
     success: false,
     message: 'Muitas requisições. Tente novamente em alguns minutos.'
@@ -73,16 +74,12 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/posts', sitePostsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rotas de integração externa
 app.use('/api/config', configRoutes);
-app.use('/api/places', placesRoutes);
+app.use('/api/google', placesRoutes);
 app.use('/api/unsplash', unsplashRoutes);
-
-// Rota para fornecer a chave da API do Google Maps ao frontend
-app.get('/api/config', (req, res) => {
-  res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY });
-});
 
 // Middleware para rotas não encontradas
 app.use('*', (req, res) => {

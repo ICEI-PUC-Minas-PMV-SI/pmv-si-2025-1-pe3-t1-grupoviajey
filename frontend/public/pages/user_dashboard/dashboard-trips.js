@@ -1,55 +1,37 @@
 import { initCreateTripModal, openCreateTripModal } from '../../components/modal/create_trip/CreateTripModal.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 
 export async function initDashboardTrips() {
   await initCreateTripModal();
   await renderTrips();
 }
 
-//async function fetchUserTrips() {
-// Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
-// return fetch('/api/viagens').then(res => res.json());
-
-// Simulação de chamada ao backend (mock)
-//return [
-/*{
-  id: 1,
-  title: 'Viagem a Paris',
-  date: '2025-05-15/2025-05-25',
-  descricao: 'Uma viagem inesquecível pela capital francesa.',
-  isPast: false
-},
-{
-  id: 2,
-  title: 'Férias no Rio',
-  date: '2025-05-15/2025-05-25',
-  descricao: 'Aproveite as praias e o clima carioca.',
-  isPast: false
-},
-{
-  id: 3,
-  title: 'Viagem a Roma',
-  date: '2025-05-15/2025-05-25',
-  descricao: 'Uma viagem inesquecível pela capital italiana.',
-  isPast: true
-}
-*/
-//];
-//}
-
-export function renderTrips() {
+export async function renderTrips() {
   const el = document.getElementById('dashboard-trips');
   if (!el) return;
 
-  // Busca viagens do localStorage
-  const trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
+  try {
+    showLoading('Carregando viagens...');
+    
+    // Busca viagens do backend
+    const response = await apiService.getTrips();
+    console.log('Resposta completa do backend:', response);
+    
+    // Extrai os dados do campo 'data' da resposta
+    const trips = response.data || response;
+    console.log('Trips extraídos:', trips);
 
   el.innerHTML = `
     <div class="trips-list"></div>
   `;
 
   // Adicionar evento ao botão de criar viagem
-  document.getElementById('btn-create-trip').onclick = openCreateTripModal;
+    const createBtn = document.getElementById('btn-create-trip');
+    if (createBtn) {
+      createBtn.onclick = openCreateTripModal;
+    }
 
   const list = el.querySelector('.trips-list');
   if (!trips.length) {
@@ -61,11 +43,22 @@ export function renderTrips() {
     const card = createTripCard(trip);
     list.appendChild(card);
   });
+  } catch (error) {
+    console.error('Erro ao carregar viagens:', error);
+    showErrorToast('Erro ao carregar viagens. Tente novamente.');
+    el.innerHTML = '<p>Erro ao carregar viagens. Tente novamente.</p>';
+  } finally {
+    hideLoading();
+  }
 }
+
+// Tornar disponível globalmente para o modal
+window.renderTrips = renderTrips;
 
 function createTripCard(trip) {
   const card = document.createElement('div');
   card.className = 'trip-card';
+  
   // Extrai cidade, estado, país do destino (esperando string "cidade, estado, país")
   let city = '', state = '', country = '';
   if (trip.destination) {
@@ -94,10 +87,9 @@ function createTripCard(trip) {
     </div>
   `;
 
-  // Evento de clique para abrir o roadmap
+  // Evento de clique para abrir o roadmap, passando o ID na URL
   card.addEventListener('click', () => {
-    localStorage.setItem('selectedTripId', trip.id);
-    window.location.href = '/pages/user_roadmap/user-roadmap.html';
+    window.location.href = `/pages/user_roadmap/user-roadmap.html?tripId=${trip.id}`;
   });
 
   return card;
@@ -115,13 +107,47 @@ function formatTripPeriod(trip) {
   }
 }
 
-function deleteTrip(id) {
-  let trips = JSON.parse(localStorage.getItem('userTrips') || '[]');
-  trips = trips.filter(trip => trip.id !== id);
-  localStorage.setItem('userTrips', JSON.stringify(trips));
-  renderTrips();
+// Função para criar nova viagem (chamada pelo modal)
+export async function createTrip(tripData) {
+  try {
+    showLoading('Criando viagem...');
+    
+    const newTrip = await apiService.createTrip(tripData);
+    
+    showSuccessToast('Viagem criada com sucesso!');
+    
+    // Recarrega a lista
+    await renderTrips();
+    
+    return newTrip;
+  } catch (error) {
+    console.error('Erro ao criar viagem:', error);
+    showErrorToast('Erro ao criar viagem. Tente novamente.');
+    throw error;
+  } finally {
+    hideLoading();
+  }
+}
+
+async function deleteTrip(id) {
+  try {
+    showLoading('Excluindo viagem...');
+    
+    await apiService.deleteTrip(id);
+    
+    showSuccessToast('Viagem excluída com sucesso!');
+    
+    // Recarrega a lista
+    await renderTrips();
+  } catch (error) {
+    console.error('Erro ao excluir viagem:', error);
+    showErrorToast('Erro ao excluir viagem. Tente novamente.');
+  } finally {
+    hideLoading();
+  }
 }
 
 function editTrip(id) {
-  alert('Editar viagem (mock): ' + id);
+  // TODO: Implementar edição de viagem
+  alert('Editar viagem (funcionalidade em desenvolvimento): ' + id);
 } 

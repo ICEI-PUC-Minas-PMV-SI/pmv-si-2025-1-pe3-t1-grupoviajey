@@ -1,12 +1,3 @@
-import { includeSearchBar } from '../../js/utils/include.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-  includeSearchBar(() => {
-    // Só inicializa o JS da search-bar depois do HTML estar no DOM
-    import('../../components/search-bar/search-bar.js');
-  });
-});
-
 function initAutocomplete() {
   const input = document.getElementById('autocomplete');
   if (input && window.google && window.google.maps) {

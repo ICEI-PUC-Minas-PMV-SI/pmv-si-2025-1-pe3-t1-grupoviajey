@@ -1,6 +1,7 @@
 import { createResultCard } from '../../components/cards/result-card.js';
-import { userService } from '../../services/user/userService.js';
 import { getTrashSVG } from '../user_roadmap/roadmap-utils.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 
 export async function renderFavorites() {
   const favoritesSection = document.getElementById('dashboard-favorites');
@@ -9,8 +10,14 @@ export async function renderFavorites() {
   const grid = favoritesSection.querySelector('.results-grid');
   if (!grid) return;
 
+  try {
+    showLoading('Carregando favoritos...');
+
   grid.innerHTML = '';
-  const favs = userService.getFavorites();
+    
+    // Busca favoritos do backend e extrai do campo 'data'
+    const response = await apiService.getFavorites();
+    const favs = response.data || [];
 
   if (favs.length === 0) {
     grid.innerHTML = `
@@ -41,9 +48,13 @@ export async function renderFavorites() {
       favBtn.title = 'Remover dos favoritos';
       favBtn.classList.add('trash-btn');
       favBtn.classList.remove('favorite-btn', 'active');
-      favBtn.onclick = (e) => {
+        favBtn.onclick = async (e) => {
         e.stopPropagation();
-        userService.removeFromFavorites(fav.id);
+          
+          try {
+            await apiService.removeFavorite(fav.id);
+            
+            showSuccessToast('Removido dos favoritos');
 
         // Remove qualquer feedback antigo do DOM antes de mostrar o novo
         document.querySelectorAll('.favorite-feedback').forEach(el => el.remove());
@@ -67,7 +78,12 @@ export async function renderFavorites() {
           }, 300);
         }, 1800);
 
-        renderFavorites();
+            // Recarrega a lista
+            await renderFavorites();
+          } catch (error) {
+            console.error('Erro ao remover favorito:', error);
+            showErrorToast('Erro ao remover favorito. Tente novamente.');
+          }
       };
     }
 
@@ -84,29 +100,13 @@ export async function renderFavorites() {
 
     grid.appendChild(card);
   });
-}
-
-async function fetchUserFavorites() {
-  // Para integração real, descomente a linha abaixo e ajuste a rota da sua API:
-  // return fetch('/api/favoritos').then(res => res.json());
-  return [
-    {
-      image: '',
-      title: 'Museu do Amanhã',
-      rating: 4,
-      tags: ['Museu', 'Cultura'],
-      address: 'Praça Mauá, Rio de Janeiro',
-      favorite: true
-    },
-    {
-      image: '',
-      title: 'Cristo Redentor',
-      rating: 5,
-      tags: ['Ponto turístico'],
-      address: 'Alto da Boa Vista, Rio de Janeiro',
-      favorite: true
-    }
-  ];
+  } catch (error) {
+    console.error('Erro ao carregar favoritos:', error);
+    showErrorToast('Erro ao carregar favoritos. Tente novamente.');
+    grid.innerHTML = '<p>Erro ao carregar favoritos. Tente novamente.</p>';
+  } finally {
+    hideLoading();
+  }
 }
 
 // Troca de abas

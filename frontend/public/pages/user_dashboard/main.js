@@ -1,12 +1,12 @@
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { protectPage, startAuthMonitoring } from '../../js/utils/auth-protection.js';
-import './dashboard-tabs.js';
+import { initDashboardTabs } from './dashboard-tabs.js';
 import { initDashboardTrips } from './dashboard-trips.js';
 import { initDashboardEvents } from './dashboard-events.js';
 import { createFavoritesComponent } from '../../components/favorites/favorites.js';
 
 // Ponto de entrada da página
-document.addEventListener('DOMContentLoaded', async () => {
+export async function initDashboard() {
   console.log('Dashboard: Inicializando...');
 
   // Verificar autenticação e perfil válido
@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   includeSearchBar();
 
   // Inicializar funcionalidades
-  initDashboardTrips();
+  initDashboardTabs();
+  await initDashboardTrips();
 
   if (typeof initDashboardEvents === 'function') {
     initDashboardEvents();
@@ -31,4 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   startAuthMonitoring();
 
   console.log('Dashboard: Inicialização concluída');
-}); 
+}
+
+// Inicialização automática
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDashboard);
+} else {
+  initDashboard();
+} 

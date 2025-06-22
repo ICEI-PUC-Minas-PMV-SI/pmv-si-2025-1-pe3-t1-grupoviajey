@@ -1,82 +1,81 @@
 // Importações
-import { budgetStorage } from './roadmap-storage.js';
 import { formatCurrencyInput, formatCurrency } from './roadmap-utils.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 
 // =============================================
 // GESTÃO DE ORÇAMENTO
 // =============================================
 
+let currentTripId = null;
 let currentBudget = null;
 
-function loadBudgetFromStorage() {
+async function loadBudget() {
+  if (!currentTripId) return;
   try {
-    const budget = budgetStorage.load();
-    if (budget) {
-      const budgetInput = document.getElementById('budgetInput');
-      const budgetCurrency = document.getElementById('budgetCurrency');
-      if (budgetInput) {
-        budgetInput.value = formatCurrency(budget.total, budget.currency);
-      }
-      if (budgetCurrency) {
-        budgetCurrency.value = budget.currency || 'BRL';
-      }
-      currentBudget = budget;
+    console.log('[ROADMAP FINANCE] Carregando orçamento para tripId:', currentTripId);
+    const budget = await apiService.getRoadmapBudget(currentTripId);
+    if (budget && budget.success && budget.data) {
+      currentBudget = budget.data;
+      console.log('[ROADMAP FINANCE] Orçamento carregado:', currentBudget);
+      updateBudgetUI(currentBudget);
+    } else {
+      console.log('[ROADMAP FINANCE] Nenhum orçamento encontrado');
     }
   } catch (error) {
-    console.error('Error loading budget:', error);
+    console.error('[ROADMAP FINANCE] Erro ao carregar orçamento:', error);
+    // Não mostra toast aqui para não poluir a UI no carregamento inicial
   }
 }
 
-function getBudgetInfo() {
-  if (!currentBudget) return null;
-  const value = currentBudget.total;
-  const currency = currentBudget.currency;
-
-  let locale;
-  switch (currency) {
-    case 'USD':
-      locale = 'en-US';
-      break;
-    case 'EUR':
-      locale = 'de-DE';
-      break;
-    default:
-      locale = 'pt-BR';
-  }
-
-  return {
-    value: value,
-    text: value.toLocaleString(locale, {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2
-    })
-  };
+function updateBudgetUI(budget) {
+    const budgetInput = document.getElementById('budgetInput');
+    const budgetCurrency = document.getElementById('budgetCurrency');
+    if (budgetInput && budget.totalBudget) {
+        budgetInput.value = formatCurrency(budget.totalBudget, budget.currency);
+    }
+    if (budgetCurrency) {
+        budgetCurrency.value = budget.currency || 'BRL';
+    }
+    updateFinanceSummary();
 }
 
-function saveBudget(value, currency) {
+async function saveBudget(value, currency) {
+  if (!currentTripId) {
+    showErrorToast("ID da viagem não encontrado.");
+    return false;
+  }
+  
+  showLoading('Salvando orçamento...');
   try {
     const numericValue = parseCurrencyToNumber(value);
-    if (numericValue <= 0) {
-      throw new Error('Valor deve ser maior que zero');
-    }
+    if (numericValue <= 0) throw new Error('Valor do orçamento deve ser maior que zero.');
 
-    const budget = {
-      total: numericValue,
+    const budgetData = {
+      totalBudget: numericValue,
       currency: currency || 'BRL'
     };
 
-    const success = budgetStorage.save(budget);
-    if (!success) {
-      throw new Error('Failed to save budget');
-    }
+    console.log('[ROADMAP FINANCE] Salvando orçamento:', budgetData);
 
-    currentBudget = budget;
+    const response = await apiService.upsertRoadmapBudget(currentTripId, budgetData);
+
+    if (!response || !response.success) {
+      throw new Error(response.message || 'Falha ao salvar o orçamento.');
+    }
+    
+    showSuccessToast('Orçamento salvo!');
+    currentBudget = response.data;
+    console.log('[ROADMAP FINANCE] Orçamento salvo com sucesso:', currentBudget);
     updateFinanceSummary();
     return true;
+
   } catch (error) {
-    console.error('Error saving budget:', error);
+    console.error('[ROADMAP FINANCE] Erro ao salvar orçamento:', error);
+    showErrorToast(error.message || 'Não foi possível salvar o orçamento.');
     return false;
+  } finally {
+      hideLoading();
   }
 }
 
@@ -118,12 +117,11 @@ function updateFinanceSummary() {
   const totalSpent = expenses.reduce((a, b) => a + b, 0);
   spentValue.textContent = formatCurrency(totalSpent, currentBudget?.currency || 'BRL');
 
-  const budget = getBudgetInfo();
-  if (budget && budget.value > 0) {
+  if (currentBudget && currentBudget.totalBudget > 0) {
     budgetDiv.style.display = '';
-    budgetValue.textContent = budget.text;
+    budgetValue.textContent = formatCurrency(currentBudget.totalBudget, currentBudget.currency);
     availableDiv.style.display = '';
-    const available = budget.value - totalSpent;
+    const available = currentBudget.totalBudget - totalSpent;
     availableValue.textContent = formatCurrency(available, currentBudget.currency);
     availableValue.style.color = available >= 0 ? '#0a7c6a' : '#e05a47';
   } else {
@@ -198,7 +196,7 @@ function setupBudgetInput() {
     budgetInput.value = formatCurrencyInput(value, budgetCurrency.value);
   });
 
-  saveButton.addEventListener('click', () => {
+  saveButton.addEventListener('click', async () => {
     const value = String(budgetInput.value);
     const currency = budgetCurrency.value;
 
@@ -212,7 +210,8 @@ function setupBudgetInput() {
       return;
     }
 
-    if (saveBudget(value, currency)) {
+    const success = await saveBudget(value, currency);
+    if (success) {
       saveButton.textContent = 'Salvo!';
       saveButton.classList.add('success');
       updateFinanceSummary();
@@ -236,10 +235,16 @@ function setupBudgetInput() {
 // INICIALIZAÇÃO
 // =============================================
 
-function init() {
-  loadBudgetFromStorage();
+export async function init(tripId) {
+  currentTripId = tripId;
+  if (!currentTripId) {
+    console.error("Finance module initialized without tripId.");
+    return;
+  }
+  
   setupBudgetInput();
-  setTimeout(updateFinanceSummary, 200);
+  await loadBudget();
+  updateFinanceSummary();
 }
 
 // =============================================
@@ -247,9 +252,7 @@ function init() {
 // =============================================
 
 export {
-  init,
   updateFinanceSummary,
-  getBudgetInfo,
   saveBudget,
   currentBudget,
   parseCurrencyToNumber

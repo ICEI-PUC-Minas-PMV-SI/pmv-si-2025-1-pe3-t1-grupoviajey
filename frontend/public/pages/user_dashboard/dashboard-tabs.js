@@ -2,72 +2,7 @@ import { renderFavorites } from './dashboard-favorites.js';
 import { renderTrips } from './dashboard-trips.js';
 import { renderReviews } from './dashboard-reviews.js';
 
-// Inicializa dados mockados no localStorage se não existirem
-function initMockData() {
-  if (!localStorage.getItem('userTrips')) {
-    localStorage.setItem('userTrips', JSON.stringify([
-      {
-        id: 1,
-        title: 'Viagem a Paris',
-        date: '2025-05-15/2025-05-25',
-        descricao: 'Uma viagem inesquecível pela capital francesa.',
-        isPast: false
-      },
-      {
-        id: 2,
-        title: 'Férias no Rio',
-        date: '2025-05-15/2025-05-25',
-        descricao: 'Aproveite as praias e o clima carioca.',
-        isPast: false
-      }
-    ]));
-  }
-
-  if (!localStorage.getItem('userReviews')) {
-    localStorage.setItem('userReviews', JSON.stringify([
-      {
-        id: 1,
-        place: 'Museu do Amanhã',
-        rating: 4,
-        comment: 'Museu incrível com exposições interativas!'
-      },
-      {
-        id: 2,
-        place: 'Cristo Redentor',
-        rating: 5,
-        comment: 'Vista deslumbrante da cidade!'
-      },
-      {
-        id: 3,
-        place: 'Pão de Açúcar',
-        rating: 5,
-        comment: 'Visual maravilhoso do Rio!'
-      },
-      {
-        id: 4,
-        place: 'Jardim Botânico',
-        rating: 4,
-        comment: 'Natureza exuberante e muito bem cuidado.'
-      },
-      {
-        id: 5,
-        place: 'Praia de Copacabana',
-        rating: 4,
-        comment: 'Ótima praia para passear e relaxar.'
-      },
-      {
-        id: 6,
-        place: 'Maracanã',
-        rating: 5,
-        comment: 'Estádio histórico, vale a visita!'
-      }
-    ]));
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  initMockData();
-
+export function initDashboardTabs() {
   const tabs = document.querySelectorAll('.dashboard-tabs [data-tab]');
   const contentIds = {
     trips: 'dashboard-trips',
@@ -100,4 +35,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Exibe a primeira aba por padrão
   showTab('trips');
   tabs[0].classList.add('active');
-}); 
+} 

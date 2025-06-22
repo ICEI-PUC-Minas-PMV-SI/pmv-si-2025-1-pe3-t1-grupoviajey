@@ -1,6 +1,6 @@
 // Configuração do Firebase para o frontend
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Configuração do Firebase 
 const firebaseConfig = {
@@ -70,12 +70,52 @@ export async function createUser(email, password) {
   }
 }
 
-// Função para fazer logout
+// Função para enviar email de recuperação de senha
+export async function sendPasswordReset(email) {
+  const actionCodeSettings = {
+    // URL para a qual o usuário será redirecionado após redefinir a senha.
+    // O domínio (ex: localhost, seu-site.com) deve estar na lista de permissões do Firebase Console.
+    url: `${window.location.origin}/pages/login-usuario/login.html`,
+    // O Firebase cuidará da página de redefinição de senha.
+    handleCodeInApp: false
+  };
+
+  try {
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao enviar email de recuperação:', error);
+    return {
+      success: false,
+      error: error.message,
+      code: error.code
+    };
+  }
+}
+
+// Função para fazer logout completo
 export async function logoutUser() {
   try {
+    // Fazer logout do Firebase Auth
     await signOut(auth);
+    
+    // Limpar localStorage
     localStorage.removeItem('authToken');
     localStorage.removeItem('userUid');
+    localStorage.removeItem('userProfile');
+    
+    // Opcionalmente chamar logout no backend
+    try {
+      const { apiService } = await import('../../services/api/apiService.js');
+      await apiService.logout();
+    } catch (error) {
+      console.warn('Erro ao fazer logout no backend:', error);
+      // Não falhar se o logout do backend der erro
+    }
+    
+    // Redirecionar para login
+    window.location.href = '/pages/login-usuario/login.html';
+    
     return { success: true };
   } catch (error) {
     console.error('Erro no logout:', error);
@@ -94,6 +134,31 @@ export function getAuthToken() {
 // Função para verificar se usuário está logado
 export function isUserLoggedIn() {
   return !!getAuthToken();
+}
+
+// Função para verificar autenticação e redirecionar se necessário
+export async function checkAuthAndRedirect() {
+  const token = getAuthToken();
+  if (!token) {
+    window.location.href = '/pages/login-usuario/login.html';
+    return false;
+  }
+  
+  try {
+    const { apiService } = await import('../../services/api/apiService.js');
+    await apiService.verifyToken();
+    return true;
+  } catch (error) {
+    console.error('Token inválido:', error);
+    // Limpar dados inválidos
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userUid');
+    localStorage.removeItem('userProfile');
+    
+    // Redirecionar para login
+    window.location.href = '/pages/login-usuario/login.html';
+    return false;
+  }
 }
 
 // Listener para mudanças no estado de autenticação

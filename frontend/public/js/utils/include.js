@@ -1,28 +1,35 @@
 // include.js
 import { loadGoogleMapsScript } from '../core/map/loader.js';
 
-// Função genérica para incluir HTML em um elemento
-export function includeHTML(id, file, callback) {
-  fetch(file)
-    .then(response => response.text())
-    .then(data => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.innerHTML = data;
-        // Executa scripts externos encontrados no HTML incluído
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = data;
-        const scripts = tempDiv.querySelectorAll('script[src]');
-        scripts.forEach(scriptTag => {
-          const script = document.createElement('script');
-          script.src = scriptTag.src;
-          script.defer = scriptTag.defer || false;
-          script.type = scriptTag.type || 'text/javascript';
-          document.body.appendChild(script);
-        });
-        if (typeof callback === 'function') callback();
-      }
-    });
+// Função genérica para incluir HTML em um elemento, agora baseada em Promises
+export function includeHTML(id, file) {
+  return new Promise((resolve, reject) => {
+    fetch(file)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Falha ao carregar ${file}: ${response.statusText}`);
+        }
+        return response.text();
+      })
+      .then(data => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = data;
+          // Executa scripts inline, se houver
+          const scripts = el.querySelectorAll('script');
+          scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+          resolve(); // Resolve a promessa após o conteúdo ser inserido
+        } else {
+          reject(new Error(`Elemento com id '${id}' não encontrado.`));
+        }
+      })
+      .catch(error => reject(error));
+  });
 }
 
 // Função para incluir a search bar
@@ -43,19 +50,19 @@ export function includeSearchBar(callback) {
   }
 }
 
-// Funções para incluir header/footer/modal, se quiser padronizar
+// Funções para incluir header/footer/modal, agora retornam a Promise de includeHTML
 export function includeHeader() {
-  includeHTML('header', '/components/header/header.html', function () {
+  return includeHTML('header', '/components/header/header.html').then(() => {
+    // Após o HTML do header ser carregado, adicionamos seu JS
     const script = document.createElement('script');
     script.src = '/components/header/header.js';
     script.type = 'module';
-    script.defer = true;
     document.body.appendChild(script);
   });
 }
 
 export function includeFooter() {
-  includeHTML('footer', '/components/footer/footer.html');
+  return includeHTML('footer', '/components/footer/footer.html');
 }
 
 export function includePlaceDetailsModal() {

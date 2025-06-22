@@ -13,29 +13,23 @@ function extractCity(destination) {
 
 export async function searchDestinationImage(destination) {
     try {
-        const city = extractCity(destination);
-        const response = await fetch(
-            `/api/unsplash/search?destination=${encodeURIComponent(city)}`,
-            {
-                method: 'GET'
-            }
-        );
-        if (!response.ok) throw new Error('Erro ao buscar imagem');
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-            // Filtra só landscape real e retorna array de objetos
-            return data.results
-                .filter(img => img.width / img.height >= 1.3)
-                .map(img => ({
-                    url: img.urls.regular,
-                    thumb: img.urls.thumb,
-                    photographer: img.user.name,
-                    photographerLink: img.user.links.html
-                }));
+        const city = destination.split(',')[0].trim();
+        
+        const response = await fetch(`/api/unsplash/search?destination=${encodeURIComponent(city)}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao buscar imagem no servidor');
         }
+        
+        const data = await response.json();
+
+        if (data.success && data.data.length > 0) {
+            return data.data; // O backend já retorna o formato correto
+        }
+        
         return [];
-    } catch (err) {gggg
-        console.error(err);
-        return [];
+    } catch (err) {
+        console.error('Erro na chamada da API do Unsplash:', err);
+        return []; // Retorna um array vazio em caso de erro
     }
 }

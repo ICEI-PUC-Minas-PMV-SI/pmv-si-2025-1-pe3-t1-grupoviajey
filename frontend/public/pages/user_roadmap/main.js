@@ -1,16 +1,16 @@
 //Ponto de entrada, orquestra os outros módulos
 
-import { createLocalCard, createNoteDiv, createExpenseDiv } from './roadmap-core.js';
-import { getTrashSVG, getDragHandleSVG, formatCurrencyInput, formatCurrency, getCurrencyLocale, attachNoteActions, attachExpenseActions, formatTripPeriod, parseDate } from './roadmap-utils.js';
+import { createLocalCard, createNoteDiv, createExpenseDiv, createDaySection } from './roadmap-core.js';
+import { getTrashSVG, getDragHandleSVG, formatCurrencyInput, formatCurrency, getCurrencyLocale, attachNoteActions, attachExpenseActions, formatTripPeriod, parseDate, attachLocalCardActions } from './roadmap-utils.js';
 import { includeHeader, includeFooter, includeSearchBar } from '../../js/utils/include.js';
 import { formatShortDateRange } from '../../js/utils/date.js';
 import { searchDestinationImage } from '../../services/api/unsplash.js';
 import { initMultiChecklists, setupAddChecklistBlockBtn } from './roadmap-checklist.js';
 import { init as initFinance } from './roadmap-finance.js';
 import { initRoadmapMap, updateMap, initializeGoogleMapsAutocomplete } from './roadmap-map.js';
-import { roadmapStorage, handleAddToSavedPlaces, saveSavedPlacesToStorage, loadSavedPlacesFromStorage, renderSavedPlacesTab, initSavedPlaces, loadCurrentTripData } from './roadmap-storage.js';
-import { createDaysFromStorage, loadRoadmapFromStorage, saveRoadmapToStorage, handleAddToTimeline, createTimeline, getPlaceData } from './roadmap-core.js';
+import { apiService } from '../../services/api/apiService.js';
 import { attachRoadmapEventListeners, handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd, addDnDHandlers, handleLocalCardDragStart, handleLocalCardDragOver, handleLocalCardDragLeave, handleLocalCardDrop, handleLocalCardDragEnd, handleDayContentDragOver, handleDayContentDrop, handleDayContentDragLeave, addLocalCardDnDHandlers, addDayContentDnDHandlers, handleDayHeaderDragOver, addDayHeaderDnDHandlers, initLocalCardDnD, initEventListeners } from './roadmap-events.js';
+import { showLoading, hideLoading, showErrorToast } from '../../js/utils/ui-utils.js';
 // import { fetchUserTrips } from '../../services/api/roadmapService.js'; // [BACKEND FUTURO]
 
 // Importa funções dos modais
@@ -26,153 +26,244 @@ import {
   closeAddPlaceModal
 } from './roadmap-modals.js';
 
+// Estado global da aplicação
+let currentTrip = null;
+let roadmapData = null;
+let allPlaces = []; // Armazena todos os locais para o mapa
+
 // =============================================
 // DOM CONTENT LOADED INITIALIZATION
 // =============================================
 document.addEventListener('DOMContentLoaded', async () => {
+  showLoading('Carregando sua viagem...');
   try {
-    // 1. Inicializa componentes básicos
-    await Promise.all([
-      includeHeader(),
-      includeFooter(),
-      includeSearchBar()
-    ]);
+    // 1. Inicializa componentes básicos de UI (removido includeSearchBar)
+    await Promise.all([includeHeader(), includeFooter()]);
 
-    // Adiciona listener para o evento de atualização dos markers
-    window.addEventListener('markersUpdated', () => {
-      console.log('Markers atualizados, anexando eventos de hover...');
-      setTimeout(attachHoverEvents, 500);
-    });
-
-    // 2. Carrega dados da viagem atual
-    const trip = loadCurrentTripData();
-    if (!trip) {
-      window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    // 2. Carrega todos os dados necessários da página
+    const data = await loadRoadmapPageData();
+    if (!data) {
+      showErrorToast("Não foi possível carregar os dados da viagem.");
+      // Opcional: redirecionar ou mostrar mensagem de erro permanente
+      document.getElementById('roadmap-content').innerHTML = '<p class="error-message">Erro fatal ao carregar a viagem. Tente voltar para o seu <a href="/pages/user_dashboard/user-dashboard.html">dashboard</a>.</p>';
       return;
     }
+    currentTrip = data.trip;
+    roadmapData = data.roadmap;
 
-    // 3. Renderiza dados básicos da viagem
-    renderTripData(trip);
+    // 3. Renderiza a página com os dados carregados
+    renderTripData(currentTrip);
+    initRoadmapStructure(currentTrip, roadmapData);
+    
+    // 4. Inicializa módulos restantes
+    await initModules(currentTrip, roadmapData);
 
-    // 4. Inicializa estrutura do roteiro
-    initRoadmapStructure(trip);
-
-    // 5. Inicializa módulos específicos (inclui o mapa)
-    await initModules(trip);
-
-    // 6. Carrega e atualiza o mapa com os locais salvos
-    const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
-    if (roadmap && Array.isArray(roadmap.days)) {
-      const allPlaces = roadmap.days
-        .flatMap(day => day.places)
-        .filter(p => p.lat && p.lng)
-        .map(p => ({
-          ...p,
-          latitude: Number(p.lat),
-          longitude: Number(p.lng),
-          key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
-          types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-        }));
-
-      if (typeof updateMap === 'function' && allPlaces.length > 0) {
-        console.log('Atualizando mapa com locais:', allPlaces);
-        updateMap(allPlaces);
-      }
-    }
   } catch (error) {
-    console.error('Erro ao inicializar a página:', error);
-    // TODO: Adicionar feedback visual para o usuário
+    console.error('Erro ao inicializar a página de roteiro:', error);
+    showErrorToast('Ocorreu um erro inesperado.');
+  } finally {
+    hideLoading();
   }
 });
 
-function renderTripData(trip) {
-  if (document.getElementById('trip-title')) {
-    document.getElementById('trip-title').textContent = trip.title;
-  }
-  if (document.getElementById('tripNameBanner')) {
-    document.getElementById('tripNameBanner').textContent = trip.tripName || trip.title;
-  }
-  if (document.getElementById('tripDestinationBanner')) {
-    document.getElementById('tripDestinationBanner').textContent = trip.tripDestination || trip.destination;
-  }
-  if (document.getElementById('tripDateBanner')) {
-    const start = trip.tripStartDate || trip.startDate;
-    const end = trip.tripEndDate || trip.endDate;
-    document.getElementById('tripDateBanner').textContent = formatTripPeriod(start, end);
-  }
-  if (trip.photo && document.getElementById('cover-img')) {
-    document.getElementById('cover-img').src = trip.photo;
-  }
-  if (trip.tripDescription && document.getElementById('tripDescriptionBanner')) {
-    document.getElementById('tripDescriptionBanner').textContent = trip.tripDescription || trip.description;
-  }
-}
+// =============================================
+// FUNÇÕES DE CARREGAMENTO DE DADOS
+// =============================================
 
-function initRoadmapStructure(trip) {
-  // Cria os dias do roteiro baseado nas datas da viagem
-  const start = trip.tripStartDate || trip.startDate;
-  const end = trip.tripEndDate || trip.endDate;
-  if (start && end) {
-    createDaysFromStorage(start, end);
+async function loadRoadmapPageData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get('tripId');
+
+  if (!tripId) {
+    console.error("Nenhum ID de viagem encontrado na URL.");
+    window.location.href = '/pages/user_dashboard/user-dashboard.html';
+    return null;
   }
 
-  // Carrega os dados salvos do roteiro
-  loadRoadmapFromStorage();
-}
-
-async function initModules(trip) {
   try {
-    // 1. Inicializa o mapa com o destino correto
-    console.log('[DEBUG] Inicializando mapa com destino:', trip.destination);
-    const map = await initRoadmapMap(trip.destination);
-    if (!map) {
-      console.error('[DEBUG] Falha ao inicializar mapa');
-    } else {
-      console.log('[DEBUG] Mapa inicializado com sucesso');
-      // Atualiza o mapa com os lugares salvos
-      const savedPlaces = loadSavedPlacesFromStorage();
-      if (savedPlaces && savedPlaces.length > 0) {
-        updateMap(savedPlaces);
-        // Garante que os eventos de hover são anexados após atualizar o mapa
-        setTimeout(attachHoverEvents, 500);
-      }
+    // Faz as chamadas em paralelo para otimizar
+    const [tripResponse, roadmapResponse] = await Promise.all([
+      apiService.getTrip(tripId),
+      apiService.getRoadmapWithStats(tripId)
+    ]);
+
+    console.log('Trip response:', tripResponse);
+    console.log('Roadmap response:', roadmapResponse);
+
+    if (!tripResponse.success || !roadmapResponse.success) {
+      console.error("Falha ao buscar dados da API:", { tripResponse, roadmapResponse });
+      return null;
     }
 
-    // 2. Inicializa storage e locais salvos
-    initSavedPlaces();
+    const data = { trip: tripResponse.data, roadmap: roadmapResponse.data };
+    console.log('Dados carregados:', data);
+    console.log('TripDays:', data.roadmap.tripDays);
 
-    // 3. Inicializa checklists
-    console.log('[Checklist] Verificando container de checklists');
-    const checklistContainer = document.getElementById('checklistsContainer');
-    if (checklistContainer) {
-      console.log('[Checklist] Container encontrado, inicializando...');
-      initMultiChecklists();
-      setupAddChecklistBlockBtn();
-    } else {
-      console.error('[Checklist] Container não encontrado');
-    }
-
-    // 4. Inicializa finanças
-    initFinance();
-
-    // 5. Inicializa modais
-    initModals();
-
-    // 6. Configura eventos específicos (incluindo o botão de adicionar local)
-    setupSpecificEventListeners();
-
-    // 7. Inicializa eventos gerais
-    attachRoadmapEventListeners();
-    initEventListeners();
-
-    // 8. Inicializa Google Maps Autocomplete
-    await initializeGoogleMapsAutocomplete('autocomplete');
+    return data;
 
   } catch (error) {
-    console.error('Erro ao inicializar módulos:', error);
-    throw error;
+    console.error('Erro ao carregar dados para a página do roteiro:', error);
+    return null;
   }
 }
+
+// =============================================
+// FUNÇÕES DE RENDERIZAÇÃO
+// =============================================
+
+function renderTripData(trip) {
+  document.getElementById('tripNameBanner').textContent = trip.title;
+  document.getElementById('tripDestinationBanner').textContent = trip.destination;
+  document.getElementById('tripDateBanner').textContent = formatTripPeriod(trip.startDate, trip.endDate);
+  if (trip.photo) {
+    document.getElementById('cover-img').src = trip.photo;
+  }
+  if (trip.description) {
+    document.getElementById('tripDescriptionBanner').textContent = trip.description;
+  }
+}
+
+function initRoadmapStructure(trip, roadmap) {
+  // 1. Limpa o array de locais antes de preencher
+  allPlaces = [];
+
+  // 2. Renderiza locais não atribuídos
+  if (roadmap.unassignedPlaces) {
+    renderUnassignedPlaces(roadmap.unassignedPlaces);
+  }
+
+  // 3. Renderiza os dias e os locais dentro de cada dia
+  if (roadmap.tripDays) {
+    renderTripDays(roadmap.tripDays);
+  }
+}
+
+function renderUnassignedPlaces(places) {
+  const container = document.getElementById('savedPlacesList');
+  if (!container) return;
+
+  container.innerHTML = '';
+  if (!places || places.length === 0) {
+    container.innerHTML = '<p class="empty-saved-places-msg">Arraste locais do mapa aqui para salvá-los!</p>';
+    return;
+  }
+
+  places.forEach((place) => {
+    const card = createLocalCard(place);
+    container.appendChild(card);
+    attachLocalCardActions(card, null); // null para dayId
+    allPlaces.push(place);
+  });
+}
+
+function renderTripDays(tripDays) {
+    console.log('renderTripDays - tripDays recebidos:', tripDays);
+    
+    const daysContainer = document.getElementById('daysContainer');
+    if (!daysContainer) {
+        console.error("Container de dias 'daysContainer' não encontrado!");
+        return;
+    }
+    daysContainer.innerHTML = ''; // Limpa o container antes de renderizar
+
+    // Ordena os dias por data para garantir a ordem cronológica
+    tripDays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    tripDays.forEach(day => {
+        console.log(`Renderizando dia ${day.id} (${day.date}):`, day);
+        
+        // 1. Cria a seção do dia (acordeão) com o ID e data corretos
+        const daySection = createDaySection(new Date(day.date.replace(/-/g, '\/')), day.date, day.id);
+        daysContainer.appendChild(daySection);
+        
+        // 2. Encontra o container da timeline dentro da seção recém-criada
+        const dayTimeline = daySection.querySelector('.day-timeline');
+
+        if (dayTimeline) {
+            dayTimeline.innerHTML = '<div class="timeline-line"></div>'; // Limpa para garantir
+            
+            // CORREÇÃO: Usar 'places' em vez de 'tripPlaces' (conforme retornado pelo backend)
+            const places = day.places || [];
+            console.log(`Dia ${day.id} tem ${places.length} locais:`, places);
+            
+            if (places.length > 0) {
+                places.forEach(place => {
+                    console.log('Criando card para local:', place);
+                    const card = createLocalCard(place);
+                    dayTimeline.appendChild(card);
+                    attachLocalCardActions(card, day.id);
+
+                    // Renderiza as despesas existentes para este local
+                    if (place.expenses && place.expenses.length > 0) {
+                      place.expenses.forEach(expense => {
+                        const expenseDiv = createExpenseDiv(expense.name, expense.value, expense.currency);
+                        expenseDiv.dataset.expenseId = expense.id; // Atribui o ID da despesa!
+                        dayTimeline.appendChild(expenseDiv);
+                        attachExpenseActions(expenseDiv, card); // Anexa as ações de editar/excluir
+                      });
+                    }
+                    
+                    allPlaces.push(place);
+                });
+            } else {
+                dayTimeline.innerHTML += '<p class="empty-day-msg">Nenhum local adicionado para este dia.</p>';
+            }
+        }
+    });
+    
+    console.log('Total de locais para o mapa:', allPlaces.length);
+}
+
+// =============================================
+// FUNÇÕES DE INICIALIZAÇÃO DE MÓDULOS
+// =============================================
+
+async function initModules(trip, roadmap) {
+  try {
+    // 1. Inicializa o mapa com o destino e os marcadores
+    const map = await initRoadmapMap(trip.destination);
+    if (map) {
+      updateMap(allPlaces); // Atualiza o mapa com todos os locais
+      initializeGoogleMapsAutocomplete(map);
+    } else {
+        console.error('Falha ao inicializar o mapa. Autocomplete e outras funções dependentes podem não funcionar.');
+    }
+
+    // 2. Inicializa os modais e seus eventos
+    initModals();
+
+    // 3. Inicializa os ouvintes de eventos globais
+    initEventListeners();
+
+    // 4. Inicializa o módulo financeiro com o ID da viagem
+    initFinance(trip.id);
+
+    // 5. Inicializa os checklists
+    initMultiChecklists();
+    setupAddChecklistBlockBtn();
+
+    // 6. Inicializa drag-and-drop e eventos dos cards
+    initLocalCardDnD();
+    attachRoadmapEventListeners();
+
+    // 7. Configura eventos específicos
+    setupSpecificEventListeners();
+
+    // 8. Log final para confirmar carregamento
+    console.log('✅ Roadmap carregado com sucesso!');
+    console.log(`📊 Resumo: ${roadmap.tripDays?.length || 0} dias, ${allPlaces.length} locais no mapa`);
+    console.log('🎯 Cards criados:', document.querySelectorAll('.local-card').length);
+    console.log('🗺️ Mapa atualizado com marcadores');
+
+  } catch (error) {
+    console.error("Erro na inicialização dos módulos:", error);
+    showErrorToast("Erro ao carregar componentes da página.");
+  }
+}
+
+// =============================================
+// FUNÇÕES AUXILIARES
+// =============================================
 
 function setupSpecificEventListeners() {
   // Listener para o botão '+ Adicionar local' na tab de locais salvos
@@ -296,13 +387,17 @@ function attachHoverEvents() {
         }
       };
 
-      // Armazena referências aos handlers
+      // Armazena referências para remoção posterior
       card._mouseEnterHandler = mouseEnterHandler;
       card._mouseLeaveHandler = mouseLeaveHandler;
 
-      // Adiciona os novos eventos
+      // Adiciona os eventos
       card.addEventListener('mouseenter', mouseEnterHandler);
       card.addEventListener('mouseleave', mouseLeaveHandler);
     }
   });
 }
+
+// Não há mais necessidade de exportar essas variáveis ou funções
+// A comunicação agora é via API e eventos.
+

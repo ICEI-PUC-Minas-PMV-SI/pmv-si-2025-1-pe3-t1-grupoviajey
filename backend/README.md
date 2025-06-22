@@ -49,6 +49,160 @@ Backend para o sistema de planejamento de viagens Viajey, construído com Node.j
 
 ## Endpoints da API
 
+### 🔑 Autenticação
+
+#### POST /api/auth/signup
+Cadastra um novo usuário no sistema.
+
+**Payload:**
+```json
+{
+  "firstName": "João",
+  "lastName": "Silva",
+  "email": "joao@email.com",
+  "password": "senha123",
+  "cpfCnpj": "12345678901",
+  "userType": "traveler"
+}
+```
+
+**Resposta (201):**
+```json
+{
+  "success": true,
+  "message": "Usuário criado com sucesso",
+  "data": {
+    "uid": "user123",
+    "email": "joao@email.com",
+    "customToken": "eyJhbGciOiJSUzI1NiIs..."
+  }
+}
+```
+
+#### GET /api/auth/verify
+Verifica se o token de autenticação é válido.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta (200):**
+```json
+{
+  "success": true,
+  "message": "Token válido",
+  "data": {
+    "uid": "user123",
+    "email": "joao@email.com",
+    "userType": "traveler"
+  }
+}
+```
+
+#### POST /api/auth/forgot-password
+Solicita recuperação de senha.
+
+**Payload:**
+```json
+{
+  "email": "joao@email.com"
+}
+```
+
+**Resposta (200):**
+```json
+{
+  "success": true,
+  "message": "Se o email estiver cadastrado, um link de redefinição foi enviado",
+  "data": {
+    "resetLink": "https://viajey-db.firebaseapp.com/__/auth/action..."
+  }
+}
+```
+
+#### POST /api/auth/logout
+Realiza logout do usuário (revoga tokens).
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta (200):**
+```json
+{
+  "success": true,
+  "message": "Logout realizado com sucesso"
+}
+```
+
+### 👤 Perfil do Usuário
+
+#### GET /api/users/me
+Busca o perfil do usuário autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Resposta (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "firstName": "João",
+    "lastName": "Silva",
+    "email": "joao@email.com",
+    "cpfCnpj": "12345678901",
+    "userType": "traveler",
+    "avatarUrl": "",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### PUT /api/users/me
+Atualiza o perfil do usuário autenticado.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Payload:**
+```json
+{
+  "firstName": "João",
+  "lastName": "Silva",
+  "email": "joao@email.com",
+  "cpfCnpj": "12345678901",
+  "userType": "traveler",
+  "avatarUrl": "https://example.com/avatar.jpg"
+}
+```
+
+**Resposta (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "firstName": "João",
+    "lastName": "Silva",
+    "email": "joao@email.com",
+    "cpfCnpj": "12345678901",
+    "userType": "traveler",
+    "avatarUrl": "https://example.com/avatar.jpg",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
 ### Trips
 - `GET /api/trips` - Listar viagens do usuário (owner + collaborator)
 - `POST /api/trips` - Criar nova viagem
@@ -71,10 +225,45 @@ Backend para o sistema de planejamento de viagens Viajey, construído com Node.j
 - `DELETE /api/roadmap/trips/:tripId/tripDays/:dayId` - Deletar dia
 
 ### Trip Places (Locais do roteiro)
-- `POST /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces` - Adicionar local ao dia
 - `DELETE /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces/:placeId` - Remover local
 - **Não existe endpoint de atualização (PUT/PATCH) para locais do roteiro.**
 - **Atenção:** Os dados dos locais (nome, endereço, etc.) não são atualizados pelo backend. Apenas dados personalizados do usuário podem ser armazenados (ex: notas, gastos, ordem, horários).
+
+#### POST /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces
+Adiciona um novo local a um dia específico do roteiro.
+
+**Payload:**
+```json
+{
+  "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+  "name": "Sydney Opera House",
+  "address": "Bennelong Point, Sydney NSW 2000, Australia",
+  "latitude": -33.8567844,
+  "longitude": 151.2152967,
+  "rating": 4.7,
+  "photo": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=...",
+  "types": ["point_of_interest", "establishment"],
+  "order": 0
+}
+```
+
+**Resposta (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "generatedPlaceId",
+    "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4",
+    "name": "Sydney Opera House",
+    // ... todos os outros campos do payload
+    "createdAt": "2024-05-22T18:00:00.000Z",
+    "updatedAt": "2024-05-22T18:00:00.000Z"
+  }
+}
+```
+
+#### DELETE /api/roadmap/trips/:tripId/tripDays/:dayId/tripPlaces/:placeId
+Remove um local de um dia específico do roteiro.
 
 ### Unassigned Places (Locais não atribuídos)
 - `GET /api/roadmap/trips/:tripId/unassignedPlaces` - Listar locais não atribuídos
@@ -117,10 +306,6 @@ Backend para o sistema de planejamento de viagens Viajey, construído com Node.j
 - `DELETE /api/posts/:postId` - Deletar post (admin/author)
 - `POST /api/posts/:postId/approve` - Aprovar post (admin)
 - `POST /api/posts/:postId/reject` - Rejeitar post (admin)
-
-### Users
-- `GET /api/users/me` - Buscar perfil do usuário autenticado
-- `PUT /api/users/me` - Atualizar perfil do usuário autenticado
 
 ## 🚀 Instalação e Execução
 

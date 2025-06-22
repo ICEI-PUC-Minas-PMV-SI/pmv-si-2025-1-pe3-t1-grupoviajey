@@ -1,43 +1,12 @@
 import { formatShortDateRange } from '../../js/utils/date.js';
+import { apiService } from '../../services/api/apiService.js';
+import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 import { updateFinanceSummary, parseCurrencyToNumber } from './roadmap-finance.js';
-import { saveRoadmapToStorage } from './roadmap-core.js';
 import { setupCardHoverEvents } from './roadmap-map.js';
 
 // =============================================
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
-
-export function createLocalCard({ name, address, rating, img, key, placeName, placeAddress, placeRating, lat, lng, geometry }) {
-  // rating pode ser string ("★★★☆☆") ou número
-  let ratingHtml = '';
-  // Prioriza rating numérico
-  const ratingNumber = typeof rating === 'number' ? rating : (typeof placeRating === 'number' ? placeRating : null);
-  if (ratingNumber) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${getStarsHtml(ratingNumber)}</span></div>`;
-  } else if (rating) {
-    ratingHtml = `<div class="local-rating"><span class="stars">${rating}</span></div>`;
-  }
-  const card = document.createElement('div');
-  card.className = 'local-card';
-  card.innerHTML = `
-    ${getDragHandleSVG()}
-    <button class="remove-place-btn" title="Remover local">
-      ${getTrashSVG()}
-    </button>
-    <div class="local-img">${img ? `<img src="${img}" alt="Imagem do local" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : ''}</div>
-    <div class="local-info">
-      <div class="local-title">${name || placeName || ''}</div>
-      <div class="local-address">${address || placeAddress || ''}</div>
-      ${ratingHtml}
-      <div class="local-actions">
-        <button class="local-note-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M4 4h12v12H4z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M6 8h8M6 12h5" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Anotação</button>
-        <button class="local-expense-btn"><svg width="16" height="16" viewBox="0 0 20 20"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h9A2.5 2.5 0 0 1 17 6.5v7A2.5 2.5 0 0 1 14.5 16h-9A2.5 2.5 0 0 1 3 13.5v-7Z" fill="none" stroke="#0a7c6a" stroke-width="1.5"/><path d="M7 10h6M10 8v4" stroke="#0a7c6a" stroke-width="1.2" stroke-linecap="round"/></svg> + Gastos</button>
-      </div>
-    </div>
-  `;
-  card.dataset.key = key || name || address || (lat + ',' + lng);
-  return card;
-}
 
 export function createChecklistItem(text) {
   const li = document.createElement('li');
@@ -106,10 +75,14 @@ export function createNoteDiv(value) {
 export function createExpenseDiv(expenseName, value, currency) {
   const expenseDiv = document.createElement('div');
   expenseDiv.className = 'timeline-expense';
-  let label = value + ' ' + currency;
+
+  const formattedValue = formatCurrency(value, currency);
+  
+  let label = formattedValue;
   if (expenseName && expenseName.trim() !== '') {
-    label = `<b>${expenseName}:</b> ` + label;
+    label = `<b>${expenseName}:</b> ${formattedValue}`;
   }
+
   expenseDiv.innerHTML = `
     <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
     <span class="expense-text">${label}</span>
@@ -127,22 +100,10 @@ export function createExpenseDiv(expenseName, value, currency) {
 
 export function formatCurrencyInput(value, currency) {
   if (!value) return '';
-
-  // Converte o valor para string e remove todos os caracteres não numéricos
   let numericValue = String(value).replace(/\D/g, '');
-
-  // Converte para número e divide por 100 para considerar os centavos
   let number = Number(numericValue) / 100;
-
-  // Obtém o locale apropriado para a moeda
   let locale = getCurrencyLocale(currency);
-
-  // Formata o número como moeda
-  return number.toLocaleString(locale, {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2
-  });
+  return number.toLocaleString(locale, { style: 'currency', currency: currency, minimumFractionDigits: 2 });
 }
 
 export function formatCurrency(value, currency) {
@@ -205,56 +166,63 @@ function adjustTimelineHeight(timeline) {
   timeline.style.height = totalHeight + 'px';
 }
 
-export function attachLocalCardActions(card) {
-  // Botão de remover
+export function attachLocalCardActions(card, dayId = null) {
+  const placeId = card.dataset.placeId; // CORREÇÃO: Ler de data-place-id
+  if (!placeId) {
+    console.error("Não foi possível anexar ações: placeId não encontrado no card.", card);
+    return;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get('tripId');
+
+  // Adiciona o botão de remover, se não existir
+  if (!card.querySelector('.remove-place-btn')) {
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-place-btn';
+    removeBtn.title = 'Remover local';
+    removeBtn.innerHTML = getTrashSVG();
+    card.prepend(removeBtn); // Adiciona no início do card
+  }
+
   const removeBtn = card.querySelector('.remove-place-btn');
-  if (removeBtn) {
-    removeBtn.onclick = function () {
-      // Remove o card do DOM
-      card.remove();
-
-      // Remove o local do storage explicitamente
-      const roadmap = JSON.parse(localStorage.getItem('userRoadmapData'));
-      if (roadmap && Array.isArray(roadmap.days)) {
-        for (const day of roadmap.days) {
-          const idx = day.places.findIndex(
-            p => (p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || ''))) === card.dataset.key
-          );
-          if (idx !== -1) {
-            day.places.splice(idx, 1);
-            break;
-          }
-        }
-        localStorage.setItem('userRoadmapData', JSON.stringify(roadmap));
-        // LOG para depuração
-        console.log('Storage após remoção:', JSON.parse(localStorage.getItem('userRoadmapData')));
+  removeBtn.onclick = async () => {
+    if (!confirm('Tem certeza que deseja remover este local do roteiro?')) return;
+    
+    showLoading('Removendo local...');
+    try {
+      let response;
+      if (dayId) {
+        // É um local dentro de um dia
+        response = await apiService.removePlaceFromDay(tripId, dayId, placeId);
+      } else {
+        // É um local não atribuído
+        response = await apiService.removeUnassignedPlace(tripId, placeId);
       }
 
-      // Atualiza o mapa com os dados atualizados do storage
-      if (roadmap && Array.isArray(roadmap.days)) {
-        const allPlaces = roadmap.days
-          .flatMap(day => day.places)
-          .filter(p => p.lat && p.lng)
-          .map(p => ({
-            ...p,
-            lat: Number(p.lat),
-            lng: Number(p.lng),
-            key: p.key || ((p.name || '') + '|' + (p.address || '') + '|' + (p.lat || '') + '|' + (p.lng || '')),
-            types: p.types || ['lodging', 'restaurant', 'tourist_attraction']
-          }));
-        // LOG para depuração
-        console.log('Array passado para updateMap:', allPlaces);
-        if (typeof window.updateMap === 'function') {
-          window.updateMap(allPlaces);
-        }
+      if (response && response.success) {
+        card.remove();
+        showSuccessToast('Local removido!');
+        // Idealmente, o mapa seria atualizado aqui sem recarregar a página.
+        // window.dispatchEvent(new CustomEvent('roadmapUpdated'));
+      } else {
+        throw new Error(response.message || 'Falha ao remover o local.');
       }
+    } catch (error) {
+      console.error('Erro ao remover local:', error);
+      showErrorToast(error.message || 'Não foi possível remover o local.');
+    } finally {
+      hideLoading();
+    }
+  };
 
-      // Ajusta a altura da timeline
-      const timeline = card.closest('.day-timeline');
-      if (timeline) {
-        adjustTimelineHeight(timeline);
-      }
-    };
+  // Adiciona o drag handle, se não existir
+  if (!card.querySelector('.drag-handle')) {
+      const dragHandle = document.createElement('span');
+      dragHandle.className = 'drag-handle';
+      dragHandle.title = 'Arraste para reordenar';
+      dragHandle.innerHTML = getDragHandleSVG();
+      card.prepend(dragHandle);
   }
 
   // Botão de anotação
@@ -348,21 +316,53 @@ export function attachLocalCardActions(card) {
         form.remove();
       };
 
-      form.querySelector('.save-expense-btn').onclick = function (e) {
+      form.querySelector('.save-expense-btn').onclick = async function (e) {
         e.preventDefault();
         e.stopPropagation();
+        
         const expenseName = form.querySelector('.expense-name-input').value.trim();
-        const value = valueInput.value.trim();
-        const currency = currencySelect.value;
-        if (value) {
-          const expenseDiv = createExpenseDiv(expenseName, value, currency);
-          card.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
-          attachExpenseActions(expenseDiv, card);
-          if (typeof updateFinanceSummary === 'function') {
-            updateFinanceSummary();
-          }
+        const valueStr = form.querySelector('.expense-input').value.trim();
+        const currency = form.querySelector('.expense-currency-select').value;
+
+        if (!valueStr) {
+          showErrorToast('O valor da despesa é obrigatório.');
+          return;
         }
-        form.remove();
+
+        const numericValue = parseCurrencyToNumber(valueStr);
+        if (numericValue <= 0) {
+          showErrorToast('O valor da despesa deve ser maior que zero.');
+          return;
+        }
+        
+        const expenseData = {
+          name: expenseName,
+          value: numericValue,
+          currency: currency
+        };
+        
+        showLoading('Salvando despesa...');
+        try {
+          const response = await apiService.addPlaceExpense(tripId, dayId, placeId, expenseData);
+          if (response && response.success) {
+            const newExpense = response.data;
+            const expenseDiv = createExpenseDiv(newExpense.name, newExpense.value, newExpense.currency);
+            expenseDiv.dataset.expenseId = newExpense.id;
+            
+            card.parentNode.insertBefore(expenseDiv, form);
+            attachExpenseActions(expenseDiv, card);
+            
+            updateFinanceSummary();
+            showSuccessToast('Despesa salva com sucesso!');
+            form.remove();
+          } else {
+            throw new Error(response.message || 'Falha ao salvar a despesa.');
+          }
+        } catch (error) {
+          showErrorToast(error.message);
+        } finally {
+          hideLoading();
+        }
       };
     };
   }
@@ -413,103 +413,118 @@ export function attachNoteActions(noteDiv, card) {
 }
 
 export function attachExpenseActions(expenseDiv, card) {
+  const tripId = new URLSearchParams(window.location.search).get('tripId');
+  const dayId = card.closest('.day-section')?.dataset.dayId;
+  const placeId = card.dataset.placeId;
+  const expenseId = expenseDiv.dataset.expenseId;
+
+  if (!tripId || !dayId || !placeId || !expenseId) {
+    console.error('IDs necessários para ações de despesa não encontrados.', { tripId, dayId, placeId, expenseId });
+    return;
+  }
+  
   expenseDiv.querySelector('.edit-expense-btn').onclick = function () {
-    if (card.nextElementSibling && card.nextElementSibling.classList.contains('expense-inline-form')) return;
+    const currentText = expenseDiv.querySelector('.expense-text').innerHTML;
+    const isBold = currentText.includes('<b>');
+    const nameMatch = isBold ? currentText.match(/<b>(.*?)<\/b>/) : null;
+    const currentName = nameMatch ? nameMatch[1] : '';
+    
+    const valueText = currentText.substring(currentText.lastIndexOf('>') + 1).trim();
+    const currentValue = parseCurrencyToNumber(valueText);
+    const currencyMatch = valueText.match(/[A-Z]{3}/);
+    const currentCurrency = currencyMatch ? currencyMatch[0] : 'BRL';
 
-    const expenseText = expenseDiv.querySelector('.expense-text').textContent;
-    let expenseName = '';
-    let value = expenseText;
-    let currency = 'BRL';
+    const form = createExpenseForm(currentName, formatCurrency(currentValue, currentCurrency), currentCurrency);
+    
+    expenseDiv.parentNode.replaceChild(form, expenseDiv);
 
-    // Extrai nome e valor do gasto
-    if (expenseText.includes(':')) {
-      const parts = expenseText.split(':');
-      expenseName = parts[0].trim();
-      value = parts[1].trim();
-    }
-
-    // Extrai valor e moeda
-    const valueParts = value.trim().split(' ');
-    if (valueParts.length > 1) {
-      value = valueParts[0];
-      currency = valueParts[1];
-    }
-
-    // Esconde o gasto atual
-    expenseDiv.style.display = 'none';
-
-    // Reutiliza o formulário de criação
-    const expenseBtn = card.querySelector('.local-expense-btn');
-    expenseBtn.click();
-
-    // Preenche os valores e configura os botões
-    const form = card.nextElementSibling;
     const nameInput = form.querySelector('.expense-name-input');
     const valueInput = form.querySelector('.expense-input');
     const currencySelect = form.querySelector('.expense-currency-select');
 
-    nameInput.value = expenseName;
-    valueInput.value = value;
-    currencySelect.value = currency;
-
-    // Configura a formatação do input de valor
-    valueInput.addEventListener('input', function () {
-      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
-      if (formattedValue !== valueInput.value) {
-        valueInput.value = formattedValue;
-      }
+    valueInput.addEventListener('input', () => {
+      valueInput.value = formatCurrencyInput(valueInput.value, currencySelect.value);
     });
-
-    currencySelect.addEventListener('change', function () {
-      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
-      if (formattedValue !== valueInput.value) {
-        valueInput.value = formattedValue;
-      }
-    });
-
-    // Formata o valor inicial
-    const formattedValue = formatCurrencyInput(value, currency);
-    if (formattedValue !== value) {
-      valueInput.value = formattedValue;
-    }
-
-    // Atualiza os handlers dos botões
-    form.querySelector('.cancel-expense-btn').onclick = function (e) {
-      if (e) e.stopPropagation();
-      form.remove();
-      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
+    
+    form.querySelector('.cancel-expense-btn').onclick = () => {
+      form.parentNode.replaceChild(expenseDiv, form);
     };
 
-    form.querySelector('.save-expense-btn').onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const newExpenseName = nameInput.value.trim();
-      const newValue = valueInput.value.trim();
+    form.querySelector('.save-expense-btn').onclick = async () => {
+      const newName = nameInput.value.trim();
+      const newValue = parseCurrencyToNumber(valueInput.value.trim());
       const newCurrency = currencySelect.value;
 
-      if (newValue) {
-        let label = newValue + ' ' + newCurrency;
-        if (newExpenseName) {
-          label = `<b>${newExpenseName}:</b> ` + label;
-        }
-        expenseDiv.querySelector('.expense-text').innerHTML = label;
-
-        if (typeof updateFinanceSummary === 'function') {
-          updateFinanceSummary();
-        }
+      if (newValue <= 0) {
+        showErrorToast('O valor da despesa deve ser maior que zero.');
+        return;
       }
 
-      form.remove();
-      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
+      const expenseData = { name: newName, value: newValue, currency: newCurrency };
+      
+      showLoading('Atualizando despesa...');
+      try {
+        const response = await apiService.updatePlaceExpense(tripId, dayId, placeId, expenseId, expenseData);
+        if (response && response.success) {
+          const newExpense = response.data;
+          const label = newExpense.name ? `<b>${newExpense.name}:</b> ${formatCurrency(newExpense.value, newExpense.currency)}` : formatCurrency(newExpense.value, newExpense.currency);
+          expenseDiv.querySelector('.expense-text').innerHTML = label;
+          
+          form.parentNode.replaceChild(expenseDiv, form);
+          updateFinanceSummary();
+          showSuccessToast('Despesa atualizada!');
+        } else {
+          throw new Error(response.message || 'Falha ao atualizar a despesa.');
+        }
+      } catch (error) {
+        showErrorToast(error.message);
+      } finally {
+        hideLoading();
+      }
     };
   };
 
-  expenseDiv.querySelector('.delete-expense-btn').onclick = function () {
-    expenseDiv.remove();
-    if (typeof updateFinanceSummary === 'function') {
-      updateFinanceSummary();
+  expenseDiv.querySelector('.delete-expense-btn').onclick = async function () {
+    if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    showLoading('Excluindo despesa...');
+    try {
+      const response = await apiService.deletePlaceExpense(tripId, dayId, placeId, expenseId);
+      if (response && response.success) {
+        expenseDiv.remove();
+        updateFinanceSummary();
+        showSuccessToast('Despesa excluída com sucesso!');
+      } else {
+        throw new Error(response.message || 'Falha ao excluir a despesa.');
+      }
+    } catch (error) {
+      showErrorToast(error.message);
+    } finally {
+      hideLoading();
     }
   };
+}
+
+// Helper para criar o formulário de despesa
+function createExpenseForm(name = '', value = '', currency = 'BRL') {
+  const form = document.createElement('div');
+  form.className = 'timeline-expense expense-inline-form';
+  form.innerHTML = `
+    <div class="expense-form-container">
+      <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+      <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)" value="${name}">
+      <input type="text" class="expense-input" placeholder="Valor" inputmode="decimal" value="${value}">
+      <select class="expense-currency-select">
+        <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>BRL</option>
+        <option value="USD" ${currency === 'USD' ? 'selected' : ''}>USD</option>
+        <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>EUR</option>
+      </select>
+      <div class="note-actions">
+        <button class="cancel-expense-btn">Cancelar</button>
+        <button class="save-expense-btn">Salvar</button>
+      </div>
+    </div>
+  `;
+  return form;
 }
 
 // =============================================
@@ -517,15 +532,20 @@ export function attachExpenseActions(expenseDiv, card) {
 // =============================================
 
 export function getTrashSVG() {
-  return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 8.5V14.5C6 15.3284 6.67157 16 7.5 16H12.5C13.3284 16 14 15.3284 14 14.5V8.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M4 5.5H16" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M11.5 9.5V13.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M7 5.5V4.5C7 3.94772 7.44772 3.5 8 3.5H12C12.5523 3.5 13 3.94772 13 4.5V5.5" stroke="#e05a47" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`;
+  return `<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 export function getDragHandleSVG() {
-  return `<span class="drag-handle" title="Arraste para mover">&#9776;</span>`;
+  return `<svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 6h8M8 12h8M8 18h8" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+
+export function getActionDotsSVG() {
+  return `<svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 12m-1 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm0 5a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm0-10a1 1 0 1 0-2 0 1 1 0 0 0 2 0z" fill="#555"/></svg>`;
+}
+
+function getStarsHtml(rating) {
+  const fullStars = Math.round(rating || 0);
+  if (fullStars <= 0) return '';
+  const emptyStars = 5 - fullStars;
+  return `<span class="star-icon">${'★'.repeat(fullStars)}${'☆'.repeat(emptyStars)}</span>`;
 }

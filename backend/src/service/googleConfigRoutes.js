@@ -1,16 +1,13 @@
-require('dotenv').config();
+// Apenas retorna a variável de ambiente VITE_GOOGLE_MAPS_KEY (ou similar)
 const express = require('express');
 const router = express.Router();
 
-const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-
-if (!API_KEY) {
-  console.error('GOOGLE_MAPS_API_KEY não está definida nas variáveis de ambiente');
-  process.exit(1);
-}
-
-router.get('/config', (req, res) => {
-  res.json({ apiKey: API_KEY });
+router.get('/', (req, res) => {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  if (!key) {
+    return res.status(500).json({ message: 'API key não configurada.' });
+  }
+  res.json({ apiKey: key });
 });
 
-module.exports = router; 
+module.exports = router;

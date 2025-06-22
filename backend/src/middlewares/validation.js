@@ -8,6 +8,10 @@ const validate = (schema) => {
     const { error } = schema.validate(req.body);
     
     if (error) {
+      console.error('--- ERRO DE VALIDAÇÃO ---');
+      error.details.forEach(detail => console.error(detail.message));
+      console.error('--------------------------');
+      
       return res.status(400).json({
         success: false,
         message: 'Dados inválidos',
@@ -23,8 +27,18 @@ const validate = (schema) => {
 const tripSchema = Joi.object({
   title: Joi.string().required().min(1).max(100),
   description: Joi.string().optional().max(500),
-  startDate: Joi.date().iso().greater('now').required(),
-  endDate: Joi.date().iso().greater(Joi.ref('startDate')).required(),
+  startDate: Joi.date().iso().required().custom((value, helpers) => {
+    // Cria a data de 'hoje' em UTC para uma comparação justa
+    const today = new Date();
+    const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+
+    if (value < todayUTC) {
+      // Se a data de início for anterior a hoje, retorna um erro
+      return helpers.message('"startDate" must be today or a future date');
+    }
+    return value; // Se a validação passar, retorna o valor original
+  }),
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).required(),
   destination: Joi.string().required().min(1).max(300),
   photo: Joi.string().optional().allow('', null)
 });
@@ -38,14 +52,13 @@ const roadmapDaySchema = Joi.object({
 const placeSchema = Joi.object({
   placeId: Joi.string().required(),
   name: Joi.string().required(),
-  address: Joi.string().optional(),
-  location: Joi.object({
-    lat: Joi.number().required(),
-    lng: Joi.number().required()
-  }).optional(),
-  notes: Joi.string().optional().max(1000),
-  expenses: Joi.number().positive().optional()
-});
+  address: Joi.string().required(),
+  latitude: Joi.number().required(),
+  longitude: Joi.number().required(),
+  rating: Joi.number().min(0).max(5).optional().allow(null),
+  types: Joi.array().items(Joi.string()).optional(),
+  order: Joi.number().integer().min(0).optional()
+}).options({ stripUnknown: false });
 
 const roadmapBudgetSchema = Joi.object({
   totalBudget: Joi.number().positive().required(),

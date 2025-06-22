@@ -1,4 +1,5 @@
 import { includeHeader, includeFooter } from '../../js/utils/include.js';
+
 document.addEventListener('DOMContentLoaded', function() {
   const btnRecovery = document.getElementById('btn-recovery');
   const emailInput = document.getElementById('recovery-email');
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     try {
-      const response = await fetch('http://localhost:3001/api/users/auth/forgot-password', {
+      const response = await fetch('http://localhost:3001/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
