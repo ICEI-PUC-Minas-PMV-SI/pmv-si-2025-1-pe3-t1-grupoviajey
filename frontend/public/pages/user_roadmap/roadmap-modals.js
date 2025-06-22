@@ -1,14 +1,16 @@
 import {
-  createLocalCard,
   attachLocalCardActions,
   formatTripPeriod,
 } from "./roadmap-utils.js";
+import {
+  createLocalCard,
+  getPlaceData
+} from "./roadmap-core.js";
 import {
   initializeGoogleMapsAutocomplete,
   getLastSelectedPlace,
   clearLastSelectedPlace,
 } from "./roadmap-map.js";
-import { getPlaceData } from "./roadmap-core.js";
 import { searchDestinationImage } from "../../services/api/unsplash.js";
 import { updateFinanceSummary } from "./roadmap-finance.js";
 import {

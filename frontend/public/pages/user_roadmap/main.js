@@ -87,12 +87,19 @@ async function loadRoadmapPageData() {
       apiService.getRoadmapWithStats(tripId)
     ]);
 
+    console.log('Trip response:', tripResponse);
+    console.log('Roadmap response:', roadmapResponse);
+
     if (!tripResponse.success || !roadmapResponse.success) {
       console.error("Falha ao buscar dados da API:", { tripResponse, roadmapResponse });
       return null;
     }
 
-    return { trip: tripResponse.data, roadmap: roadmapResponse.data };
+    const data = { trip: tripResponse.data, roadmap: roadmapResponse.data };
+    console.log('Dados carregados:', data);
+    console.log('TripDays:', data.roadmap.tripDays);
+
+    return data;
 
   } catch (error) {
     console.error('Erro ao carregar dados para a página do roteiro:', error);
@@ -145,11 +152,13 @@ function renderUnassignedPlaces(places) {
     const card = createLocalCard(place);
     container.appendChild(card);
     attachLocalCardActions(card, null); // null para dayId
-    allPlaces.push(place.placeDetails);
+    allPlaces.push(place);
   });
 }
 
 function renderTripDays(tripDays) {
+    console.log('renderTripDays - tripDays recebidos:', tripDays);
+    
     const daysContainer = document.getElementById('daysContainer');
     if (!daysContainer) {
         console.error("Container de dias 'daysContainer' não encontrado!");
@@ -161,6 +170,8 @@ function renderTripDays(tripDays) {
     tripDays.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     tripDays.forEach(day => {
+        console.log(`Renderizando dia ${day.id} (${day.date}):`, day);
+        
         // 1. Cria a seção do dia (acordeão) com o ID e data corretos
         const daySection = createDaySection(new Date(day.date.replace(/-/g, '\/')), day.date, day.id);
         daysContainer.appendChild(daySection);
@@ -170,20 +181,38 @@ function renderTripDays(tripDays) {
 
         if (dayTimeline) {
             dayTimeline.innerHTML = '<div class="timeline-line"></div>'; // Limpa para garantir
-            if (day.tripPlaces && day.tripPlaces.length > 0) {
-                day.tripPlaces.forEach(place => {
+            
+            // CORREÇÃO: Usar 'places' em vez de 'tripPlaces' (conforme retornado pelo backend)
+            const places = day.places || [];
+            console.log(`Dia ${day.id} tem ${places.length} locais:`, places);
+            
+            if (places.length > 0) {
+                places.forEach(place => {
+                    console.log('Criando card para local:', place);
+                    console.log('Estrutura do place:', {
+                        id: place.id,
+                        name: place.name,
+                        address: place.address,
+                        placeId: place.placeId,
+                        placeDetails: place.placeDetails,
+                        rating: place.rating,
+                        photo: place.photo
+                    });
+                    
                     const card = createLocalCard(place);
                     dayTimeline.appendChild(card);
                     attachLocalCardActions(card, day.id);
-                    if (place.placeDetails) {
-                        allPlaces.push(place.placeDetails);
-                    }
+                    
+                    // APENAS ADICIONA O LOCAL ORIGINAL AO ARRAY DO MAPA
+                    allPlaces.push(place);
                 });
             } else {
                 dayTimeline.innerHTML += '<p class="empty-day-msg">Nenhum local adicionado para este dia.</p>';
             }
         }
     });
+    
+    console.log('Total de locais para o mapa:', allPlaces.length);
 }
 
 // =============================================
@@ -213,6 +242,19 @@ async function initModules(trip, roadmap) {
     // 5. Inicializa os checklists
     initMultiChecklists();
     setupAddChecklistBlockBtn();
+
+    // 6. Inicializa drag-and-drop e eventos dos cards
+    initLocalCardDnD();
+    attachRoadmapEventListeners();
+
+    // 7. Configura eventos específicos
+    setupSpecificEventListeners();
+
+    // 8. Log final para confirmar carregamento
+    console.log('✅ Roadmap carregado com sucesso!');
+    console.log(`📊 Resumo: ${roadmap.tripDays?.length || 0} dias, ${allPlaces.length} locais no mapa`);
+    console.log('🎯 Cards criados:', document.querySelectorAll('.local-card').length);
+    console.log('🗺️ Mapa atualizado com marcadores');
 
   } catch (error) {
     console.error("Erro na inicialização dos módulos:", error);

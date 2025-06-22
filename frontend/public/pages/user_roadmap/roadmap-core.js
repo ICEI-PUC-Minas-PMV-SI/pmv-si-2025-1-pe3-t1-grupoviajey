@@ -109,19 +109,25 @@ export function createLocalCard(place) {
   card.className = 'local-card';
   card.draggable = true;
   card.dataset.placeId = id; // ID do TripPlace, não do Google Place
+  
+  // Lida com placeId do Google vindo de `placeDetails` ou diretamente
   if (placeDetails && placeDetails.place_id) {
     card.dataset.googlePlaceId = placeDetails.place_id;
+  } else if (place.placeId) {
+    card.dataset.googlePlaceId = place.placeId;
   }
 
-  const name = placeDetails?.name || 'Local desconhecido';
-  const address = placeDetails?.formatted_address || 'Endereço não disponível';
-  const ratingNumber = placeDetails?.rating;
+  // Prioriza dados de `placeDetails` (quando vem do Google), 
+  // mas usa os dados de `place` (quando vem do nosso banco) como fallback.
+  const name = placeDetails?.name || place.name || 'Local desconhecido';
+  const address = placeDetails?.formatted_address || place.address || 'Endereço não disponível';
+  const ratingNumber = placeDetails?.rating || place.rating;
   
   const stars = ratingNumber ? '★'.repeat(Math.round(ratingNumber)) + '☆'.repeat(5 - Math.round(ratingNumber)) : 'Sem avaliação';
   const ratingText = ratingNumber ? ratingNumber.toFixed(1) : 'N/A';
 
   // Usa a primeira foto disponível ou uma imagem padrão
-  const imageUrl = placeDetails?.photos?.[0]?.getUrl?.() || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
+  const imageUrl = placeDetails?.photos?.[0]?.getUrl?.() || place.photo || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=400&q=80';
 
   card.innerHTML = `
     <div class="local-img">
@@ -133,6 +139,22 @@ export function createLocalCard(place) {
       <div class="local-rating">
         <span class="stars">${stars}</span>
         <span class="rating-value">${ratingText}</span>
+      </div>
+      <div class="local-actions">
+        <button class="local-note-btn" title="Adicionar anotação">
+          <svg width="16" height="16" viewBox="0 0 20 20">
+            <rect x="3" y="5" width="14" height="10" rx="2" fill="none" stroke="#222" stroke-width="1.3"/>
+            <path d="M6 8h8M6 12h5" stroke="#222" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          Anotação
+        </button>
+        <button class="local-expense-btn" title="Adicionar despesa">
+          <svg width="16" height="16" viewBox="0 0 20 20">
+            <circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/>
+            <path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          Despesa
+        </button>
       </div>
     </div>
   `;

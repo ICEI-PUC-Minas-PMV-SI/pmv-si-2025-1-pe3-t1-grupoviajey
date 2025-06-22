@@ -2,7 +2,7 @@
  * Map configuration specific to user roadmap page
  */
 import { initMap } from '../../js/core/map/init.js';
-import { createMarkers, updateMarkerAnimation } from '../../js/core/map/markers.js';
+import { createMarkers as createMarkersFromUtil, updateMarkerAnimation } from '../../js/core/map/markers.js';
 import { loadApiKey, loadGoogleMapsScript } from '../../js/core/map/loader.js';
 
 let map;
@@ -146,24 +146,31 @@ export function updateMap(places) {
     return;
   }
 
-  // Adapta os dados para o formato esperado por createMarkers
+  // A abordagem correta e simples:
+  // Padroniza a propriedade de geolocalização que a função `createMarker` espera.
   const placesForMarkers = places.map(place => {
-    console.log('Processando place:', place);
-    const lat = Number(place.lat);
-    const lng = Number(place.lng);
-    console.log('Coordenadas convertidas:', { lat, lng });
-
-    if (isNaN(lat) || isNaN(lng)) {
-      console.error('Coordenadas inválidas para place:', place);
-      return null;
+    // Se o local já tem `geometry`, ele veio da API do Google e está pronto.
+    if (place.geometry && place.geometry.location) {
+      return place;
     }
 
-    return {
-      ...place,
-      key: place.key || place.name || place.address || (lat + ',' + lng),
-      geometry: { location: new google.maps.LatLng(lat, lng) }
-    };
-  }).filter(Boolean);
+    // Se não, ele veio do nosso banco. Nós criamos a propriedade `geometry`.
+    if (place.latitude && place.longitude) {
+      return {
+        ...place,
+        // Garante que o ID do google_place seja passado corretamente
+        place_id: place.placeId,
+        geometry: {
+          location: new google.maps.LatLng(place.latitude, place.longitude)
+        }
+      };
+    }
+    
+    // Se não tiver coordenadas, não pode ser exibido no mapa.
+    console.warn('Local sem coordenadas válidas, será ignorado:', place);
+    return null;
+
+  }).filter(Boolean); // Remove os locais nulos
 
   console.log('Places formatados para markers:', placesForMarkers);
 
@@ -172,8 +179,8 @@ export function updateMap(places) {
     return;
   }
 
-  // Cria novos marcadores usando createMarkers
-  markers = createMarkers(map, placesForMarkers);
+  // Cria novos marcadores usando a função importada corretamente
+  markers = createMarkersFromUtil(map, placesForMarkers);
 
   console.log('Markers criados:', markers);
 

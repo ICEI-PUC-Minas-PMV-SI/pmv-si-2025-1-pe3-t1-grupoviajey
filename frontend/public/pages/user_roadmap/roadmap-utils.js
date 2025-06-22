@@ -8,47 +8,6 @@ import { setupCardHoverEvents } from './roadmap-map.js';
 // CRIAÇÃO DE ELEMENTOS
 // =============================================
 
-export function createLocalCard(place) {
-  if (!place || !place.placeId) {
-    console.error('createLocalCard: place or place.placeId is missing.', place);
-    return document.createDocumentFragment(); // Retorna um fragmento vazio para não quebrar a UI
-  }
-
-  let ratingHtml = '';
-  if (place.rating) {
-    ratingHtml = `
-      <div class="local-rating">
-        <span class="stars">${getStarsHtml(place.rating)}</span>
-      </div>
-    `;
-  }
-  
-  const photoHtml = ''; // O campo de foto não é mais utilizado.
-
-  const card = document.createElement('div');
-  card.className = 'local-card';
-  card.setAttribute('data-place-id', place.placeId); // CORREÇÃO: Usar data-place-id
-
-  card.innerHTML = `
-    ${getDragHandleSVG()}
-    <button class="remove-place-btn" title="Remover local">
-      ${getTrashSVG()}
-    </button>
-    <div class="local-info">
-      <div class="local-title">${place.name || ''}</div>
-      <div class="local-address">${place.address || ''}</div>
-      ${ratingHtml}
-      <div class="local-actions">
-        <button class="local-card-actions" title="Mais opções">
-          ${getActionDotsSVG()}
-        </button>
-      </div>
-    </div>
-  `;
-
-  return card;
-}
-
 export function createChecklistItem(text) {
   const li = document.createElement('li');
   li.className = 'checklist-item';
@@ -203,7 +162,7 @@ function adjustTimelineHeight(timeline) {
   timeline.style.height = totalHeight + 'px';
 }
 
-export function attachLocalCardActions(card) {
+export function attachLocalCardActions(card, dayId = null) {
   const placeId = card.dataset.placeId; // CORREÇÃO: Ler de data-place-id
   if (!placeId) {
     console.error("Não foi possível anexar ações: placeId não encontrado no card.", card);
