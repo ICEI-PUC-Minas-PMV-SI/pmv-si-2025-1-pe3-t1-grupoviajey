@@ -75,7 +75,7 @@ export async function sendPasswordReset(email) {
   const actionCodeSettings = {
     // URL para a qual o usuário será redirecionado após redefinir a senha.
     // O domínio (ex: localhost, seu-site.com) deve estar na lista de permissões do Firebase Console.
-    url: `${window.location.origin}/pages/login-usuario/login.html`,
+    url: `${window.location.origin}/pages/login/login.html`,
     // O Firebase cuidará da página de redefinição de senha.
     handleCodeInApp: false
   };
@@ -114,7 +114,7 @@ export async function logoutUser() {
     }
     
     // Redirecionar para login
-    window.location.href = '/pages/login-usuario/login.html';
+    window.location.href = '/pages/login/login.html';
     
     return { success: true };
   } catch (error) {
@@ -140,7 +140,7 @@ export function isUserLoggedIn() {
 export async function checkAuthAndRedirect() {
   const token = getAuthToken();
   if (!token) {
-    window.location.href = '/pages/login-usuario/login.html';
+    window.location.href = '/pages/login/login.html';
     return false;
   }
   
@@ -156,7 +156,7 @@ export async function checkAuthAndRedirect() {
     localStorage.removeItem('userProfile');
     
     // Redirecionar para login
-    window.location.href = '/pages/login-usuario/login.html';
+    window.location.href = '/pages/login/login.html';
     return false;
   }
 }
