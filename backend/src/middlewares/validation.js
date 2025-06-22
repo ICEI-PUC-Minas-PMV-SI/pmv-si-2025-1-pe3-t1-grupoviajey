@@ -40,7 +40,11 @@ const tripSchema = Joi.object({
   }),
   endDate: Joi.date().iso().min(Joi.ref('startDate')).required(),
   destination: Joi.string().required().min(1).max(300),
-  photo: Joi.string().optional().allow('', null)
+  photo: Joi.string().uri().required().messages({
+    'string.empty': 'A foto da viagem é obrigatória.',
+    'any.required': 'A foto da viagem é obrigatória.',
+    'string.uri': 'O link da foto da viagem deve ser um URL válido.'
+  })
 });
 
 const roadmapDaySchema = Joi.object({

@@ -40,7 +40,7 @@
             </div>
 
             <div class="form-group">
-                <label for="trip-photo">Foto da viagem (opcional)</label>
+                <label for="trip-photo">Foto da viagem <span class="required-indicator">*</span></label>
                 <div class="photo-upload-container">
                     <input type="file" id="trip-photo" name="photo" accept="image/*" class="photo-input">
                     <div class="photo-upload-actions-row">
@@ -64,6 +64,16 @@
                     <button type="submit" class="btn-primary">Criar viagem</button>
                 </div>
         </form>
+    </div>
+</div>
+
+<div id="photo-alert-modal-overlay" class="photo-alert-modal-overlay" style="display: none;">
+    <div class="photo-alert-modal">
+        <h3 class="photo-alert-title">Foto da capa é necessária</h3>
+        <p class="photo-alert-text">
+            Toda viagem precisa de uma foto de capa. Você pode fazer o upload de uma imagem do seu dispositivo ou usar o botão <strong>"Buscar foto do destino"</strong> para escolher uma das nossas sugestões.
+        </p>
+        <button id="photo-alert-close" class="btn-primary">Entendi</button>
     </div>
 </div>
 
