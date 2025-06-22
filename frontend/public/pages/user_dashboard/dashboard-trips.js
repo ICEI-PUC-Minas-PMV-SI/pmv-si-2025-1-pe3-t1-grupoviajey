@@ -23,26 +23,26 @@ export async function renderTrips() {
     const trips = response.data || response;
     console.log('Trips extraídos:', trips);
 
-    el.innerHTML = `
-      <div class="trips-list"></div>
-    `;
+  el.innerHTML = `
+    <div class="trips-list"></div>
+  `;
 
-    // Adicionar evento ao botão de criar viagem
+  // Adicionar evento ao botão de criar viagem
     const createBtn = document.getElementById('btn-create-trip');
     if (createBtn) {
       createBtn.onclick = openCreateTripModal;
     }
 
-    const list = el.querySelector('.trips-list');
-    if (!trips.length) {
-      list.innerHTML = '<p>Nenhuma viagem criada ainda.</p>';
-      return;
-    }
+  const list = el.querySelector('.trips-list');
+  if (!trips.length) {
+    list.innerHTML = '<p>Nenhuma viagem criada ainda.</p>';
+    return;
+  }
 
-    trips.forEach(trip => {
-      const card = createTripCard(trip);
-      list.appendChild(card);
-    });
+  trips.forEach(trip => {
+    const card = createTripCard(trip);
+    list.appendChild(card);
+  });
   } catch (error) {
     console.error('Erro ao carregar viagens:', error);
     showErrorToast('Erro ao carregar viagens. Tente novamente.');
@@ -87,10 +87,9 @@ function createTripCard(trip) {
     </div>
   `;
 
-  // Evento de clique para abrir o roadmap
+  // Evento de clique para abrir o roadmap, passando o ID na URL
   card.addEventListener('click', () => {
-    localStorage.setItem('selectedTripId', trip.id);
-    window.location.href = '/pages/user_roadmap/user-roadmap.html';
+    window.location.href = `/pages/user_roadmap/user-roadmap.html?tripId=${trip.id}`;
   });
 
   return card;

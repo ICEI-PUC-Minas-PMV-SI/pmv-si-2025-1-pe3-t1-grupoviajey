@@ -20,31 +20,31 @@ export async function renderReviews(page = 1) {
     
     const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-    // Limpa o container e cria a estrutura
-    el.innerHTML = `
-      <div class="reviews-container">
-        <div class="reviews-list"></div>
-        <div class="reviews-pagination"></div>
+  // Limpa o container e cria a estrutura
+  el.innerHTML = `
+    <div class="reviews-container">
+      <div class="reviews-list"></div>
+      <div class="reviews-pagination"></div>
         <button id="btn-create-review" class="action-btn">Nova avaliação</button>
-      </div>
-    `;
+    </div>
+  `;
 
-    const list = el.querySelector('.reviews-list');
-    const paginationContainer = el.querySelector('.reviews-pagination');
+  const list = el.querySelector('.reviews-list');
+  const paginationContainer = el.querySelector('.reviews-pagination');
     const createBtn = el.querySelector('#btn-create-review');
 
-    if (!reviews.length) {
-      list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
+  if (!reviews.length) {
+    list.innerHTML = '<p>Você ainda não avaliou nenhum lugar.</p>';
     } else {
       list.innerHTML = '';
       reviews.forEach(review => {
-        const card = createReviewCard(review);
-        list.appendChild(card);
-      });
+    const card = createReviewCard(review);
+    list.appendChild(card);
+  });
     }
 
     // Paginação
-    if (totalPages > 1) {
+  if (totalPages > 1) {
       renderReviewsPagination(paginationContainer, page, total, ITEMS_PER_PAGE);
     }
 
@@ -84,7 +84,7 @@ function openReviewForm() {
         comment: data.comment
       });
       showSuccessToast('Avaliação criada com sucesso!');
-      renderReviews();
+    renderReviews();
     } catch (error) {
       showErrorToast('Erro ao criar avaliação. Tente novamente.');
     } finally {
@@ -182,7 +182,7 @@ function openEditReviewForm(review) {
         comment: data.comment
       });
       showSuccessToast('Avaliação atualizada!');
-      renderReviews();
+  renderReviews();
     } catch (error) {
       showErrorToast('Erro ao atualizar avaliação.');
     } finally {
