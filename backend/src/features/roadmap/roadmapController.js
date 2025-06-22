@@ -109,6 +109,9 @@ class RoadmapController {
       const { tripId, dayId, placeId } = req.params;
       const expenseData = req.body;
 
+      console.log(`[EXPENSE] Adicionando despesa para tripId: ${tripId}, dayId: ${dayId}, placeId: ${placeId}`);
+      console.log(`[EXPENSE] Dados recebidos:`, expenseData);
+
       const expense = await roadmapDayService.addPlaceExpense(uid, tripId, dayId, placeId, expenseData);
       
       res.status(201).json({
@@ -116,6 +119,7 @@ class RoadmapController {
         data: expense
       });
     } catch (error) {
+      console.error(`[EXPENSE] Erro ao adicionar despesa:`, error);
       res.status(400).json({
         success: false,
         message: error.message
@@ -292,13 +296,18 @@ class RoadmapController {
       const { uid } = req.user;
       const { tripId } = req.params;
       
+      console.log(`[ROADMAP BUDGET] Buscando orçamento para tripId: ${tripId}, userId: ${uid}`);
+      
       const budget = await roadmapBudgetService.getRoadmapBudgetWithStats(uid, tripId);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento encontrado:`, budget ? 'Sim' : 'Não');
       
       res.status(200).json({
         success: true,
         data: budget
       });
     } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao buscar orçamento:`, error.message);
       res.status(404).json({
         success: false,
         message: error.message
@@ -315,13 +324,24 @@ class RoadmapController {
       const { tripId } = req.params;
       const budgetData = req.body;
 
+      console.log(`[ROADMAP BUDGET] Criando orçamento para tripId: ${tripId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados recebidos:`, budgetData);
+
+      // Validar se totalBudget é um número positivo
+      if (!budgetData.totalBudget || typeof budgetData.totalBudget !== 'number' || budgetData.totalBudget <= 0) {
+        throw new Error('O valor do orçamento deve ser um número positivo');
+      }
+
       const budget = await roadmapBudgetService.createRoadmapBudget(uid, tripId, budgetData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento criado com sucesso, ID: ${budget.id}`);
       
       res.status(201).json({
         success: true,
         data: budget
       });
     } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao criar orçamento:`, error.message);
       res.status(400).json({
         success: false,
         message: error.message
@@ -338,13 +358,60 @@ class RoadmapController {
       const { tripId, budgetId } = req.params;
       const updateData = req.body;
       
+      console.log(`[ROADMAP BUDGET] Atualizando orçamento para tripId: ${tripId}, budgetId: ${budgetId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados de atualização:`, updateData);
+
+      // Validar se totalBudget é um número positivo
+      if (updateData.totalBudget !== undefined) {
+        if (typeof updateData.totalBudget !== 'number' || updateData.totalBudget <= 0) {
+          throw new Error('O valor do orçamento deve ser um número positivo');
+        }
+      }
+      
       const budget = await roadmapBudgetService.updateRoadmapBudgetById(uid, tripId, budgetId, updateData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento atualizado com sucesso`);
       
       res.status(200).json({
         success: true,
         data: budget
       });
     } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao atualizar orçamento:`, error.message);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Criar ou atualizar orçamento (upsert)
+   */
+  async upsertRoadmapBudget(req, res) {
+    try {
+      const { uid } = req.user;
+      const { tripId } = req.params;
+      const budgetData = req.body;
+      
+      console.log(`[ROADMAP BUDGET] Upsert orçamento para tripId: ${tripId}, userId: ${uid}`);
+      console.log(`[ROADMAP BUDGET] Dados recebidos:`, budgetData);
+
+      // Validar se totalBudget é um número positivo
+      if (!budgetData.totalBudget || typeof budgetData.totalBudget !== 'number' || budgetData.totalBudget <= 0) {
+        throw new Error('O valor do orçamento deve ser um número positivo');
+      }
+
+      const budget = await roadmapBudgetService.upsertRoadmapBudget(uid, tripId, budgetData);
+      
+      console.log(`[ROADMAP BUDGET] Orçamento upsert com sucesso, ID: ${budget.id}`);
+      
+      res.status(200).json({
+        success: true,
+        data: budget
+      });
+    } catch (error) {
+      console.error(`[ROADMAP BUDGET] Erro ao fazer upsert do orçamento:`, error.message);
       res.status(400).json({
         success: false,
         message: error.message

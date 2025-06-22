@@ -189,21 +189,20 @@ function renderTripDays(tripDays) {
             if (places.length > 0) {
                 places.forEach(place => {
                     console.log('Criando card para local:', place);
-                    console.log('Estrutura do place:', {
-                        id: place.id,
-                        name: place.name,
-                        address: place.address,
-                        placeId: place.placeId,
-                        placeDetails: place.placeDetails,
-                        rating: place.rating,
-                        photo: place.photo
-                    });
-                    
                     const card = createLocalCard(place);
                     dayTimeline.appendChild(card);
                     attachLocalCardActions(card, day.id);
+
+                    // Renderiza as despesas existentes para este local
+                    if (place.expenses && place.expenses.length > 0) {
+                      place.expenses.forEach(expense => {
+                        const expenseDiv = createExpenseDiv(expense.name, expense.value, expense.currency);
+                        expenseDiv.dataset.expenseId = expense.id; // Atribui o ID da despesa!
+                        dayTimeline.appendChild(expenseDiv);
+                        attachExpenseActions(expenseDiv, card); // Anexa as ações de editar/excluir
+                      });
+                    }
                     
-                    // APENAS ADICIONA O LOCAL ORIGINAL AO ARRAY DO MAPA
                     allPlaces.push(place);
                 });
             } else {

@@ -13,13 +13,17 @@ let currentBudget = null;
 async function loadBudget() {
   if (!currentTripId) return;
   try {
+    console.log('[ROADMAP FINANCE] Carregando orçamento para tripId:', currentTripId);
     const budget = await apiService.getRoadmapBudget(currentTripId);
     if (budget && budget.success && budget.data) {
       currentBudget = budget.data;
+      console.log('[ROADMAP FINANCE] Orçamento carregado:', currentBudget);
       updateBudgetUI(currentBudget);
+    } else {
+      console.log('[ROADMAP FINANCE] Nenhum orçamento encontrado');
     }
   } catch (error) {
-    console.error('Error loading budget:', error);
+    console.error('[ROADMAP FINANCE] Erro ao carregar orçamento:', error);
     // Não mostra toast aqui para não poluir a UI no carregamento inicial
   }
 }
@@ -27,15 +31,14 @@ async function loadBudget() {
 function updateBudgetUI(budget) {
     const budgetInput = document.getElementById('budgetInput');
     const budgetCurrency = document.getElementById('budgetCurrency');
-    if (budgetInput) {
-        budgetInput.value = formatCurrency(budget.total, budget.currency);
+    if (budgetInput && budget.totalBudget) {
+        budgetInput.value = formatCurrency(budget.totalBudget, budget.currency);
     }
     if (budgetCurrency) {
         budgetCurrency.value = budget.currency || 'BRL';
     }
     updateFinanceSummary();
 }
-
 
 async function saveBudget(value, currency) {
   if (!currentTripId) {
@@ -49,11 +52,13 @@ async function saveBudget(value, currency) {
     if (numericValue <= 0) throw new Error('Valor do orçamento deve ser maior que zero.');
 
     const budgetData = {
-      total: numericValue,
+      totalBudget: numericValue,
       currency: currency || 'BRL'
     };
 
-    const response = await apiService.updateTripBudget(currentTripId, budgetData);
+    console.log('[ROADMAP FINANCE] Salvando orçamento:', budgetData);
+
+    const response = await apiService.upsertRoadmapBudget(currentTripId, budgetData);
 
     if (!response || !response.success) {
       throw new Error(response.message || 'Falha ao salvar o orçamento.');
@@ -61,11 +66,12 @@ async function saveBudget(value, currency) {
     
     showSuccessToast('Orçamento salvo!');
     currentBudget = response.data;
+    console.log('[ROADMAP FINANCE] Orçamento salvo com sucesso:', currentBudget);
     updateFinanceSummary();
     return true;
 
   } catch (error) {
-    console.error('Error saving budget:', error);
+    console.error('[ROADMAP FINANCE] Erro ao salvar orçamento:', error);
     showErrorToast(error.message || 'Não foi possível salvar o orçamento.');
     return false;
   } finally {
@@ -111,11 +117,11 @@ function updateFinanceSummary() {
   const totalSpent = expenses.reduce((a, b) => a + b, 0);
   spentValue.textContent = formatCurrency(totalSpent, currentBudget?.currency || 'BRL');
 
-  if (currentBudget && currentBudget.total > 0) {
+  if (currentBudget && currentBudget.totalBudget > 0) {
     budgetDiv.style.display = '';
-    budgetValue.textContent = formatCurrency(currentBudget.total, currentBudget.currency);
+    budgetValue.textContent = formatCurrency(currentBudget.totalBudget, currentBudget.currency);
     availableDiv.style.display = '';
-    const available = currentBudget.total - totalSpent;
+    const available = currentBudget.totalBudget - totalSpent;
     availableValue.textContent = formatCurrency(available, currentBudget.currency);
     availableValue.style.color = available >= 0 ? '#0a7c6a' : '#e05a47';
   } else {
@@ -190,7 +196,7 @@ function setupBudgetInput() {
     budgetInput.value = formatCurrencyInput(value, budgetCurrency.value);
   });
 
-  saveButton.addEventListener('click', () => {
+  saveButton.addEventListener('click', async () => {
     const value = String(budgetInput.value);
     const currency = budgetCurrency.value;
 
@@ -204,7 +210,8 @@ function setupBudgetInput() {
       return;
     }
 
-    if (saveBudget(value, currency)) {
+    const success = await saveBudget(value, currency);
+    if (success) {
       saveButton.textContent = 'Salvo!';
       saveButton.classList.add('success');
       updateFinanceSummary();

@@ -204,6 +204,18 @@ class ApiService {
     return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripDays/${dayId}/tripPlaces/${placeId}`, 'DELETE');
   }
 
+  async addPlaceExpense(tripId, dayId, placeId, expenseData) {
+    return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripDays/${dayId}/tripPlaces/${placeId}/tripPlaceExpenses`, 'POST', expenseData);
+  }
+
+  async deletePlaceExpense(tripId, dayId, placeId, expenseId) {
+    return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripDays/${dayId}/tripPlaces/${placeId}/tripPlaceExpenses/${expenseId}`, 'DELETE');
+  }
+
+  async updatePlaceExpense(tripId, dayId, placeId, expenseId, expenseData) {
+    return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripDays/${dayId}/tripPlaces/${placeId}/tripPlaceExpenses/${expenseId}`, 'PUT', expenseData);
+  }
+
   async getRoadmapBudget(tripId) {
     return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripBudget`);
   }
@@ -214,6 +226,10 @@ class ApiService {
 
   async updateRoadmapBudget(tripId, budgetId, budgetData) {
     return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripBudget/${budgetId}`, 'PUT', budgetData);
+  }
+
+  async upsertRoadmapBudget(tripId, budgetData) {
+    return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripBudget`, 'PUT', budgetData);
   }
 
   async getRoadmapChecklists(tripId) {

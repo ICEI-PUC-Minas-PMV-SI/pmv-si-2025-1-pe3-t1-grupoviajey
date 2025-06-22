@@ -37,6 +37,7 @@ router.delete('/trips/:tripId/tripDays/:dayId/tripPlaces/:placeId/tripPlaceNotes
 router.get('/trips/:tripId/tripBudget', roadmapController.getRoadmapBudgetWithStats);
 router.post('/trips/:tripId/tripBudget', validate(roadmapBudgetSchema), roadmapController.createRoadmapBudget);
 router.put('/trips/:tripId/tripBudget/:budgetId', validate(roadmapBudgetSchema), roadmapController.updateRoadmapBudget);
+router.put('/trips/:tripId/tripBudget', validate(roadmapBudgetSchema), roadmapController.upsertRoadmapBudget);
 
 // ===== TRIP CHECKLIST =====
 router.post('/trips/:tripId/tripChecklist', validate(checklistSchema), roadmapController.createRoadmapChecklist);

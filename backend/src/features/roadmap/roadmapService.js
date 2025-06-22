@@ -63,12 +63,25 @@ class RoadmapService {
         const placesSnapshot = await placesRef.get();
         const places = [];
         
-        placesSnapshot.forEach(placeDoc => {
-          places.push({
+        for (const placeDoc of placesSnapshot.docs) {
+          const placeData = {
             id: placeDoc.id,
             ...placeDoc.data()
+          };
+
+          // Buscar despesas do local
+          const expensesRef = placeDoc.ref.collection('tripPlaceExpenses');
+          const expensesSnapshot = await expensesRef.get();
+          const expenses = [];
+          expensesSnapshot.forEach(expenseDoc => {
+            expenses.push({
+              id: expenseDoc.id,
+              ...expenseDoc.data()
+            });
           });
-        });
+          placeData.expenses = expenses; // Anexa as despesas ao local
+          places.push(placeData);
+        }
 
         dayData.places = places;
         tripDays.push(dayData);

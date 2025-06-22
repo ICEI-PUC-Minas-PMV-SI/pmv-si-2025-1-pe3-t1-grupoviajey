@@ -75,10 +75,14 @@ export function createNoteDiv(value) {
 export function createExpenseDiv(expenseName, value, currency) {
   const expenseDiv = document.createElement('div');
   expenseDiv.className = 'timeline-expense';
-  let label = value + ' ' + currency;
+
+  const formattedValue = formatCurrency(value, currency);
+  
+  let label = formattedValue;
   if (expenseName && expenseName.trim() !== '') {
-    label = `<b>${expenseName}:</b> ` + label;
+    label = `<b>${expenseName}:</b> ${formattedValue}`;
   }
+
   expenseDiv.innerHTML = `
     <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
     <span class="expense-text">${label}</span>
@@ -312,21 +316,53 @@ export function attachLocalCardActions(card, dayId = null) {
         form.remove();
       };
 
-      form.querySelector('.save-expense-btn').onclick = function (e) {
+      form.querySelector('.save-expense-btn').onclick = async function (e) {
         e.preventDefault();
         e.stopPropagation();
+        
         const expenseName = form.querySelector('.expense-name-input').value.trim();
-        const value = valueInput.value.trim();
-        const currency = currencySelect.value;
-        if (value) {
-          const expenseDiv = createExpenseDiv(expenseName, value, currency);
-          card.parentNode.insertBefore(expenseDiv, form.nextElementSibling);
-          attachExpenseActions(expenseDiv, card);
-          if (typeof updateFinanceSummary === 'function') {
-            updateFinanceSummary();
-          }
+        const valueStr = form.querySelector('.expense-input').value.trim();
+        const currency = form.querySelector('.expense-currency-select').value;
+
+        if (!valueStr) {
+          showErrorToast('O valor da despesa é obrigatório.');
+          return;
         }
-        form.remove();
+
+        const numericValue = parseCurrencyToNumber(valueStr);
+        if (numericValue <= 0) {
+          showErrorToast('O valor da despesa deve ser maior que zero.');
+          return;
+        }
+        
+        const expenseData = {
+          name: expenseName,
+          value: numericValue,
+          currency: currency
+        };
+        
+        showLoading('Salvando despesa...');
+        try {
+          const response = await apiService.addPlaceExpense(tripId, dayId, placeId, expenseData);
+          if (response && response.success) {
+            const newExpense = response.data;
+            const expenseDiv = createExpenseDiv(newExpense.name, newExpense.value, newExpense.currency);
+            expenseDiv.dataset.expenseId = newExpense.id;
+            
+            card.parentNode.insertBefore(expenseDiv, form);
+            attachExpenseActions(expenseDiv, card);
+            
+            updateFinanceSummary();
+            showSuccessToast('Despesa salva com sucesso!');
+            form.remove();
+          } else {
+            throw new Error(response.message || 'Falha ao salvar a despesa.');
+          }
+        } catch (error) {
+          showErrorToast(error.message);
+        } finally {
+          hideLoading();
+        }
       };
     };
   }
@@ -377,103 +413,118 @@ export function attachNoteActions(noteDiv, card) {
 }
 
 export function attachExpenseActions(expenseDiv, card) {
+  const tripId = new URLSearchParams(window.location.search).get('tripId');
+  const dayId = card.closest('.day-section')?.dataset.dayId;
+  const placeId = card.dataset.placeId;
+  const expenseId = expenseDiv.dataset.expenseId;
+
+  if (!tripId || !dayId || !placeId || !expenseId) {
+    console.error('IDs necessários para ações de despesa não encontrados.', { tripId, dayId, placeId, expenseId });
+    return;
+  }
+  
   expenseDiv.querySelector('.edit-expense-btn').onclick = function () {
-    if (card.nextElementSibling && card.nextElementSibling.classList.contains('expense-inline-form')) return;
+    const currentText = expenseDiv.querySelector('.expense-text').innerHTML;
+    const isBold = currentText.includes('<b>');
+    const nameMatch = isBold ? currentText.match(/<b>(.*?)<\/b>/) : null;
+    const currentName = nameMatch ? nameMatch[1] : '';
+    
+    const valueText = currentText.substring(currentText.lastIndexOf('>') + 1).trim();
+    const currentValue = parseCurrencyToNumber(valueText);
+    const currencyMatch = valueText.match(/[A-Z]{3}/);
+    const currentCurrency = currencyMatch ? currencyMatch[0] : 'BRL';
 
-    const expenseText = expenseDiv.querySelector('.expense-text').textContent;
-    let expenseName = '';
-    let value = expenseText;
-    let currency = 'BRL';
+    const form = createExpenseForm(currentName, formatCurrency(currentValue, currentCurrency), currentCurrency);
+    
+    expenseDiv.parentNode.replaceChild(form, expenseDiv);
 
-    // Extrai nome e valor do gasto
-    if (expenseText.includes(':')) {
-      const parts = expenseText.split(':');
-      expenseName = parts[0].trim();
-      value = parts[1].trim();
-    }
-
-    // Extrai valor e moeda
-    const valueParts = value.trim().split(' ');
-    if (valueParts.length > 1) {
-      value = valueParts[0];
-      currency = valueParts[1];
-    }
-
-    // Esconde o gasto atual
-    expenseDiv.style.display = 'none';
-
-    // Reutiliza o formulário de criação
-    const expenseBtn = card.querySelector('.local-expense-btn');
-    expenseBtn.click();
-
-    // Preenche os valores e configura os botões
-    const form = card.nextElementSibling;
     const nameInput = form.querySelector('.expense-name-input');
     const valueInput = form.querySelector('.expense-input');
     const currencySelect = form.querySelector('.expense-currency-select');
 
-    nameInput.value = expenseName;
-    valueInput.value = value;
-    currencySelect.value = currency;
-
-    // Configura a formatação do input de valor
-    valueInput.addEventListener('input', function () {
-      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
-      if (formattedValue !== valueInput.value) {
-        valueInput.value = formattedValue;
-      }
+    valueInput.addEventListener('input', () => {
+      valueInput.value = formatCurrencyInput(valueInput.value, currencySelect.value);
     });
-
-    currencySelect.addEventListener('change', function () {
-      const formattedValue = formatCurrencyInput(valueInput.value, currencySelect.value);
-      if (formattedValue !== valueInput.value) {
-        valueInput.value = formattedValue;
-      }
-    });
-
-    // Formata o valor inicial
-    const formattedValue = formatCurrencyInput(value, currency);
-    if (formattedValue !== value) {
-      valueInput.value = formattedValue;
-    }
-
-    // Atualiza os handlers dos botões
-    form.querySelector('.cancel-expense-btn').onclick = function (e) {
-      if (e) e.stopPropagation();
-      form.remove();
-      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
+    
+    form.querySelector('.cancel-expense-btn').onclick = () => {
+      form.parentNode.replaceChild(expenseDiv, form);
     };
 
-    form.querySelector('.save-expense-btn').onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const newExpenseName = nameInput.value.trim();
-      const newValue = valueInput.value.trim();
+    form.querySelector('.save-expense-btn').onclick = async () => {
+      const newName = nameInput.value.trim();
+      const newValue = parseCurrencyToNumber(valueInput.value.trim());
       const newCurrency = currencySelect.value;
 
-      if (newValue) {
-        let label = newValue + ' ' + newCurrency;
-        if (newExpenseName) {
-          label = `<b>${newExpenseName}:</b> ` + label;
-        }
-        expenseDiv.querySelector('.expense-text').innerHTML = label;
-
-        if (typeof updateFinanceSummary === 'function') {
-          updateFinanceSummary();
-        }
+      if (newValue <= 0) {
+        showErrorToast('O valor da despesa deve ser maior que zero.');
+        return;
       }
 
-      form.remove();
-      expenseDiv.style.display = 'flex'; // Mostra o gasto novamente
+      const expenseData = { name: newName, value: newValue, currency: newCurrency };
+      
+      showLoading('Atualizando despesa...');
+      try {
+        const response = await apiService.updatePlaceExpense(tripId, dayId, placeId, expenseId, expenseData);
+        if (response && response.success) {
+          const newExpense = response.data;
+          const label = newExpense.name ? `<b>${newExpense.name}:</b> ${formatCurrency(newExpense.value, newExpense.currency)}` : formatCurrency(newExpense.value, newExpense.currency);
+          expenseDiv.querySelector('.expense-text').innerHTML = label;
+          
+          form.parentNode.replaceChild(expenseDiv, form);
+          updateFinanceSummary();
+          showSuccessToast('Despesa atualizada!');
+        } else {
+          throw new Error(response.message || 'Falha ao atualizar a despesa.');
+        }
+      } catch (error) {
+        showErrorToast(error.message);
+      } finally {
+        hideLoading();
+      }
     };
   };
 
-  expenseDiv.querySelector('.delete-expense-btn').onclick = function () {
-    expenseDiv.remove();
-    if (typeof updateFinanceSummary === 'function') {
-      updateFinanceSummary();
+  expenseDiv.querySelector('.delete-expense-btn').onclick = async function () {
+    if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    showLoading('Excluindo despesa...');
+    try {
+      const response = await apiService.deletePlaceExpense(tripId, dayId, placeId, expenseId);
+      if (response && response.success) {
+        expenseDiv.remove();
+        updateFinanceSummary();
+        showSuccessToast('Despesa excluída com sucesso!');
+      } else {
+        throw new Error(response.message || 'Falha ao excluir a despesa.');
+      }
+    } catch (error) {
+      showErrorToast(error.message);
+    } finally {
+      hideLoading();
     }
   };
+}
+
+// Helper para criar o formulário de despesa
+function createExpenseForm(name = '', value = '', currency = 'BRL') {
+  const form = document.createElement('div');
+  form.className = 'timeline-expense expense-inline-form';
+  form.innerHTML = `
+    <div class="expense-form-container">
+      <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#222" stroke-width="1.3"/><path d="M10 6v8M7 10h6" stroke="#222" stroke-width="1.1" stroke-linecap="round"/></svg>
+      <input type="text" class="expense-name-input" placeholder="Nome do gasto (opcional)" value="${name}">
+      <input type="text" class="expense-input" placeholder="Valor" inputmode="decimal" value="${value}">
+      <select class="expense-currency-select">
+        <option value="BRL" ${currency === 'BRL' ? 'selected' : ''}>BRL</option>
+        <option value="USD" ${currency === 'USD' ? 'selected' : ''}>USD</option>
+        <option value="EUR" ${currency === 'EUR' ? 'selected' : ''}>EUR</option>
+      </select>
+      <div class="note-actions">
+        <button class="cancel-expense-btn">Cancelar</button>
+        <button class="save-expense-btn">Salvar</button>
+      </div>
+    </div>
+  `;
+  return form;
 }
 
 // =============================================
