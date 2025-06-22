@@ -1,10 +1,6 @@
 import { includeHeader, includeFooter } from '../../js/utils/include.js';
-import { sendPasswordReset } from '../../js/config/firebase-config.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-  includeHeader();
-  includeFooter();
-  
   const btnRecovery = document.getElementById('btn-recovery');
   const emailInput = document.getElementById('recovery-email');
 
@@ -45,34 +41,22 @@ document.addEventListener('DOMContentLoaded', function() {
       showModal('Preencha o e-mail.', false);
       return;
     }
-
-    // Validação básica de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showModal('Por favor, informe um email válido.', false);
-      return;
-    }
-
     try {
-      console.log('Solicitando recuperação de senha para:', email);
-      
-      const result = await sendPasswordReset(email);
-      
-      if (result.success) {
-        showModal('Se o e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha.', true, function() {
-          window.location.href = '../login-usuario/login.html';
-        });
-      } else {
-        // Trata erros comuns do Firebase
-        if (result.code === 'auth/user-not-found') {
-          showModal('E-mail não encontrado em nossa base de dados.', false);
-        } else {
-          showModal('Erro ao solicitar a recuperação de senha. Tente novamente.', false);
-        }
+      const response = await fetch('http://localhost:3001/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        showModal(data.message || 'Erro ao solicitar recuperação de senha.', false);
+        return;
       }
+      showModal(data.message || 'Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.', true, function() {
+        window.location.href = '../login/login.html';
+      });
     } catch (err) {
-      console.error('Erro na recuperação de senha:', err);
-      showModal('Erro ao solicitar a recuperação de senha. Tente novamente mais tarde.', false);
+      showModal('Erro ao solicitar recuperação de senha.', false);
     }
   }
 
@@ -81,16 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       const email = emailInput.value.trim();
       recuperarSenha(email);
-    });
-  }
-
-  // Permitir envio com Enter
-  if (emailInput) {
-    emailInput.addEventListener('keypress', function(event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        btnRecovery.click();
-      }
     });
   }
 }); 

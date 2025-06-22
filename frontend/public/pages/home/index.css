@@ -6,12 +6,17 @@
 .search-section h1 {
   font-size: 2rem;
   margin-bottom: 16px;
+  color:var(--primary-color);
+  text-align: center;
+  padding: var(--spacing-lg) var(--spacing-md);
+  width: 100%;
 }
 
 .ia-banner-cta {
   position: relative;
   margin: 32px auto 0 auto;
-  max-width: 900px;
+  width: 100%;
+  max-width: 1500px;
   min-height: 260px;
   border-radius: 12px;
   overflow: hidden;
@@ -22,6 +27,7 @@
 .ia-banner-bg {
   background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80') center center/cover no-repeat;
   position: absolute;
+  width: 100%;
   top: 0;
   left: 0;
   right: 0;
@@ -73,7 +79,14 @@
   display: flex;
   gap: 24px;
   justify-content: center;
-  margin: 32px 0 0 0;
+  margin: 30px;
+}
+
+.interactive-cards {
+  display: flex;
+  justify-content: space-between;
+  padding: 4rem;
+  margin: 0px 50px;
 }
 
 .cta-card {
@@ -116,9 +129,10 @@
 /* Para tablets e telas médias */
 @media (max-width: 900px) {
   .cards-section {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 16px;
-    max-width: 95vw;
+    justify-content: center;
     margin: 32px auto 0 auto;
   }
 

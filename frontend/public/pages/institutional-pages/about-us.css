@@ -1,0 +1,51 @@
+.about-container {
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.about-section {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #00363a;
+  color: #fff;
+}
+
+.about-section h1 {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.about-section p {
+  font-size: 1.2rem;
+}
+
+.about-content {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-size: 1.1rem;
+  line-height: 2;
+  color: #000;
+}
+
+.about-content h2 {
+  font-size: 1.8rem;
+  margin-top: 30px;
+}
+
+.about-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+.about-content ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.about-content ul li {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}

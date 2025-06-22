@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <title>Cadastro-Usuario</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="create-account.css">
+  <link rel="stylesheet" href="../../components/header/header.css">
+  <link rel="stylesheet" href="../../components/footer/footer.css">
+</head>
+
+<body>
+
+<div id="header"></div>
+
+<main class="main-content">   
+    <section class="form-container">
+      <div class="form-header">
+        <img src="../../assets/images/LogoViajeyOficial.svg" alt="Logo Viajey" class="logo-form" />
+        <p class="texto-inicial">Preencha as informações abaixo para criar sua conta</p>
+      </div>
+      <div class="user-type">
+        <label><input type="radio" name="tipo-usuario" id="tipo-viajante" checked /> Viajante</label>
+        <label><input type="radio" name="tipo-usuario" id="tipo-parceiro" /> Parceiro do Viajey</label>
+      </div>
+
+      <form id="cadastro-form">
+        <label>Nome</label>
+        <input type="text" id="cadastro-nome" required />
+
+        <label>Sobrenome</label>
+        <input type="text" id="cadastro-sobrenome" required />
+
+        <label>CPF ou CNPJ</label>
+        <input type="text" id="cadastro-cpf-cnpj" required />
+
+        <label>Endereço de e-mail</label>
+        <input type="email" id="cadastro-email" required />
+
+        <label>Senha</label>
+        <input type="password" id="cadastro-senha" required />
+
+        <button class="btn-criar-conta" id="btn-criar-conta" type="submit">Criar Conta</button>
+
+        <p class="btn-login">
+          Já tem uma conta? <a href="/frontend/public/pages/login/login.html" class="login-link">Faça login</a>
+        </p>
+
+        
+      </form>
+    </section>
+</main>
+
+<div id="footer"></div>
+
+<!-- Script externo de cadastro -->
+ 
+<script type="module" src="./main.js" defer></script>
+
+</body>
+
+</html>

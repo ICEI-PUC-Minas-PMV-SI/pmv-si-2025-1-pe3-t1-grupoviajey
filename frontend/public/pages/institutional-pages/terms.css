@@ -1,0 +1,31 @@
+.banner {
+  background-color: #00363a;
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.banner h1 {
+  color: #fff;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.banner p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.content {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-size: 1.1rem;
+  line-height: 2;
+}
+
+.content h2 {
+  margin-top: 30px;
+  color: #00363a;
+  font-size: 1.4rem;
+}
