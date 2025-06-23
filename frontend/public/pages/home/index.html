@@ -47,8 +47,8 @@
     <section class="cards-section">
       <div class="container">
         <div class="row justify-content-center">
-          <div class="col-12 text-center mb-5">
-            <p class="section-subtitle mx-auto">Explore diferentes categorias</p>
+          <div class="col-12 text-center mb-4">
+            <h2 class="section-subtitle mx-auto">Explore diferentes categorias</h2>
           </div>
         </div>
         <div class="interactive-cards">
@@ -118,7 +118,11 @@
   <script type="module">
     import { loadGoogleMapsScript } from '../../js/core/map/loader.js';
 
-    // Carrega a API key do backend antes de carregar o script do Google Maps
+    // O carregamento do Google Maps e do modal de IA foi movido para main.js
+    // para melhor organização e para evitar carregamentos duplicados.
+    // O código original foi mantido aqui como referência, mas está comentado.
+
+    /*
     loadGoogleMapsScript().then(() => {
       console.log('Script do Google Maps carregado a partir do loader.');
       // Carrega o modal só depois que o Google Maps e Flatpickr estiverem disponíveis
@@ -158,6 +162,7 @@
     }).catch(error => {
       console.error("Falha ao carregar o script do Google Maps via loader:", error);
     });
+    */
 
     // Inclui o componente search-bar
     fetch('../../components/search-bar/search-bar.html')
@@ -215,7 +220,7 @@
         const carouselHTML = `
           <section class="carousel-section">
             <h2 class="section-title">${this.options.title}</h2>
-            <div class="carousel-content row g-4" id="carousel-${Date.now()}">
+            <div class="carousel-content row g-4 justify-content-center" id="carousel-${Date.now()}">
               <!-- Content will be loaded here -->
             </div>
           </section>

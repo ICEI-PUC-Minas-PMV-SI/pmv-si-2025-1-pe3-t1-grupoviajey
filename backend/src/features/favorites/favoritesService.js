@@ -2,230 +2,106 @@ const { db } = require('../../config/firebase');
 
 class FavoritesService {
   /**
-   * Adicionar local aos favoritos
+   * Returns a reference to the user's favorites subcollection.
+   * This is the single source of truth for the database path.
+   * @param {string} userId - The ID of the user.
+   * @returns {FirebaseFirestore.CollectionReference}
+   */
+  _getFavoritesCollection(userId) {
+    if (!userId) {
+      throw new Error('User ID is required to get favorites collection.');
+    }
+    return db.collection('users').doc(userId).collection('userFavorites');
+  }
+
+  /**
+   * Add a place to favorites, ensuring no duplicates.
    */
   async addFavorite(userId, favoriteData) {
-    try {
-      const favoritesRef = db.collection('userFavorites');
-      
-      const favorite = {
-        userId,
-        ...favoriteData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+    const { placeId } = favoriteData;
+    const favoritesRef = this._getFavoritesCollection(userId);
+    const q = favoritesRef.where('placeId', '==', placeId);
+    const existing = await q.get();
 
-      const docRef = await favoritesRef.add(favorite);
-      
-      return {
-        id: docRef.id,
-        ...favorite
-      };
-    } catch (error) {
-      throw new Error(`Erro ao adicionar favorito: ${error.message}`);
+    if (!existing.empty) {
+      console.log(`[FavService] Favorite with placeId ${placeId} already exists.`);
+      const doc = existing.docs[0];
+      return { id: doc.id, ...doc.data() };
     }
+
+    const favorite = { ...favoriteData, createdAt: new Date() };
+    const docRef = await favoritesRef.add(favorite);
+    console.log(`[FavService] Saved new favorite to users/${userId}/userFavorites/${docRef.id}`);
+    return { id: docRef.id, ...favorite };
   }
 
   /**
-   * Buscar todos os favoritos de um usuário
+   * Get all favorites for a user.
    */
   async getUserFavorites(userId) {
-    try {
-      const favoritesRef = db.collection('userFavorites');
-      const snapshot = await favoritesRef
-        .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
-        .get();
-      
-      const favorites = [];
-      snapshot.forEach(doc => {
-        favorites.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return favorites;
-    } catch (error) {
-      throw new Error(`Erro ao buscar favoritos: ${error.message}`);
-    }
+    const favoritesRef = this._getFavoritesCollection(userId);
+    const snapshot = await favoritesRef.orderBy('createdAt', 'desc').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
   /**
-   * Buscar favorito específico
-   */
-  async getFavorite(userId, favoriteId) {
-    try {
-      const favoriteRef = db.collection('userFavorites').doc(favoriteId);
-      const doc = await favoriteRef.get();
-      
-      if (!doc.exists) {
-        throw new Error('Favorito não encontrado');
-      }
-      
-      const favorite = doc.data();
-      
-      // Verificar se o favorito pertence ao usuário
-      if (favorite.userId !== userId) {
-        throw new Error('Acesso negado');
-      }
-      
-      return {
-        id: doc.id,
-        ...favorite
-      };
-    } catch (error) {
-      throw new Error(`Erro ao buscar favorito: ${error.message}`);
-    }
-  }
-
-  /**
-   * Verificar se um local já está nos favoritos
+   * Check if a specific place is favorited by the user.
    */
   async isFavorite(userId, placeId) {
-    try {
-      const favoritesRef = db.collection('userFavorites');
-      const snapshot = await favoritesRef
-        .where('userId', '==', userId)
-        .where('placeId', '==', placeId)
-        .get();
-      
-      return !snapshot.empty;
-    } catch (error) {
-      throw new Error(`Erro ao verificar favorito: ${error.message}`);
-    }
+    const favoritesRef = this._getFavoritesCollection(userId);
+    const q = favoritesRef.where('placeId', '==', placeId);
+    const snapshot = await q.get();
+    return !snapshot.empty;
   }
 
   /**
-   * Atualizar favorito
-   */
-  async updateFavorite(userId, favoriteId, updateData) {
-    try {
-      const favoriteRef = db.collection('userFavorites').doc(favoriteId);
-      
-      // Verificar se o favorito existe e pertence ao usuário
-      const doc = await favoriteRef.get();
-      if (!doc.exists) {
-        throw new Error('Favorito não encontrado');
-      }
-      
-      const favorite = doc.data();
-      if (favorite.userId !== userId) {
-        throw new Error('Acesso negado');
-      }
-
-      const update = {
-        ...updateData,
-        updatedAt: new Date()
-      };
-
-      await favoriteRef.update(update);
-      
-      return await this.getFavorite(userId, favoriteId);
-    } catch (error) {
-      throw new Error(`Erro ao atualizar favorito: ${error.message}`);
-    }
-  }
-
-  /**
-   * Remover favorito
+   * Remove a favorite using its unique document ID.
    */
   async removeFavorite(userId, favoriteId) {
-    try {
-      const favoriteRef = db.collection('userFavorites').doc(favoriteId);
-      
-      // Verificar se o favorito existe e pertence ao usuário
-      const doc = await favoriteRef.get();
-      if (!doc.exists) {
-        throw new Error('Favorito não encontrado');
-      }
-      
-      const favorite = doc.data();
-      if (favorite.userId !== userId) {
-        throw new Error('Acesso negado');
-      }
-
-      await favoriteRef.delete();
-      
-      return { success: true, message: 'Favorito removido com sucesso' };
-    } catch (error) {
-      throw new Error(`Erro ao remover favorito: ${error.message}`);
-    }
+    const favoritesRef = this._getFavoritesCollection(userId);
+    await favoritesRef.doc(favoriteId).delete();
+    return { success: true, message: 'Favorito removido com sucesso' };
   }
 
   /**
-   * Remover favorito por placeId
+   * Remove all favorite entries for a given placeId.
    */
   async removeFavoriteByPlaceId(userId, placeId) {
-    try {
-      const favoritesRef = db.collection('userFavorites');
-      const snapshot = await favoritesRef
-        .where('userId', '==', userId)
-        .where('placeId', '==', placeId)
-        .get();
-      
-      if (snapshot.empty) {
-        throw new Error('Favorito não encontrado');
-      }
+    const favoritesRef = this._getFavoritesCollection(userId);
+    const q = favoritesRef.where('placeId', '==', placeId);
+    const snapshot = await q.get();
 
-      const favoriteDoc = snapshot.docs[0];
-      await favoriteDoc.ref.delete();
-      
-      return { success: true, message: 'Favorito removido com sucesso' };
-    } catch (error) {
-      throw new Error(`Erro ao remover favorito: ${error.message}`);
+    if (snapshot.empty) {
+      return { success: true, message: 'Nenhum favorito encontrado para remoção.' };
     }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    return { success: true, message: `Removidos ${snapshot.size} favoritos com sucesso.` };
   }
 
-  /**
-   * Buscar favoritos por localização
-   */
-  async getFavoritesByLocation(userId, location) {
-    try {
-      const favorites = await this.getUserFavorites(userId);
-      
-      // Filtrar por localização aproximada (dentro de um raio)
-      const radius = 0.01; // Aproximadamente 1km
-      const filteredFavorites = favorites.filter(favorite => {
-        if (!favorite.location || !location) return false;
-        
-        const latDiff = Math.abs(favorite.location.lat - location.lat);
-        const lngDiff = Math.abs(favorite.location.lng - location.lng);
-        
-        return latDiff <= radius && lngDiff <= radius;
-      });
-      
-      return filteredFavorites;
-    } catch (error) {
-      throw new Error(`Erro ao buscar favoritos por localização: ${error.message}`);
-    }
+  // The following methods are illustrative and should be adapted if needed,
+  // as their logic depends heavily on how data from other collections is handled.
+  
+  async getFavorite(userId, favoriteId) {
+    const doc = await this._getFavoritesCollection(userId).doc(favoriteId).get();
+    if (!doc.exists) throw new Error('Favorito não encontrado');
+    return { id: doc.id, ...doc.data() };
+  }
+  
+  async updateFavorite(userId, favoriteId, updateData) {
+    const favoriteRef = this._getFavoritesCollection(userId).doc(favoriteId);
+    await favoriteRef.update({ ...updateData, updatedAt: new Date() });
+    return await this.getFavorite(userId, favoriteId);
   }
 
-  /**
-   * Buscar estatísticas dos favoritos
-   */
   async getFavoritesStats(userId) {
-    try {
-      const favorites = await this.getUserFavorites(userId);
-      
-      const totalFavorites = favorites.length;
-      const uniquePlaces = new Set(favorites.map(fav => fav.placeId)).size;
-      
-      // Agrupar por tipo de local (se houver)
-      const placeTypes = {};
-      favorites.forEach(favorite => {
-        const type = favorite.type || 'unknown';
-        placeTypes[type] = (placeTypes[type] || 0) + 1;
-      });
-      
-      return {
-        totalFavorites,
-        uniquePlaces,
-        placeTypes
-      };
-    } catch (error) {
-      throw new Error(`Erro ao buscar estatísticas dos favoritos: ${error.message}`);
-    }
+    const favorites = await this.getUserFavorites(userId);
+    const totalFavorites = favorites.length;
+    // Note: This is a simplified stats implementation.
+    return { totalFavorites };
   }
 }
 

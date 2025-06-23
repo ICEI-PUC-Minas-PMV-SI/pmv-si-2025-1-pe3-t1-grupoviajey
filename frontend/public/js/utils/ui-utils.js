@@ -106,4 +106,46 @@ export function showErrorToast(message) {
 
 export function showSuccessToast(message) {
   showToast(message, 'success');
+}
+
+export function showConfirmationModal(message, onConfirm) {
+  const modal = document.createElement('div');
+  modal.id = 'confirmation-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+    padding: 20px;
+  `;
+
+  modal.innerHTML = `
+    <div class="confirmation-modal-content" style="background: white; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+      <p style="margin: 0 0 20px; font-size: 16px; color: #333;">${message}</p>
+      <div class="confirmation-modal-actions">
+        <button id="confirm-cancel" style="padding: 10px 20px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer;">Cancelar</button>
+        <button id="confirm-accept" style="padding: 10px 20px; border-radius: 5px; border: none; background: #d9534f; color: white; cursor: pointer;">Sim, excluir</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeModal = () => {
+    if (modal.parentNode) {
+      modal.parentNode.removeChild(modal);
+    }
+  };
+
+  modal.querySelector('#confirm-cancel').addEventListener('click', closeModal);
+  modal.querySelector('#confirm-accept').addEventListener('click', () => {
+    onConfirm();
+    closeModal();
+  });
 } 

@@ -35,7 +35,11 @@ router.get('/search', async (req, res) => {
 
     if (!unsplashResponse.ok) {
       console.error('Erro na resposta do Unsplash:', await unsplashResponse.text());
-      return res.status(unsplashResponse.status).json({ success: false, message: 'Erro ao comunicar com o serviço de imagens.' });
+      const errorText = 'Erro ao comunicar com o serviço de imagens.';
+      const detailedError = UNSPLASH_ACCESS_KEY 
+        ? errorText 
+        : 'A chave da API do Unsplash (UNSPLASH_ACCESS_KEY) não está configurada no backend. Verifique o arquivo .env';
+      return res.status(unsplashResponse.status).json({ success: false, message: detailedError });
     }
 
     const data = await unsplashResponse.json();

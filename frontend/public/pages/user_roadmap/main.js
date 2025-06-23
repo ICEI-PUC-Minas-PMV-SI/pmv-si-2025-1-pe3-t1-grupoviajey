@@ -278,18 +278,6 @@ function setupSpecificEventListeners() {
   } else {
     console.error('[DEBUG] Botão de adicionar local salvo não encontrado');
   }
-
-  // Garante que o checklist aparece ao trocar de aba
-  const checklistTabBtn = document.querySelector('.tabs .tab:nth-child(3)');
-  if (checklistTabBtn) {
-    checklistTabBtn.addEventListener('click', () => {
-      const container = document.getElementById('checklistsContainer');
-      if (container && container.children.length === 0) {
-        initMultiChecklists();
-        setupAddChecklistBlockBtn();
-      }
-    });
-  }
 }
 
 function adjustMapHeight() {

@@ -66,6 +66,77 @@ class UsersController {
     }
   }
 
+  // Fazer upload do avatar do usuário
+  async uploadAvatar(req, res) {
+    try {
+      const { uid } = req.user;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ success: false, message: 'Nenhum arquivo de imagem enviado.' });
+      }
+
+      const avatarUrl = await usersService.uploadAvatarAndUpdateProfile(uid, file);
+      
+      res.status(200).json({ success: true, data: { avatarUrl } });
+    } catch (error) {
+      console.error('[USERCONTROLLER] Erro uploadAvatar:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Alterar senha do usuário autenticado
+  async changePassword(req, res) {
+    try {
+      const { uid } = req.user;
+      const { currentPassword, newPassword } = req.body;
+      
+      console.log(`[USERCONTROLLER] changePassword UID: ${uid}`);
+      
+      // Verificar se o usuário existe no Firestore
+      const userRef = require('../../config/firebase').db.collection('users').doc(uid);
+      const doc = await userRef.get();
+      
+      if (!doc.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuário não encontrado no sistema.'
+        });
+      }
+
+      // Alterar senha no Firebase Auth
+      const result = await usersService.changeUserPassword(uid, currentPassword, newPassword);
+      
+      console.log(`[USERCONTROLLER] changePassword resultado:`, result);
+      res.status(200).json({ 
+        success: true, 
+        message: 'Senha alterada com sucesso',
+        data: result 
+      });
+    } catch (error) {
+      console.error('[USERCONTROLLER] Erro changePassword:', error);
+      
+      if (error.code === 'auth/wrong-password') {
+        return res.status(400).json({
+          success: false,
+          message: 'Senha atual incorreta'
+        });
+      }
+      
+      if (error.code === 'auth/weak-password') {
+        return res.status(422).json({
+          success: false,
+          message: 'A nova senha não atende aos requisitos de segurança'
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor ao alterar senha' 
+      });
+    }
+  }
+
   // Listar usuários órfãos (existem no Auth mas não no Firestore) - APENAS PARA ADMIN
   async listOrphanUsers(req, res) {
     try {

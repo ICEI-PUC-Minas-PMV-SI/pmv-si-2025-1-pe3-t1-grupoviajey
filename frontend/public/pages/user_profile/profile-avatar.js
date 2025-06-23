@@ -1,5 +1,6 @@
 // profile-avatar.js
 // Handles avatar editing and preview
+import { apiService } from '../../services/api/apiService.js';
 
 window.ProfileAvatar = (function() {
   function init() {
@@ -26,7 +27,7 @@ window.ProfileAvatar = (function() {
       const file = e.target.files[0];
       if (file && file.type.startsWith('image/')) {
         try {
-          // Mostra preview local imediatamente (opcional)
+          // Mostra preview local imediatamente
           const reader = new FileReader();
           reader.onload = function(ev) {
             avatarImg.src = ev.target.result;
@@ -35,13 +36,30 @@ window.ProfileAvatar = (function() {
 
           // Faz upload para o backend
           const newAvatarUrl = await uploadAvatar(file);
-          avatarImg.src = newAvatarUrl; // Atualiza para a URL real do backend
-          // (Opcional) Atualize o perfil do usuário com o novo avatarUrl
+
+          // Atualiza para a URL real do backend
+          avatarImg.src = newAvatarUrl; 
+
+          // Atualiza o perfil no localStorage para refletir em outras partes
+          const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+          userProfile.avatarUrl = newAvatarUrl;
+          localStorage.setItem('userProfile', JSON.stringify(userProfile));
+
+          // Atualiza o avatar no header, se existir
+          const headerAvatar = document.querySelector('.header-avatar-img');
+          if(headerAvatar) {
+            headerAvatar.src = newAvatarUrl;
+          }
+          
         } catch (err) {
-          alert('Erro ao enviar avatar');
+          console.error('Erro ao enviar avatar:', err)
+          alert('Erro ao enviar avatar: ' + err.message);
+          // Opcional: reverter para a imagem antiga se o upload falhar
+          // window.ProfileUtils.loadUserProfile(); 
         }
       }
-      fileInput.value = '';
+      // Limpa o valor para permitir selecionar o mesmo arquivo novamente
+      fileInput.value = ''; 
     });
   }
 
@@ -49,15 +67,16 @@ window.ProfileAvatar = (function() {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    const response = await fetch('<SUA_ROTA_DE_UPLOAD_AQUI>', {
-      method: 'POST', // ou PUT, conforme seu backend
-      body: formData,
-      // headers: { 'Authorization': 'Bearer ...' } // se precisar de auth
-    });
-
-    if (!response.ok) throw new Error('Erro ao enviar avatar');
-    const data = await response.json();
-    return data.avatarUrl; // backend deve retornar a URL do novo avatar
+    try {
+      const response = await apiService.uploadAvatar(formData);
+      if (response && response.success && response.data.avatarUrl) {
+        return response.data.avatarUrl;
+      } else {
+        throw new Error(response.message || 'A resposta da API não continha a URL do avatar.');
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
   return { init, uploadAvatar };

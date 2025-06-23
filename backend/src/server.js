@@ -1,18 +1,13 @@
-const express = require('express');
 const path = require('path');
 const app = require('./app');
-
-// Serve arquivos estáticos do frontend (pasta public)
-const publicPath = path.resolve(__dirname, '../frontend/public');
-app.use(express.static(publicPath));
 
 const PORT = process.env.PORT || 3001;
 
 // Inicializar servidor
 const server = app.listen(PORT, () => {
-  console.log(`Viajey Backend rodando na porta ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(` Viajey Backend rodando na porta ${PORT}`);
+  console.log(` Health check: http://localhost:${PORT}/health`);
+  console.log(` Ambiente: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Tratamento de erros não capturados
@@ -45,4 +40,4 @@ process.on('SIGINT', () => {
     console.log('Servidor encerrado.');
     process.exit(0);
   });
-});
+}); 

@@ -47,6 +47,13 @@
   object-fit: cover;
 }
 
+/* Garante que as imagens dos cards gerados dinamicamente também tenham tamanho uniforme */
+.carousel-section .card .card-img-top {
+  height: 200px; /* Altura fixa para todas as imagens dos cards */
+  object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+  width: 100%;
+}
+
 .card-body {
   padding: 16px;
 }

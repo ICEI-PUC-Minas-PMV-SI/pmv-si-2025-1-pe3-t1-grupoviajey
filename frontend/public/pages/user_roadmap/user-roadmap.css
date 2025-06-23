@@ -190,8 +190,6 @@
   border-bottom: none
 }
 
-
-
 /* ==========================================================================
    Itinerary Details & Day Sections
    ========================================================================== */
@@ -203,7 +201,7 @@
 
 .day-section {
   border-bottom: 1px solid #e0e7ef;
-  margin-bottom: 10px
+  margin-bottom: 10px;
 }
 
 .day-header {
@@ -249,11 +247,13 @@
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
   margin: 0 24px;
+  padding: 0;
 }
 
-.day-header.active+.day-content {
+.day-header.active + .day-content {
   max-height: 2000px;
   transition: max-height 0.5s ease-in;
+  padding: 20px;
 }
 
 .add-place-btn.outlined {
@@ -459,7 +459,6 @@
   margin-top: 10px;
 }
 
-
 .budget-dropdown {
   display: none;
   flex-direction: column;
@@ -562,6 +561,7 @@
   font-size: 1.25rem;
   color: #1a3c4e;
   font-weight: 600;
+  flex-grow: 1;
 }
 
 .checklist-list {
@@ -656,40 +656,75 @@
 .edit-checklist-title-btn {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--black);
   cursor: pointer;
   margin-bottom: 15px;
   margin-left: 0px;
 }
 
+.edit-checklist-title-btn:hover {
+  background: transparent !important;
+  color: green;
+}
+
+.checklist-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remove-checklist-btn-block {
+  background: none;
+  border: none;
+  color: #e05a47;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px 7px;
+  border-radius: 5px;
+  transition: background 0.2s;
+  margin: 0;
+}
+
+.remove-checklist-btn-block:hover {
+  background: #ffeaea;
+}
+
+.remove-checklist-block-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+  stroke: black;
+  transition: stroke 0.2s ease-in-out;
+}
+
+.remove-checklist-block-btn:hover svg {
+  stroke: red;
+}
+
+.checklist-title {
+  font-size: 1.25rem;
+  color: #1a3c4e;
+  font-weight: 600;
+  flex-grow: 1;
+}
+
 .add-checklist-form {
   display: flex;
-  gap: 8px;
-  margin-top: 18px;
+  position: relative;
+  margin-top: 16px;
+  gap: 10px;
 }
 
-.add-checklist-form input[type="text"] {
-  flex: 1;
-  padding: 7px 10px;
-  border: 1.5px solid #b0b8c1;
-  border-radius: 6px;
+.new-checklist-input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   font-size: 1rem;
-}
-
-.add-checklist-btn {
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 7px 18px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.add-checklist-btn:hover {
-  background: var(--primary-color-light);
+  background: #f8fafc;
+  color: #1a3c4e;
+  transition: border-color 0.2s;
 }
 
 /* ==========================================================================
@@ -1267,7 +1302,6 @@
   font-weight: 500;
 }
 
-
 /* ==========================================================================
    Info Windows & Map Controls
    ========================================================================== */
@@ -1690,11 +1724,11 @@
 }
 
 .save-expense-btn {
-  background: var(--primary-color);
+  background: var(--primary-color) !important;
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 7px 16px;
+  padding: none;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -1744,7 +1778,9 @@
 
 /* Breakpoints específicos */
 @media (min-width: 1800px) {
-  width: 1400px;
+  .user-roadmap-main {
+    width: 1400px;
+  }
 }
 
 .expense-input-container {
@@ -1754,7 +1790,13 @@
   margin: 0 8px;
 }
 
-.expense-name-input,
+.expense-name-input {
+padding: 4px 8px;
+border: 1px solid #ddd;
+border-radius: 4px;
+font-size: 14px;
+}
+
 .expense-value-input {
   padding: 4px 8px;
   border: 1px solid #ddd;
@@ -1854,4 +1896,45 @@
 
 .modal-alert .modal-confirm-btn:hover {
   background: var(--primary-color-dark);
+}
+
+.checklist-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remove-checklist-block-btn {
+  background-color: transparent !important;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  transition: color 0.2s ease-in-out;
+  margin-bottom: 13px;
+}
+
+.remove-checklist-block-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+  stroke: currentColor;
+}
+
+.remove-checklist-block-btn:hover {
+  color: red !important;
+}
+
+.checklist-title {
+  font-size: 1.25rem;
+  color: #1a3c4e;
+  font-weight: 600;
+  flex-grow: 1; /* Faz o título ocupar o espaço disponível */
+}
+
+#tab-checklist {
+  padding-bottom: 30px; /* Aumenta o espaçamento no final da aba de checklist */
 }

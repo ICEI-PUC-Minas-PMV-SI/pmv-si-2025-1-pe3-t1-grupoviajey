@@ -239,19 +239,7 @@ function handleTabClick(e) {
   } else if (tab.textContent.trim() === 'Check-list') {
     console.log('[Checklist] Mostrando tab de checklist');
     document.getElementById('tab-checklist').style.display = 'block';
-    // Garante que o checklist está inicializado
-    const container = document.getElementById('checklistsContainer');
-    if (container) {
-      console.log('[Checklist] Container encontrado, inicializando...');
-      if (container.children.length === 0) {
-        initMultiChecklists();
-        setupAddChecklistBlockBtn();
-      } else {
-        console.log('[Checklist] Container já tem conteúdo');
-      }
-    } else {
-      console.error('[Checklist] Container não encontrado');
-    }
+    // Os checklists já são inicializados no main.js, não precisamos inicializar novamente
   } else if (tab.textContent.trim() === 'Locais salvos') {
     document.getElementById('tab-saved-places').style.display = 'block';
     // TODO: Implementar renderização via API
@@ -272,22 +260,6 @@ export function initEventListeners() {
   document.querySelectorAll('.day-header').forEach(header => {
     header.addEventListener('click', handleDayHeaderClick);
   });
-
-  // Inicializa eventos de checklist
-  const checklistTab = document.querySelector('.tab:nth-child(3)');
-  if (checklistTab) {
-    checklistTab.addEventListener('click', () => {
-      console.log('[Checklist] Tab de checklist clicada');
-      const container = document.getElementById('checklistsContainer');
-      if (container) {
-        console.log('[Checklist] Container encontrado, inicializando...');
-        initMultiChecklists();
-        setupAddChecklistBlockBtn();
-      } else {
-        console.error('[Checklist] Container não encontrado');
-      }
-    });
-  }
 
   // Inicializa eventos de orçamento
   setupBudgetEventListeners();
@@ -316,17 +288,25 @@ function initRoadmapAccordion() {
     header.addEventListener('click', handleDayHeaderClick);
   });
 
+  // Observer para ajustar a altura do accordion quando elementos são adicionados/removidos
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'childList' || mutation.type === 'characterData') {
         const content = mutation.target.closest('.day-content');
         if (content && content.classList.contains('active')) {
-          content.style.maxHeight = content.scrollHeight + 'px';
+          // Ajusta a altura após um pequeno delay para garantir que o DOM foi atualizado
+          setTimeout(() => {
+            if (content.classList.contains('active')) {
+              const scrollHeight = content.scrollHeight;
+              content.style.maxHeight = scrollHeight + 'px';
+            }
+          }, 10);
         }
       }
     });
   });
 
+  // Observa mudanças em todos os day-content
   document.querySelectorAll('.day-content').forEach(content => {
     observer.observe(content, {
       childList: true,
@@ -417,6 +397,9 @@ export function initLocalCardDnD() {
 
 // Função para salvar alterações após drag and drop
 export function afterLocalChange() {
+  // Ajusta a altura dos accordions abertos
+  adjustActiveAccordions();
+  
   // TODO: Implementar salvamento via API
   console.log('Alterações locais detectadas - salvamento via API será implementado');
 }
@@ -536,6 +519,15 @@ export function attachRoadmapEventListeners() {
   // Inicializa drag and drop para cards
   initLocalCardDnD();
 
+  // Event listener para ajustar altura do accordion quando elementos são removidos
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-place-btn') || 
+        e.target.closest('.delete-note-btn') || 
+        e.target.closest('.delete-expense-btn')) {
+      setTimeout(adjustActiveAccordions, 50);
+    }
+  });
+
   // Debug: quantos accordions existem?
   const headers = document.querySelectorAll('.day-header');
   console.log('[DEBUG] attachRoadmapEventListeners: .day-header encontrados:', headers.length);
@@ -556,13 +548,39 @@ function handleDayHeaderClick(e) {
     const isOpen = header.classList.contains('active');
 
     if (isOpen) {
+      // Fecha o accordion
       content.style.maxHeight = '0';
       header.classList.remove('active');
       if (arrow) arrow.style.transform = 'rotate(0deg)';
     } else {
-      content.style.maxHeight = content.scrollHeight + 'px';
+      // Abre o accordion
       header.classList.add('active');
       if (arrow) arrow.style.transform = 'rotate(180deg)';
+      
+      // Calcula a altura real do conteúdo
+      const scrollHeight = content.scrollHeight;
+      content.style.maxHeight = scrollHeight + 'px';
+      
+      // Ajusta a altura após um pequeno delay para garantir que todos os elementos foram renderizados
+      setTimeout(() => {
+        if (header.classList.contains('active')) {
+          const newScrollHeight = content.scrollHeight;
+          content.style.maxHeight = newScrollHeight + 'px';
+        }
+      }, 50);
     }
   }
+}
+
+// Função para ajustar a altura de todos os accordions abertos
+function adjustActiveAccordions() {
+  const activeContents = document.querySelectorAll('.day-content.active');
+  activeContents.forEach(content => {
+    setTimeout(() => {
+      if (content.classList.contains('active')) {
+        const scrollHeight = content.scrollHeight;
+        content.style.maxHeight = scrollHeight + 'px';
+      }
+    }, 10);
+  });
 }

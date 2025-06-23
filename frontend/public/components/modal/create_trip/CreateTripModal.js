@@ -221,6 +221,16 @@ async function handleFormSubmit(e) {
             endDate = selectedDates[1].toISOString();
         }
     }
+    
+    const photoUrl = formData.get('photo_url') || null;
+
+    if (!photoUrl) {
+        const photoAlertModal = document.getElementById('photo-alert-modal-overlay');
+        if (photoAlertModal) {
+            photoAlertModal.style.display = 'flex';
+        }
+        return; // Impede o envio do formulário
+    }
 
     const tripData = {
         title: formData.get('title'),
@@ -228,7 +238,7 @@ async function handleFormSubmit(e) {
         description: formData.get('description'),
         startDate,
         endDate,
-        photo: formData.get('photo_url') || null
+        photo: photoUrl
     };
 
     try {
@@ -341,6 +351,16 @@ export async function initCreateTripModal() {
                 closeModal();
             }
         });
+
+        // Configura o modal de alerta de foto
+        const photoAlertModal = document.getElementById('photo-alert-modal-overlay');
+        const photoAlertCloseBtn = document.getElementById('photo-alert-close');
+
+        if (photoAlertModal && photoAlertCloseBtn) {
+            photoAlertCloseBtn.onclick = () => {
+                photoAlertModal.style.display = 'none';
+            };
+        }
 
         setupPhotoRequirementsPopup();
 

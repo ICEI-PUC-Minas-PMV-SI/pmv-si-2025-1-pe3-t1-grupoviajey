@@ -1,57 +1,27 @@
+import { getAuthToken } from '../../js/config/firebase-config.js';
+
 // User service to handle user-related operations
 class UserService {
   constructor() {
-    this.favorites = this.loadFavorites();
+    this.user = null;
+    this._loadUserFromStorage();
   }
 
-  // Load favorites from localStorage
-  loadFavorites() {
-    const favorites = localStorage.getItem('userFavorites');
-    return favorites ? JSON.parse(favorites) : [];
-  }
-
-  // Save favorites to localStorage
-  saveFavorites() {
-    localStorage.setItem('userFavorites', JSON.stringify(this.favorites));
-  }
-
-  // Add a place to favorites
-  addToFavorites(place) {
-    if (!this.favorites.some(fav => fav.favoritePlaceId === place.id)) {
-      const favoriteData = {
-        favoriteId: Date.now().toString(),
-        favoritePlaceId: place.id,
-        favoriteTitle: place.title,
-        favoriteAddress: place.address,
-        favoriteRating: place.rating,
-        favoriteData: place
-      };
-      this.favorites.push(favoriteData);
-      this.saveFavorites();
-      return true;
+  _loadUserFromStorage() {
+    const storedUser = localStorage.getItem('userProfile');
+    if (storedUser) {
+      this.user = JSON.parse(storedUser);
     }
-    return false;
   }
 
-  // Remove a place from favorites
-  removeFromFavorites(placeId) {
-    const initialLength = this.favorites.length;
-    this.favorites = this.favorites.filter(fav => fav.favoritePlaceId !== placeId);
-    if (this.favorites.length !== initialLength) {
-      this.saveFavorites();
-      return true;
-    }
-    return false;
+  setUser(userData) {
+    this.user = userData;
+    // Note: We only set the user object in memory.
+    // The profile is now saved to localStorage by header.js after a successful backend fetch.
   }
 
-  // Check if a place is in favorites
-  isFavorite(placeId) {
-    return this.favorites.some(fav => fav.favoritePlaceId === placeId);
-  }
-
-  // Get all favorites
-  getFavorites() {
-    return this.favorites;
+  getUser() {
+    return this.user;
   }
 }
 

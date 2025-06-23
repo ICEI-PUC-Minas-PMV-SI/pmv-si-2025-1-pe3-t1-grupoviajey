@@ -1,6 +1,5 @@
 // Importações
 import { updateFinanceSummary } from './roadmap-finance.js';
-import { attachRoadmapEventListeners } from './roadmap-events.js';
 import { attachLocalCardActions, formatTripPeriod } from './roadmap-utils.js';
 import { updateMap, clearMap } from './roadmap-map.js';
 import { apiService } from '../../services/api/apiService.js';
@@ -79,10 +78,18 @@ export function handleAddToTimeline(placeData, dayContent) {
   // TODO: Implementar salvamento via API
   console.log('Local adicionado à timeline:', placeData);
 
-  adjustTimelineHeight();
+  // Ajusta a altura do accordion se estiver aberto
+  const dayHeader = dayContent.previousElementSibling;
+  if (dayHeader && dayHeader.classList.contains('active')) {
+    // Usa um timeout maior para garantir que o DOM foi atualizado
+    setTimeout(() => {
+      if (dayHeader.classList.contains('active')) {
+        const scrollHeight = dayContent.scrollHeight;
+        dayContent.style.maxHeight = scrollHeight + 'px';
+      }
+    }, 50);
+  }
 
-  dayContent.classList.add('active');
-  dayContent.style.maxHeight = dayContent.scrollHeight + 'px';
   adjustTimelineHeight();
 }
 
