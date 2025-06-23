@@ -1,6 +1,9 @@
 .search-section {
   text-align: center;
-  margin: 32px 0 0 0;
+  margin: 32px auto 0 auto;
+  padding: 0 15px;
+  max-width: 1500px;
+  box-sizing: border-box;
 }
 
 .search-section h1 {
@@ -123,6 +126,10 @@
     max-width: 1200px;
     padding: 64px 80px;
     font-size: 2.2rem;
+  }
+
+  .search-section {
+    max-width: 1200px;
   }
 }
 
