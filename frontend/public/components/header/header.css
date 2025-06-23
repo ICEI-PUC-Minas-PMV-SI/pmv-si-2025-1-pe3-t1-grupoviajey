@@ -117,3 +117,23 @@
     transform: translateY(0);
   }
 }
+
+.btn-criar-roteiro {
+  background: #004954;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  margin-left: 24px;
+  margin-right: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.btn-criar-roteiro:hover {
+  background: #007c91;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}

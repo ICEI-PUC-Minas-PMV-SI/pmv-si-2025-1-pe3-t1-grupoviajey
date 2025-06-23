@@ -190,6 +190,8 @@
   border-bottom: none
 }
 
+
+
 /* ==========================================================================
    Itinerary Details & Day Sections
    ========================================================================== */
@@ -201,7 +203,7 @@
 
 .day-section {
   border-bottom: 1px solid #e0e7ef;
-  margin-bottom: 10px;
+  margin-bottom: 10px
 }
 
 .day-header {
@@ -247,13 +249,11 @@
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
   margin: 0 24px;
-  padding: 0;
 }
 
-.day-header.active + .day-content {
-  max-height: 2000px;
+.day-header.active+.day-content {
+  max-height: none;
   transition: max-height 0.5s ease-in;
-  padding: 20px;
 }
 
 .add-place-btn.outlined {
@@ -458,6 +458,7 @@
   margin: 5px;
   margin-top: 10px;
 }
+
 
 .budget-dropdown {
   display: none;
@@ -1302,6 +1303,7 @@
   font-weight: 500;
 }
 
+
 /* ==========================================================================
    Info Windows & Map Controls
    ========================================================================== */
@@ -1724,11 +1726,11 @@
 }
 
 .save-expense-btn {
-  background: var(--primary-color) !important;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: none;
+  padding: 7px 16px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -1790,13 +1792,7 @@
   margin: 0 8px;
 }
 
-.expense-name-input {
-padding: 4px 8px;
-border: 1px solid #ddd;
-border-radius: 4px;
-font-size: 14px;
-}
-
+.expense-name-input,
 .expense-value-input {
   padding: 4px 8px;
   border: 1px solid #ddd;

@@ -271,7 +271,21 @@ export function initEventListeners() {
   setupNoteEventListeners();
 }
 
-// Função para inicializar o accordion
+// Função global para recalcular a altura do accordion
+export function recalculateAccordionHeight(content) {
+  if (content && content.classList.contains('active')) {
+    const scrollHeight = content.scrollHeight;
+    content.style.maxHeight = scrollHeight + 'px';
+    
+    // Remove o max-height após a transição para permitir crescimento
+    setTimeout(() => {
+      if (content.classList.contains('active')) {
+        content.style.maxHeight = 'none';
+      }
+    }, 300);
+  }
+}
+
 function initRoadmapAccordion() {
   const dayHeaders = document.querySelectorAll('.day-header');
 
@@ -288,25 +302,19 @@ function initRoadmapAccordion() {
     header.addEventListener('click', handleDayHeaderClick);
   });
 
-  // Observer para ajustar a altura do accordion quando elementos são adicionados/removidos
+  // MutationObserver melhorado para detectar mudanças no conteúdo
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'childList' || mutation.type === 'characterData') {
         const content = mutation.target.closest('.day-content');
         if (content && content.classList.contains('active')) {
-          // Ajusta a altura após um pequeno delay para garantir que o DOM foi atualizado
-          setTimeout(() => {
-            if (content.classList.contains('active')) {
-              const scrollHeight = content.scrollHeight;
-              content.style.maxHeight = scrollHeight + 'px';
-            }
-          }, 10);
+          // Recalcula a altura quando o conteúdo muda
+          recalculateAccordionHeight(content);
         }
       }
     });
   });
 
-  // Observa mudanças em todos os day-content
   document.querySelectorAll('.day-content').forEach(content => {
     observer.observe(content, {
       childList: true,
@@ -397,9 +405,6 @@ export function initLocalCardDnD() {
 
 // Função para salvar alterações após drag and drop
 export function afterLocalChange() {
-  // Ajusta a altura dos accordions abertos
-  adjustActiveAccordions();
-  
   // TODO: Implementar salvamento via API
   console.log('Alterações locais detectadas - salvamento via API será implementado');
 }
@@ -519,15 +524,6 @@ export function attachRoadmapEventListeners() {
   // Inicializa drag and drop para cards
   initLocalCardDnD();
 
-  // Event listener para ajustar altura do accordion quando elementos são removidos
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.remove-place-btn') || 
-        e.target.closest('.delete-note-btn') || 
-        e.target.closest('.delete-expense-btn')) {
-      setTimeout(adjustActiveAccordions, 50);
-    }
-  });
-
   // Debug: quantos accordions existem?
   const headers = document.querySelectorAll('.day-header');
   console.log('[DEBUG] attachRoadmapEventListeners: .day-header encontrados:', headers.length);
@@ -553,7 +549,7 @@ function handleDayHeaderClick(e) {
       header.classList.remove('active');
       if (arrow) arrow.style.transform = 'rotate(0deg)';
     } else {
-      // Abre o accordion
+      // Abre o accordion com altura dinâmica
       header.classList.add('active');
       if (arrow) arrow.style.transform = 'rotate(180deg)';
       
@@ -561,26 +557,12 @@ function handleDayHeaderClick(e) {
       const scrollHeight = content.scrollHeight;
       content.style.maxHeight = scrollHeight + 'px';
       
-      // Ajusta a altura após um pequeno delay para garantir que todos os elementos foram renderizados
+      // Após a transição, remove o max-height para permitir crescimento
       setTimeout(() => {
         if (header.classList.contains('active')) {
-          const newScrollHeight = content.scrollHeight;
-          content.style.maxHeight = newScrollHeight + 'px';
+          content.style.maxHeight = 'none';
         }
-      }, 50);
+      }, 300); // Tempo da transição CSS
     }
   }
-}
-
-// Função para ajustar a altura de todos os accordions abertos
-function adjustActiveAccordions() {
-  const activeContents = document.querySelectorAll('.day-content.active');
-  activeContents.forEach(content => {
-    setTimeout(() => {
-      if (content.classList.contains('active')) {
-        const scrollHeight = content.scrollHeight;
-        content.style.maxHeight = scrollHeight + 'px';
-      }
-    }, 10);
-  });
 }

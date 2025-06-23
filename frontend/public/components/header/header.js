@@ -192,6 +192,21 @@ function setupEventListeners() {
     });
   }
 
+  // Botão Criar Roteiro
+  const btnCriarRoteiro = document.getElementById('btn-criar-roteiro');
+  if (btnCriarRoteiro) {
+    btnCriarRoteiro.addEventListener('click', async () => {
+      // Carrega e abre o modal de criação de viagem
+      const module = await import('../modal/create_trip/CreateTripModal.js');
+      if (module && typeof module.initCreateTripModal === 'function') {
+        await module.initCreateTripModal();
+      }
+      if (module && typeof module.openCreateTripModal === 'function') {
+        module.openCreateTripModal();
+      }
+    });
+  }
+
   document.addEventListener('click', (e) => {
     const elements = getHeaderElements();
     if (elements.userMenu && !elements.userAvatarEl?.contains(e.target) && !elements.userMenu.contains(e.target)) {

@@ -3,6 +3,7 @@ import { apiService } from '../../services/api/apiService.js';
 import { showLoading, hideLoading, showErrorToast, showSuccessToast } from '../../js/utils/ui-utils.js';
 import { updateFinanceSummary, parseCurrencyToNumber } from './roadmap-finance.js';
 import { setupCardHoverEvents } from './roadmap-map.js';
+import { recalculateAccordionHeight } from './roadmap-events.js';
 
 // =============================================
 // CRIAÇÃO DE ELEMENTOS
@@ -203,8 +204,12 @@ export function attachLocalCardActions(card, dayId = null) {
       if (response && response.success) {
         card.remove();
         showSuccessToast('Local removido!');
-        // Idealmente, o mapa seria atualizado aqui sem recarregar a página.
-        // window.dispatchEvent(new CustomEvent('roadmapUpdated'));
+        
+        // Recalcula a altura do accordion após remover o elemento
+        const dayContent = card.closest('.day-content');
+        if (dayContent) {
+          recalculateAccordionHeight(dayContent);
+        }
       } else {
         throw new Error(response.message || 'Falha ao remover o local.');
       }
@@ -258,6 +263,12 @@ export function attachLocalCardActions(card, dayId = null) {
           const noteDiv = createNoteDiv(value);
           card.parentNode.insertBefore(noteDiv, form.nextElementSibling);
           attachNoteActions(noteDiv, card);
+          
+          // Recalcula a altura do accordion após adicionar a anotação
+          const dayContent = card.closest('.day-content');
+          if (dayContent) {
+            recalculateAccordionHeight(dayContent);
+          }
         }
         form.remove();
       };
@@ -354,6 +365,13 @@ export function attachLocalCardActions(card, dayId = null) {
             
             updateFinanceSummary();
             showSuccessToast('Despesa salva com sucesso!');
+            
+            // Recalcula a altura do accordion após adicionar a despesa
+            const dayContent = card.closest('.day-content');
+            if (dayContent) {
+              recalculateAccordionHeight(dayContent);
+            }
+            
             form.remove();
           } else {
             throw new Error(response.message || 'Falha ao salvar a despesa.');
@@ -409,6 +427,12 @@ export function attachNoteActions(noteDiv, card) {
 
   noteDiv.querySelector('.delete-note-btn').onclick = function () {
     noteDiv.remove();
+    
+    // Recalcula a altura do accordion após remover a anotação
+    const dayContent = noteDiv.closest('.day-content');
+    if (dayContent) {
+      recalculateAccordionHeight(dayContent);
+    }
   };
 }
 
@@ -493,6 +517,12 @@ export function attachExpenseActions(expenseDiv, card) {
         expenseDiv.remove();
         updateFinanceSummary();
         showSuccessToast('Despesa excluída com sucesso!');
+        
+        // Recalcula a altura do accordion após remover a despesa
+        const dayContent = expenseDiv.closest('.day-content');
+        if (dayContent) {
+          recalculateAccordionHeight(dayContent);
+        }
       } else {
         throw new Error(response.message || 'Falha ao excluir a despesa.');
       }
