@@ -241,17 +241,19 @@ async function handleFormSubmit(e) {
         photo: photoUrl
     };
 
+    // Antes de enviar, remova description se estiver vazio
+    if (tripData.description === "") {
+        delete tripData.description;
+    }
+
     try {
         showLoading('Criando viagem...');
         
         const newTrip = await apiService.createTrip(tripData);
         
         showSuccessToast('Viagem criada com sucesso!');
-        closeModal();
-        
-        if (typeof window.renderTrips === 'function') {
-            await window.renderTrips();
-        }
+        // Redireciona para o dashboard do usuário
+        window.location.href = '/pages/user_dashboard/user-dashboard.html';
     } catch (error) {
         console.error('Erro ao salvar viagem:', error);
         showErrorToast(`Erro ao criar viagem: ${error.message}`);
@@ -294,79 +296,85 @@ function setupPhotoRequirementsPopup() {
 }
 
 export async function initCreateTripModal() {
-    if (modalInitialized) return;
+    if (!modalInitialized) {
+        try {
+            // Carrega CSS
+            if (!document.querySelector('link[href*="CreateTripModal.css"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '../../components/modal/create_trip/CreateTripModal.css';
+                document.head.appendChild(link);
+            }
 
-    try {
-        // Carrega CSS
-        if (!document.querySelector('link[href*="CreateTripModal.css"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '../../components/modal/create_trip/CreateTripModal.css';
-            document.head.appendChild(link);
+            // Carrega HTML
+            if (!document.getElementById('create-trip-modal-overlay')) {
+                const response = await fetch('../../components/modal/create_trip/CreateTripModal.html');
+                const html = await response.text();
+                document.body.insertAdjacentHTML('beforeend', html);
+            }
+
+            // Aguarda Google Maps e Flatpickr
+            await loadGoogleMapsScript();
+            waitForGoogleMaps(() => {
+                initAutocomplete();
+            });
+            await waitForFlatpickr();
+            initDatePicker();
+
+            // Configura event listeners
+            const modal = document.getElementById('create-trip-modal-overlay');
+            const closeBtn = document.getElementById('create-trip-modal-close');
+            const cancelBtn = document.getElementById('cancel-trip');
+            const form = document.getElementById('create-trip-form');
+            const photoInput = document.getElementById('trip-photo');
+            const searchPhotoBtn = document.getElementById('search-destination-photo');
+
+            if (closeBtn) closeBtn.onclick = closeModal;
+            if (cancelBtn) cancelBtn.onclick = closeModal;
+            if (modal) {
+                modal.onclick = (e) => {
+                    if (e.target === modal) closeModal();
+                };
+            }
+            if (form) {
+                form.onsubmit = handleFormSubmit;
+            }
+            if (photoInput) {
+                photoInput.onchange = handlePhotoUpload;
+            }
+            if (searchPhotoBtn) {
+                searchPhotoBtn.onclick = handleDestinationPhotoSearch;
+            }
+
+            // Fechar com ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal?.style.display === 'flex') {
+                    closeModal();
+                }
+            });
+
+            // Configura o modal de alerta de foto
+            const photoAlertModal = document.getElementById('photo-alert-modal-overlay');
+            const photoAlertCloseBtn = document.getElementById('photo-alert-close');
+
+            if (photoAlertModal && photoAlertCloseBtn) {
+                photoAlertCloseBtn.onclick = () => {
+                    photoAlertModal.style.display = 'none';
+                };
+            }
+
+            setupPhotoRequirementsPopup();
+
+            modalInitialized = true;
+        } catch (error) {
+            console.error('Erro ao inicializar modal:', error);
         }
-
-        // Carrega HTML
-        if (!document.getElementById('create-trip-modal-overlay')) {
-            const response = await fetch('../../components/modal/create_trip/CreateTripModal.html');
-            const html = await response.text();
-            document.body.insertAdjacentHTML('beforeend', html);
-        }
-
-        // Aguarda Google Maps e Flatpickr
-        await loadGoogleMapsScript();
-        waitForGoogleMaps(() => {
-            initAutocomplete();
-        });
-        await waitForFlatpickr();
-        initDatePicker();
-
-        // Configura event listeners
-        const modal = document.getElementById('create-trip-modal-overlay');
-        const closeBtn = document.getElementById('create-trip-modal-close');
-        const cancelBtn = document.getElementById('cancel-trip');
+    } else {
+        // Mesmo já inicializado, sempre reatribua o evento de submit para garantir
         const form = document.getElementById('create-trip-form');
-        const photoInput = document.getElementById('trip-photo');
-        const searchPhotoBtn = document.getElementById('search-destination-photo');
-
-        if (closeBtn) closeBtn.onclick = closeModal;
-        if (cancelBtn) cancelBtn.onclick = closeModal;
-        if (modal) {
-            modal.onclick = (e) => {
-                if (e.target === modal) closeModal();
-            };
-        }
         if (form) {
             form.onsubmit = handleFormSubmit;
         }
-        if (photoInput) {
-            photoInput.onchange = handlePhotoUpload;
-        }
-        if (searchPhotoBtn) {
-            searchPhotoBtn.onclick = handleDestinationPhotoSearch;
-        }
-
-        // Fechar com ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal?.style.display === 'flex') {
-                closeModal();
-            }
-        });
-
-        // Configura o modal de alerta de foto
-        const photoAlertModal = document.getElementById('photo-alert-modal-overlay');
-        const photoAlertCloseBtn = document.getElementById('photo-alert-close');
-
-        if (photoAlertModal && photoAlertCloseBtn) {
-            photoAlertCloseBtn.onclick = () => {
-                photoAlertModal.style.display = 'none';
-            };
-        }
-
-        setupPhotoRequirementsPopup();
-
-        modalInitialized = true;
-    } catch (error) {
-        console.error('Erro ao inicializar modal:', error);
     }
 }
 

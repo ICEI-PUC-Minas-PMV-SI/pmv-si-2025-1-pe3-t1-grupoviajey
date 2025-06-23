@@ -26,7 +26,7 @@ const validate = (schema) => {
 // Schemas de validação
 const tripSchema = Joi.object({
   title: Joi.string().required().min(1).max(100),
-  description: Joi.string().optional().max(500),
+  description: Joi.string().optional().allow('').max(500),
   startDate: Joi.date().iso().required().custom((value, helpers) => {
     // Cria a data de 'hoje' em UTC para uma comparação justa
     const today = new Date();
