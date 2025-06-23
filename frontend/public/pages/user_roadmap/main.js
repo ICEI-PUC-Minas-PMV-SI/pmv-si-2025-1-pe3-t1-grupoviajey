@@ -224,7 +224,7 @@ async function initModules(trip, roadmap) {
     const map = await initRoadmapMap(trip.destination);
     if (map) {
       updateMap(allPlaces); // Atualiza o mapa com todos os locais
-      initializeGoogleMapsAutocomplete(map);
+      // initializeGoogleMapsAutocomplete(map); // Removido para evitar conflito de dropdowns
     } else {
         console.error('Falha ao inicializar o mapa. Autocomplete e outras funções dependentes podem não funcionar.');
     }

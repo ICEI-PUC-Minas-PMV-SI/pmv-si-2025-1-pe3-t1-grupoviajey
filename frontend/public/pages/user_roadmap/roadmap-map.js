@@ -35,19 +35,48 @@ export function clearLastSelectedPlace() {
  * @param {string} inputSelector - Seletor do input para autocomplete
  * @returns {Promise<Object>} O objeto autocomplete
  */
-export function initializeGoogleMapsAutocomplete(map, inputId = '#autocomplete') {
+export async function initializeGoogleMapsAutocomplete(city, inputId = '#autocomplete') {
   const input = document.querySelector(inputId);
   if (!input) {
     console.error(`Input element with selector "${inputId}" not found.`);
     return;
   }
 
-  const autocomplete = new google.maps.places.Autocomplete(input, {
+  let options = {
     fields: ["place_id", "name", "formatted_address", "geometry", "rating", "types"],
-  });
+    types: ['establishment'],
+    strictBounds: true
+  };
+
+  // Se uma cidade foi informada, geocodifica para obter os bounds
+  if (city && typeof city === 'string' && city.trim() !== '') {
+    try {
+      const apiKey = await window.getGoogleMapsApiKey?.();
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(city)}&key=${apiKey}`);
+      const geo = await response.json();
+      if (geo.results && geo.results[0] && geo.results[0].geometry && geo.results[0].geometry.bounds) {
+        const bounds = geo.results[0].geometry.bounds;
+        options.bounds = new google.maps.LatLngBounds(
+          new google.maps.LatLng(bounds.southwest.lat, bounds.southwest.lng),
+          new google.maps.LatLng(bounds.northeast.lat, bounds.northeast.lng)
+        );
+      }
+    } catch (e) {
+      console.warn('Não foi possível obter bounds da cidade para restringir o autocomplete:', e);
+    }
+  }
+
+  const autocomplete = new google.maps.places.Autocomplete(input, options);
 
   autocomplete.addListener("place_changed", () => {
     const place = autocomplete.getPlace();
+    // Filtro: só aceita locais cujo endereço contenha o nome da cidade
+    if (city && place.formatted_address && !place.formatted_address.toLowerCase().includes(city.toLowerCase())) {
+      alert(`Por favor, selecione apenas locais dentro de "${city}".`);
+      input.value = '';
+      lastSelectedPlace = null;
+      return;
+    }
     if (place.geometry) {
       lastSelectedPlace = {
         placeId: place.place_id,
@@ -257,4 +286,8 @@ export function clearMap() {
   window.roadmapMarkers = [];
 
   console.log('Mapa limpo com sucesso');
+}
+
+export function setLastSelectedPlace(place) {
+  lastSelectedPlace = place;
 }

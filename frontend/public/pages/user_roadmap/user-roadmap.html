@@ -154,8 +154,11 @@
   <div id="addPlaceModal" class="modal-add-place" style="display:none;">
     <div class="modal-content">
       <h2 class="modal-title">Qual local você gostaria de adicionar?</h2>
-      <div id="modalSearchBarContainer">
-        <input id="autocomplete" type="text" placeholder="Busque um local..." />
+      <div id="modalSearchBarContainer" class="search-bar-container" style="position:relative;">
+        <input id="autocomplete" type="text" class="search-bar-input" placeholder="Busque um local..." style="padding-left:40px;" />
+        <span class="search-bar-icon" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;">
+          <svg width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
       </div>
       <div class="modal-actions">
         <button id="closeAddPlaceModal" class="modal-cancel-btn">Cancelar</button>

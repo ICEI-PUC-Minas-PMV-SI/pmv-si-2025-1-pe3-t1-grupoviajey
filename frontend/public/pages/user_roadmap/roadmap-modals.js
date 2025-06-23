@@ -10,6 +10,7 @@ import {
   initializeGoogleMapsAutocomplete,
   getLastSelectedPlace,
   clearLastSelectedPlace,
+  setLastSelectedPlace,
 } from "./roadmap-map.js";
 import { searchDestinationImage } from "../../services/api/unsplash.js";
 import { updateFinanceSummary } from "./roadmap-finance.js";
@@ -26,6 +27,7 @@ import {
   showSuccessToast,
   showConfirmationModal,
 } from "../../js/utils/ui-utils.js";
+import { initNearbyAutocomplete } from "../../js/utils/nearby-autocomplete.js";
 
 // Estado dos modais
 const modalState = {
@@ -349,7 +351,18 @@ export function openAddPlaceModal(
     ?.innerText;
 
   if (input && !input._autocompleteInitialized) {
-    initializeGoogleMapsAutocomplete(destination, "#autocomplete");
+    initNearbyAutocomplete(input, destination, (place) => {
+      setLastSelectedPlace({
+        placeId: place.place_id,
+        name: place.name,
+        address: place.vicinity || '',
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
+        rating: place.rating || null,
+        photo: null,
+        types: place.types || [],
+      });
+    });
     input._autocompleteInitialized = true;
   }
 
