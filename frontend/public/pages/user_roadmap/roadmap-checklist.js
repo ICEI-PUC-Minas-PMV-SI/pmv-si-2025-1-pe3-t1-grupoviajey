@@ -8,12 +8,14 @@ import { apiService } from '../../services/api/apiService.js';
 import { showLoading, hideLoading, showErrorToast } from '../../js/utils/ui-utils.js';
 
 let currentTripId = null;
+let isInitialized = false; // Flag para evitar inicialização múltipla
 
 // =============================================
 // CRIAÇÃO E RENDERIZAÇÃO
 // =============================================
 
 function createChecklistBlock(checklist = {}) {
+  console.log('[Checklist] createChecklistBlock chamada com:', checklist);
   const { id, title = 'Novo Checklist', items = [] } = checklist;
   
   const block = document.createElement('div');
@@ -37,6 +39,7 @@ function createChecklistBlock(checklist = {}) {
 
   const ul = block.querySelector('.checklist-list');
   if (items && items.length > 0) {
+    console.log('[Checklist] Renderizando', items.length, 'itens');
     // Ordena os itens para que os concluídos fiquem no final
     items.sort((a, b) => a.isCompleted - b.isCompleted).forEach(item => {
       const li = createChecklistItemElement(item);
@@ -47,6 +50,7 @@ function createChecklistBlock(checklist = {}) {
   }
 
   attachChecklistBlockEvents(block);
+  console.log('[Checklist] Bloco criado com ID:', id);
   return block;
 }
 
@@ -284,6 +288,13 @@ function addChecklistDnDHandlers(elem) {
 // =============================================
 
 export async function initMultiChecklists() {
+    console.log('[Checklist] initMultiChecklists chamada, isInitialized:', isInitialized);
+    // Evita inicialização múltipla
+    if (isInitialized) {
+        console.log('[Checklist] Já inicializado, pulando...');
+        return;
+    }
+
     const container = document.getElementById('checklistsContainer');
     if (!container) {
       console.error('[Checklist] Container não encontrado');
@@ -292,6 +303,7 @@ export async function initMultiChecklists() {
 
   const urlParams = new URLSearchParams(window.location.search);
   currentTripId = urlParams.get('tripId');
+  console.log('[Checklist] currentTripId:', currentTripId);
 
   if (!currentTripId) {
     container.innerHTML = '<p>ID da viagem não encontrado. Verifique a URL.</p>';
@@ -302,9 +314,12 @@ export async function initMultiChecklists() {
   container.innerHTML = '';
   
   try {
+    console.log('[Checklist] Fazendo chamada para API...');
     const checklistsResponse = await apiService.getRoadmapChecklists(currentTripId);
+    console.log('[Checklist] Resposta da API:', checklistsResponse);
 
     if (checklistsResponse.success && checklistsResponse.data.length > 0) {
+      console.log('[Checklist] Renderizando', checklistsResponse.data.length, 'checklists');
       checklistsResponse.data.forEach(checklist => {
         const block = createChecklistBlock(checklist);
         container.appendChild(block);
@@ -320,17 +335,30 @@ export async function initMultiChecklists() {
     showErrorToast('Erro ao carregar checklists.');
   } finally {
     hideLoading();
+    isInitialized = true; // Marca como inicializado
+    console.log('[Checklist] Inicialização concluída, isInitialized:', isInitialized);
   }
 }
 
 export function setupAddChecklistBlockBtn() {
+  console.log('[Checklist] setupAddChecklistBlockBtn chamada');
   const addBtn = document.getElementById('addChecklistBlockBtn');
-  if (!addBtn) return;
+  if (!addBtn) {
+    console.log('[Checklist] Botão addChecklistBlockBtn não encontrado');
+    return;
+  }
 
-  addBtn.addEventListener('click', async () => {
+  // Remove event listeners anteriores para evitar duplicação
+  const newAddBtn = addBtn.cloneNode(true);
+  addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+  console.log('[Checklist] Botão clonado e substituído');
+
+  newAddBtn.addEventListener('click', async () => {
+    console.log('[Checklist] Botão de criar checklist clicado');
     showLoading('Criando checklist...');
     try {
         const newChecklistResponse = await apiService.createRoadmapChecklist(currentTripId, { title: 'Novo Checklist' });
+        console.log('[Checklist] Resposta da API:', newChecklistResponse);
         if (newChecklistResponse.success) {
       const container = document.getElementById('checklistsContainer');
             // Limpa a mensagem "nenhum checklist" se for o primeiro
@@ -339,12 +367,13 @@ export function setupAddChecklistBlockBtn() {
             }
             const block = createChecklistBlock(newChecklistResponse.data);
             container.appendChild(block);
+            console.log('[Checklist] Checklist criado e adicionado ao DOM');
         } else {
             throw new Error(newChecklistResponse.message || 'Falha ao criar checklist.');
         }
     } catch (error) {
         showErrorToast('Erro ao criar checklist.');
-        console.error(error);
+        console.error('[Checklist] Erro ao criar checklist:', error);
     } finally {
         hideLoading();
     }
@@ -403,80 +432,6 @@ export function handleChecklistItemDrop(e) {
 // =============================================
 // STORAGE
 // =============================================
-
-function saveChecklistsToStorage() {
-  console.log('[Checklist] Iniciando salvamento dos checklists');
-  try {
-    const checklistBlocks = document.querySelectorAll('.checklist-block');
-    console.log('[Checklist] Encontrados blocos:', checklistBlocks.length);
-
-    const checklistData = Array.from(checklistBlocks).map(block => {
-      const title = block.querySelector('.checklist-title').textContent;
-      const items = Array.from(block.querySelectorAll('.checklist-item')).map(item => {
-        const text = item.querySelector('.checklist-text').textContent;
-        const isChecked = item.querySelector('.checklist-checkbox').checked;
-        return { text, isChecked };
-      });
-      return { title, items };
-    });
-
-    console.log('[Checklist] Dados a serem salvos:', checklistData);
-    localStorage.setItem('roadmap_checklists', JSON.stringify(checklistData));
-    console.log('[Checklist] Dados salvos com sucesso');
-  } catch (error) {
-    console.error('[Checklist] Erro ao salvar checklists:', error);
-    throw error;
-  }
-}
-
-function loadChecklistsFromStorage() {
-  console.log('[Checklist] Iniciando carregamento dos checklists');
-  try {
-    const savedData = localStorage.getItem('roadmap_checklists');
-    console.log('[Checklist] Dados encontrados:', savedData);
-
-    if (!savedData) {
-      console.log('[Checklist] Nenhum dado encontrado');
-      return false;
-    }
-
-    const checklistData = JSON.parse(savedData);
-    console.log('[Checklist] Dados parseados:', checklistData);
-
-    if (!Array.isArray(checklistData) || checklistData.length === 0) {
-      console.log('[Checklist] Dados inválidos ou vazios');
-      return false;
-    }
-
-    const container = document.getElementById('checklistsContainer');
-    if (!container) {
-      console.error('[Checklist] Container não encontrado');
-      return false;
-    }
-
-    container.innerHTML = '';
-    console.log('[Checklist] Container limpo');
-
-    checklistData.forEach(blockData => {
-      console.log('[Checklist] Criando bloco:', blockData.title);
-      const block = createChecklistBlock(blockData.title, []);
-      if (block) {
-        const ul = block.querySelector('.checklist-list');
-        blockData.items.forEach(item => {
-          console.log('[Checklist] Adicionando item:', item.text);
-          addChecklistItemToBlock(ul, item.text, item.isChecked);
-        });
-        container.appendChild(block);
-      }
-    });
-
-    console.log('[Checklist] Checklists carregados com sucesso');
-    return true;
-  } catch (error) {
-    console.error('[Checklist] Erro ao carregar checklists:', error);
-    return false;
-  }
-}
 
 export function createChecklistItem(text) {
   const li = document.createElement('li');

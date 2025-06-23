@@ -177,13 +177,44 @@ class TripService {
         throw new Error('Acesso negado: apenas o proprietário pode deletar a viagem');
       }
 
-      // Deletar a viagem e todas as subcoleções
+      // Deletar subcoleções antes de deletar o documento principal
+      await this.deleteSubcollection(tripRef, 'tripDays');
+      await this.deleteSubcollection(tripRef, 'tripChecklists');
+      await this.deleteSubcollection(tripRef, 'unassignedPlaces');
+      await this.deleteSubcollection(tripRef, 'tripBudget');
+      // Adicione outras subcoleções se houver
+
+      // Deletar a viagem
       await tripRef.delete();
       
       return { success: true, message: 'Viagem deletada com sucesso' };
     } catch (error) {
       throw new Error(`Erro ao deletar viagem: ${error.message}`);
     }
+  }
+
+  /**
+   * Helper para deletar uma subcoleção inteira
+   */
+  async deleteSubcollection(docRef, subcollectionName) {
+    const subcollectionRef = docRef.collection(subcollectionName);
+    const snapshot = await subcollectionRef.get();
+    
+    if (snapshot.size === 0) {
+      return; // Nada para deletar
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+      // Se houver sub-subcoleções, elas precisam ser deletadas recursivamente
+      // Exemplo: deletar 'checklistItems' de cada 'tripChecklists'
+      if (subcollectionName === 'tripChecklists') {
+        this.deleteSubcollection(doc.ref, 'checklistItems');
+      }
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
   }
 
   /**

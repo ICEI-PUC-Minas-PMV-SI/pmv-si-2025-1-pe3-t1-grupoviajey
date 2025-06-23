@@ -299,6 +299,10 @@ class ApiService {
   async updateChecklistItem(tripId, checklistId, itemId, itemData) {
     return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripChecklist/${checklistId}/checklistItems/${itemId}`, 'PUT', itemData);
   }
+
+  async deleteChecklistItem(tripId, checklistId, itemId) {
+    return this.makeAuthenticatedRequest(`/roadmap/trips/${tripId}/tripChecklist/${checklistId}/checklistItems/${itemId}`, 'DELETE');
+  }
 }
 
 export const apiService = new ApiService(); 

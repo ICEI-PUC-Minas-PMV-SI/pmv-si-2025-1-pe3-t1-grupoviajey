@@ -430,13 +430,18 @@ class RoadmapController {
       const { tripId } = req.params;
       const checklistData = req.body;
 
+      console.log('[Checklist] Criando checklist:', { uid, tripId, checklistData });
+
       const checklist = await roadmapChecklistService.createRoadmapChecklist(uid, tripId, checklistData);
+      
+      console.log('[Checklist] Checklist criado com sucesso:', checklist.id);
       
       res.status(201).json({
         success: true,
         data: checklist
       });
     } catch (error) {
+      console.error('[Checklist] Erro ao criar checklist:', error.message);
       res.status(400).json({
         success: false,
         message: error.message

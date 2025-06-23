@@ -24,6 +24,7 @@ import {
   hideLoading,
   showErrorToast,
   showSuccessToast,
+  showConfirmationModal,
 } from "../../js/utils/ui-utils.js";
 
 // Estado dos modais
@@ -489,6 +490,17 @@ function initPlacesMovedAlertModal() {
 // =============================================
 
 export function initModals() {
+  // Botão de deletar viagem
+  const deleteTripBtn = document.getElementById("deleteTripBtn");
+  if (deleteTripBtn) {
+    deleteTripBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevenir qualquer comportamento padrão do botão
+      showConfirmationModal(
+        "Tem certeza que deseja excluir esta viagem? Esta ação é irreversível.",
+        handleDeleteTrip
+      );
+    });
+  }
   // Eventos de clique para fechar modais (fora do conteúdo)
   window.addEventListener("click", (e) => {
     if (e.target.classList.contains("modal-add-place")) closeAddPlaceModal();
@@ -548,9 +560,11 @@ export function initModals() {
   document
     .getElementById("confirmAddPlaceModal")
     ?.addEventListener("click", handleAddPlaceConfirm);
-  document
-    .getElementById("editTripForm")
-    ?.addEventListener("submit", handleEditTripFormSubmit);
+
+  const editTripForm = document.getElementById("editTripForm");
+  if (editTripForm) {
+    editTripForm.addEventListener("submit", handleEditTripFormSubmit);
+  }
 
   // Lógica de Copiar Link
   const copyShareBtn = document.getElementById("copyShareLinkBtn");
@@ -583,41 +597,58 @@ export function initModals() {
   // Popups
   setupEditPhotoRequirementsPopup();
   initPlacesMovedAlertModal();
+
+  initLocalCardDnD();
+}
+
+async function handleDeleteTrip() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tripId = urlParams.get("tripId");
+  if (!tripId) {
+    showErrorToast("ID da viagem não encontrado.");
+    return;
+  }
+
+  showLoading("Excluindo viagem...");
+  try {
+    const response = await apiService.deleteTrip(tripId);
+    // O deleteTrip no backend não retorna um objeto com `success`, apenas status 200 ou erro
+    // A própria apiService já trata o erro se a resposta não for .ok
+    showSuccessToast("Viagem excluída com sucesso!");
+    // Timeout para dar tempo do usuário ver o toast
+    setTimeout(() => {
+      window.location.href = "/pages/user_dashboard/user-dashboard.html";
+    }, 1000);
+  } catch (error) {
+    console.error("Erro ao excluir viagem:", error);
+    showErrorToast(
+      error.message || "Erro ao excluir viagem. Tente novamente."
+    );
+  } finally {
+    hideLoading();
+  }
 }
 
 function setupEditPhotoRequirementsPopup() {
-  const uploadLabel = document.querySelector(".photo-upload-label");
+  const photoInput = document.getElementById("edit-trip-photo");
   const popup = document.getElementById("edit-photo-requirements-popup");
-  const closeBtn = popup?.querySelector(".close-popup");
-  const fileInput = document.getElementById("edit-trip-photo");
+  const closeBtn = document.querySelector(
+    "#edit-photo-requirements-popup .close-popup"
+  );
   const overlay = document.getElementById("edit-photo-requirements-overlay");
 
-  if (uploadLabel && popup && closeBtn && fileInput) {
-    uploadLabel.addEventListener("click", (e) => {
-      e.preventDefault();
-      popup.classList.add("active");
-      popup.style.display = "block";
-      if (overlay) {
-        overlay.style.display = "block";
-        overlay.style.pointerEvents = "none";
-      }
-    });
+  photoInput.addEventListener("click", () => {
+    popup.classList.add("active");
+    overlay.style.display = "block";
+  });
 
-    closeBtn.addEventListener("click", () => {
-      popup.classList.remove("active");
-      if (overlay) {
-        overlay.style.display = "none";
-        overlay.style.pointerEvents = "none";
-      }
-      setTimeout(() => fileInput.click(), 50);
-    });
+  closeBtn.addEventListener("click", () => {
+    popup.classList.remove("active");
+    overlay.style.display = "none";
+  });
 
-    if (overlay) {
-      overlay.addEventListener("click", () => {
-        popup.classList.remove("active");
-        overlay.style.display = "none";
-        overlay.style.pointerEvents = "none";
-      });
-    }
-  }
+  overlay.addEventListener("click", () => {
+    popup.classList.remove("active");
+    overlay.style.display = "none";
+  });
 }
