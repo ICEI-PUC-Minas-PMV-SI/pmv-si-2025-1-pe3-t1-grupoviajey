@@ -79,10 +79,7 @@
 }
 
 .cards-section {
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin: 30px;
+  margin: 80px 30px 40px;
 }
 
 .interactive-cards {
